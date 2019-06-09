@@ -1,0 +1,31 @@
+#pragma once
+
+#include <unordered_map>
+#include <functional>
+#include <redasm/redasm.h>
+
+using namespace REDasm;
+
+namespace MipsRegisterTypes { enum { Cop2Register = 0x00000001, }; }
+
+class MipsQuirks
+{
+    private:
+        typedef std::function<bool(u32, const InstructionPtr&)> DecodeCallback;
+        typedef std::function<void(u32, const InstructionPtr&)> InstructionCallback;
+
+    private:
+        MipsQuirks() = default;
+        static void initOpCodes();
+        static void decodeCop2(u32 data, const InstructionPtr& instruction);
+        static void decodeCtc2(u32 data, const InstructionPtr& instruction);
+        static void decodeCfc2(u32 data, const InstructionPtr& instruction);
+        static bool decodeCop2Opcode(u32 data, const InstructionPtr& instruction);
+
+    public:
+        static bool decode(const BufferView &view, const InstructionPtr& instruction);
+
+    private:
+        static std::unordered_map<u32, DecodeCallback> m_opcodetypes;
+        static std::unordered_map<u32, InstructionCallback> m_cop2map;
+};
