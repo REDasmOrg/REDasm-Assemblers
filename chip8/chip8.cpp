@@ -283,6 +283,6 @@ bool Chip8Assembler::decodeFxxx(u16 opcode, const InstructionPtr &instruction) c
     return true;
 }
 
-REDASM_ASSEMBLER("CHIP-8 Assembler", "Dax", "MIT", R_VERSION(1, 0))
+REDASM_ASSEMBLER("CHIP-8 Assembler", "Dax", "MIT", 1)
 REDASM_LOAD { chip8.plugin = new Chip8Assembler(); return true; }
 REDASM_UNLOAD { chip8.plugin->release(); }

@@ -159,6 +159,6 @@ void MipsAssembler::checkJr(const InstructionPtr &instruction) const
         instruction->type = InstructionType::Stop;
 }
 
-REDASM_ASSEMBLER("MIPS Assembler", "Dax", "MIT", R_VERSION(1, 0))
+REDASM_ASSEMBLER("MIPS Assembler", "Dax", "MIT", 1)
 REDASM_LOAD { mips.plugin = new MipsAssembler(); return true; }
 REDASM_UNLOAD { mips.plugin->release(); }
