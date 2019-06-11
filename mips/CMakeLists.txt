@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(mips)
+project(MIPS)
 find_package(REDasm REQUIRED)
 
 file(GLOB_RECURSE HEADERS *.h*)
