@@ -61,9 +61,9 @@ bool AVR8Assembler::decodeInstruction(const BufferView &view, Instruction *instr
     if(avrinstruction->size != 2)
         opcode = view; // Get the complete 32-bit instruction
 
-    instruction->id = avrinstruction->id;
-    instruction->mnemonic = avrinstruction->mnemonic;
-    instruction->size = avrinstruction->size;
+    instruction->setId(avrinstruction->id);
+    instruction->setMnemonic(avrinstruction->mnemonic.c_str());
+    instruction->setSize(avrinstruction->size);
 
     size_t opidx = 0;
 
