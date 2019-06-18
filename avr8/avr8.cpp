@@ -44,13 +44,13 @@ AVR8Assembler::AVR8Assembler(): Assembler()
 size_t AVR8Assembler::bits() const { return 16; }
 Printer *AVR8Assembler::doCreatePrinter(Disassembler *disassembler) const { return new AVR8Printer(disassembler); }
 
-void AVR8Assembler::compileInstruction(const InstructionPtr &instruction, const AVR8Operand& avrop, size_t opindex)
+void AVR8Assembler::compileInstruction(Instruction *instruction, const AVR8Operand& avrop, size_t opindex)
 {
     if(avrop.tag == AVR8Operands::BranchAddress)
         instruction->targetIdx(opindex);
 }
 
-bool AVR8Assembler::decodeInstruction(const BufferView &view, const InstructionPtr &instruction)
+bool AVR8Assembler::decodeInstruction(const BufferView &view, Instruction *instruction)
 {
     u32 opcode = static_cast<u16>(view); // Try with 16 bits
     const AVR8Instruction* avrinstruction = AVR8Decoder::get(opcode);
@@ -80,7 +80,7 @@ bool AVR8Assembler::decodeInstruction(const BufferView &view, const InstructionP
     return true;
 }
 
-void AVR8Assembler::decodeOperand(u32 opvalue, const InstructionPtr &instruction, const AVR8Operand &avrop, size_t opidx)
+void AVR8Assembler::decodeOperand(u32 opvalue, Instruction *instruction, const AVR8Operand &avrop, size_t opidx)
 {
     u32 opres = 0;
 

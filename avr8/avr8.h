@@ -12,19 +12,19 @@ using namespace REDasm;
 class AVR8Assembler: public Assembler
 {
     private:
-        typedef std::function<bool(u16, const InstructionPtr& instruction)> OpCodeCallback;
+        typedef std::function<bool(u16, Instruction*)> OpCodeCallback;
 
     public:
         AVR8Assembler();
         size_t bits() const override;
 
     private:
-        void compileInstruction(const InstructionPtr& instruction, const AVR8Operand &avrop, size_t opindex);
-        void decodeOperand(u32 opvalue, const InstructionPtr& instruction, const AVR8Operand& avrop, size_t opidx);
+        void compileInstruction(Instruction* instruction, const AVR8Operand &avrop, size_t opindex);
+        void decodeOperand(u32 opvalue, Instruction* instruction, const AVR8Operand& avrop, size_t opidx);
 
     protected:
         Printer* doCreatePrinter(Disassembler* disassembler) const override;
-        bool decodeInstruction(const BufferView &view, const InstructionPtr& instruction) override;
+        bool decodeInstruction(const BufferView &view, Instruction* instruction) override;
 
     private:
         std::unordered_map<u16, OpCodeCallback> m_opcodes;

@@ -97,7 +97,7 @@ void X86Assembler::init(const AssemblerRequest &request)
 
 Printer *X86Assembler::doCreatePrinter(Disassembler *disassembler) const { return new X86Printer(disassembler); }
 
-void X86Assembler::onDecoded(const InstructionPtr &instruction)
+void X86Assembler::onDecoded(Instruction *instruction)
 {
     CapstoneAssembler::onDecoded(instruction);
 
@@ -217,9 +217,9 @@ bool X86Assembler::isIP(register_id_t reg) const
     return false;
 }
 
-void X86Assembler::setBranchTarget(const InstructionPtr& instruction) { instruction->targetIdx(0); }
+void X86Assembler::setBranchTarget(Instruction *instruction) { instruction->targetIdx(0); }
 
-void X86Assembler::checkLea(const InstructionPtr &instruction)
+void X86Assembler::checkLea(Instruction *instruction)
 {
     instruction->type = InstructionType::Load;
     Operand* op1 = instruction->op(1);
@@ -230,7 +230,7 @@ void X86Assembler::checkLea(const InstructionPtr &instruction)
     op1->type = OperandType::Immediate;
 }
 
-void X86Assembler::compareOp1(const InstructionPtr &instruction)
+void X86Assembler::compareOp1(Instruction *instruction)
 {
     instruction->type = InstructionType::Compare;
     Operand* op1 = instruction->op(1);

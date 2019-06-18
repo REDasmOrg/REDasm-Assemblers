@@ -14,12 +14,12 @@ class X86Assembler: public CapstoneAssembler
 
     protected:
         Printer* doCreatePrinter(Disassembler* disassembler) const override;
-        void onDecoded(const InstructionPtr& instruction) override;
+        void onDecoded(Instruction* instruction) override;
 
     private:
-        void setBranchTarget(const InstructionPtr& instruction);
-        void checkLea(const InstructionPtr& instruction);
-        void compareOp1(const InstructionPtr& instruction);
+        void setBranchTarget(Instruction* instruction);
+        void checkLea(Instruction* instruction);
+        void compareOp1(Instruction* instruction);
         s64 bpIndex(s64 disp, OperandType &type) const;
         s64 spIndex(s64 disp) const;
         bool isSP(register_id_t reg) const;

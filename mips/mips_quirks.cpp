@@ -12,7 +12,7 @@
 std::unordered_map<u32, MipsQuirks::DecodeCallback> MipsQuirks::m_opcodetypes;
 std::unordered_map<u32, MipsQuirks::InstructionCallback> MipsQuirks::m_cop2map;
 
-bool MipsQuirks::decode(const BufferView &view, const InstructionPtr &instruction)
+bool MipsQuirks::decode(const BufferView &view, Instruction *instruction)
 {
     initOpCodes();
 
@@ -25,7 +25,7 @@ bool MipsQuirks::decode(const BufferView &view, const InstructionPtr &instructio
     return false;
 }
 
-bool MipsQuirks::decodeCop2Opcode(u32 data, const InstructionPtr &instruction)
+bool MipsQuirks::decodeCop2Opcode(u32 data, Instruction *instruction)
 {
     if(data & COP2_INS_COP2)
     {
@@ -61,28 +61,28 @@ void MipsQuirks::initOpCodes()
     }
 }
 
-void MipsQuirks::decodeCop2(u32 data, const InstructionPtr &instruction)
+void MipsQuirks::decodeCop2(u32 data, Instruction *instruction)
 {
-    instruction->mnemonic = "cop2";
-    instruction->size = 4;
+    instruction->setMnemonic("cop2");
+    instruction->setSize(4);
     instruction->imm(data & 0x00FFFFFF);
 }
 
-void MipsQuirks::decodeCtc2(u32 data, const InstructionPtr &instruction)
+void MipsQuirks::decodeCtc2(u32 data, Instruction* instruction)
 {
-    instruction->mnemonic = "ctc2";
-    instruction->size = 4;
+    instruction->setMnemonic("ctc2");
+    instruction->setSize(4);
 
     instruction->reg(CAPSTONE_REG((data & 0x1F0000) >> 16))
-                .reg((data & 0xF800) >> 11, MipsRegisterTypes::Cop2Register);
+               ->reg((data & 0xF800) >> 11, MipsRegisterTypes::Cop2Register);
 }
 
-void MipsQuirks::decodeCfc2(u32 data, const InstructionPtr &instruction)
+void MipsQuirks::decodeCfc2(u32 data, Instruction *instruction)
 {
-    instruction->mnemonic = "cfc2";
-    instruction->size = 4;
+    instruction->setMnemonic("cfc2");
+    instruction->setSize(4);
 
     instruction->reg(CAPSTONE_REG((data & 0x1F0000) >> 16))
-                .reg((data & 0xF800) >> 11, MipsRegisterTypes::Cop2Register);
+               ->reg((data & 0xF800) >> 11, MipsRegisterTypes::Cop2Register);
 
 }

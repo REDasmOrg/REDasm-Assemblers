@@ -113,7 +113,7 @@ void MipsAssembler::init(const AssemblerRequest &request)
 Algorithm *MipsAssembler::doCreateAlgorithm(Disassembler *disassembler) const { return new MipsAlgorithm(disassembler); }
 Printer *MipsAssembler::doCreatePrinter(Disassembler *disassembler) const { return new MipsPrinter(disassembler); }
 
-bool MipsAssembler::decodeInstruction(const BufferView &view, const InstructionPtr &instruction)
+bool MipsAssembler::decodeInstruction(const BufferView &view, Instruction *instruction)
 {
     if(CapstoneAssembler::decodeInstruction(view, instruction))
         return true;
@@ -121,10 +121,10 @@ bool MipsAssembler::decodeInstruction(const BufferView &view, const InstructionP
     return MipsQuirks::decode(view, instruction); // Handle COP2 instructions and more
 }
 
-void MipsAssembler::onDecoded(const InstructionPtr &instruction)
+void MipsAssembler::onDecoded(Instruction *instruction)
 {
     CapstoneAssembler::onDecoded(instruction);
-    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->meta.userdata);
+    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userData());
 
     if(!insn)
         return;
@@ -144,19 +144,19 @@ void MipsAssembler::onDecoded(const InstructionPtr &instruction)
     }
 }
 
-void MipsAssembler::setTargetOp0(const InstructionPtr &instruction) const { instruction->targetIdx(0); }
-void MipsAssembler::setTargetOp1(const InstructionPtr &instruction) const { instruction->targetIdx(1); }
-void MipsAssembler::setTargetOp2(const InstructionPtr &instruction) const { instruction->targetIdx(2); }
+void MipsAssembler::setTargetOp0(Instruction *instruction) const { instruction->targetIdx(0); }
+void MipsAssembler::setTargetOp1(Instruction *instruction) const { instruction->targetIdx(1); }
+void MipsAssembler::setTargetOp2(Instruction *instruction) const { instruction->targetIdx(2); }
 
-void MipsAssembler::checkJr(const InstructionPtr &instruction) const
+void MipsAssembler::checkJr(Instruction *instruction) const
 {
     if(instruction->op(0)->reg.r != MIPS_REG_RA)
     {
-        instruction->type = InstructionType::Jump;
+        instruction->type() = InstructionType::Jump;
         instruction->op(0)->asTarget();
     }
     else
-        instruction->type = InstructionType::Stop;
+        instruction->type() = InstructionType::Stop;
 }
 
 REDASM_ASSEMBLER("MIPS", "Dax", "MIT", 1)

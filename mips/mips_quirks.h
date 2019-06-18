@@ -11,19 +11,19 @@ namespace MipsRegisterTypes { enum { Cop2Register = 0x00000001, }; }
 class MipsQuirks
 {
     private:
-        typedef std::function<bool(u32, const InstructionPtr&)> DecodeCallback;
-        typedef std::function<void(u32, const InstructionPtr&)> InstructionCallback;
+        typedef std::function<bool(u32, Instruction*)> DecodeCallback;
+        typedef std::function<void(u32, Instruction*)> InstructionCallback;
 
     private:
         MipsQuirks() = default;
         static void initOpCodes();
-        static void decodeCop2(u32 data, const InstructionPtr& instruction);
-        static void decodeCtc2(u32 data, const InstructionPtr& instruction);
-        static void decodeCfc2(u32 data, const InstructionPtr& instruction);
-        static bool decodeCop2Opcode(u32 data, const InstructionPtr& instruction);
+        static void decodeCop2(u32 data, Instruction* instruction);
+        static void decodeCtc2(u32 data, Instruction* instruction);
+        static void decodeCfc2(u32 data, Instruction* instruction);
+        static bool decodeCop2Opcode(u32 data, Instruction* instruction);
 
     public:
-        static bool decode(const BufferView &view, const InstructionPtr& instruction);
+        static bool decode(const BufferView &view, Instruction* instruction);
 
     private:
         static std::unordered_map<u32, DecodeCallback> m_opcodetypes;

@@ -15,13 +15,13 @@ class MipsAssembler: public CapstoneAssembler
     protected:
         Algorithm* doCreateAlgorithm(Disassembler* disassembler) const override;
         Printer* doCreatePrinter(Disassembler* disassembler) const override;
-        bool decodeInstruction(const BufferView &view, const InstructionPtr &instruction) override;
-        void onDecoded(const InstructionPtr &instruction) override;
+        bool decodeInstruction(const BufferView &view, Instruction* instruction) override;
+        void onDecoded(Instruction* instruction) override;
 
     private:
-        void setTargetOp0(const InstructionPtr& instruction) const;
-        void setTargetOp1(const InstructionPtr& instruction) const;
-        void setTargetOp2(const InstructionPtr& instruction) const;
-        void checkJr(const InstructionPtr& instruction) const;
+        void setTargetOp0(Instruction* instruction) const;
+        void setTargetOp1(Instruction* instruction) const;
+        void setTargetOp2(Instruction* instruction) const;
+        void checkJr(Instruction* instruction) const;
 };
 

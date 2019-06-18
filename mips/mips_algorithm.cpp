@@ -8,12 +8,12 @@ MipsAlgorithm::MipsAlgorithm(Disassembler *disassembler): ControlFlowAlgorithm(d
     m_delayslotinstructions.insert(MIPS_INS_JR);
 }
 
-void MipsAlgorithm::onDecoded(const InstructionPtr &instruction)
+void MipsAlgorithm::onDecoded(Instruction* instruction)
 {
-    if(m_pendingdelayslots.find(instruction->address) != m_pendingdelayslots.end())
+    if(m_pendingdelayslots.find(instruction->address()) != m_pendingdelayslots.end())
     {
         Algorithm::onDecoded(instruction);
-        m_pendingdelayslots.erase(instruction->address);
+        m_pendingdelayslots.erase(instruction->address());
 
         if(instruction->is(InstructionType::Stop))
             return;
@@ -21,7 +21,7 @@ void MipsAlgorithm::onDecoded(const InstructionPtr &instruction)
 
     ControlFlowAlgorithm::onDecoded(instruction);
 
-    if(m_delayslotinstructions.find(instruction->id) != m_delayslotinstructions.end())
+    if(m_delayslotinstructions.find(instruction->id()) != m_delayslotinstructions.end())
     {
         m_pendingdelayslots.insert(instruction->endAddress());
         this->enqueue(instruction->endAddress());

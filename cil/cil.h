@@ -12,5 +12,5 @@ class CILAssembler : public Assembler
         size_t bits() const override;
 
     protected:
-        bool decodeInstruction(const BufferView &view, const InstructionPtr& instruction) override;
+        bool decodeInstruction(const BufferView &view, Instruction* instruction) override;
 };
