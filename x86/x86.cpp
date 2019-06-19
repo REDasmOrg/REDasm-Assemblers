@@ -1,6 +1,6 @@
 #include "x86.h"
 #include "x86_printer.h"
-#include <redasm/libs/capstone/capstone.h>
+#include <capstone/capstone.h>
 #include <redasm/support/utils.h>
 
 #define X86_REGISTER(reg) ((reg == X86_REG_INVALID) ? REGISTER_INVALID : reg)
@@ -101,7 +101,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
 {
     CapstoneAssembler::onDecoded(instruction);
 
-    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->meta.userdata);
+    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userData());
     const cs_x86& x86 = insn->detail->x86;
 
     for(size_t i = 0; i < x86.op_count; i++)
@@ -128,7 +128,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
                     instruction->disp(X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.scale, mem.disp);
             }
             else if((mem.index == X86_REG_INVALID) && this->isIP(mem.base)) // Handle case [xip + disp]
-                instruction->mem(instruction->address + instruction->size + mem.disp);
+                instruction->mem(instruction->address() + instruction->size() + mem.disp);
             else if((mem.index == X86_REG_INVALID) && (mem.base == X86_REG_INVALID)) // Handle case [disp]
                 instruction->mem(mem.disp);
             else
@@ -221,7 +221,7 @@ void X86Assembler::setBranchTarget(Instruction *instruction) { instruction->targ
 
 void X86Assembler::checkLea(Instruction *instruction)
 {
-    instruction->type = InstructionType::Load;
+    instruction->setType(InstructionType::Load);
     Operand* op1 = instruction->op(1);
 
     if(!op1->is(OperandType::Memory))
@@ -232,7 +232,7 @@ void X86Assembler::checkLea(Instruction *instruction)
 
 void X86Assembler::compareOp1(Instruction *instruction)
 {
-    instruction->type = InstructionType::Compare;
+    instruction->setType(InstructionType::Compare);
     Operand* op1 = instruction->op(1);
     op1->checkCharacter();
 }
