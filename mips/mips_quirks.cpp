@@ -63,15 +63,15 @@ void MipsQuirks::initOpCodes()
 
 void MipsQuirks::decodeCop2(u32 data, Instruction *instruction)
 {
-    instruction->setMnemonic("cop2");
-    instruction->setSize(4);
+    instruction->mnemonic = "cop2";
+    instruction->size = 4;
     instruction->imm(data & 0x00FFFFFF);
 }
 
 void MipsQuirks::decodeCtc2(u32 data, Instruction* instruction)
 {
-    instruction->setMnemonic("ctc2");
-    instruction->setSize(4);
+    instruction->mnemonic = "ctc2";
+    instruction->size = 4;
 
     instruction->reg(CAPSTONE_REG((data & 0x1F0000) >> 16))
                ->reg((data & 0xF800) >> 11, MipsRegisterTypes::Cop2Register);
@@ -79,8 +79,8 @@ void MipsQuirks::decodeCtc2(u32 data, Instruction* instruction)
 
 void MipsQuirks::decodeCfc2(u32 data, Instruction *instruction)
 {
-    instruction->setMnemonic("cfc2");
-    instruction->setSize(4);
+    instruction->mnemonic = "cfc2";
+    instruction->size = 4;
 
     instruction->reg(CAPSTONE_REG((data & 0x1F0000) >> 16))
                ->reg((data & 0xF800) >> 11, MipsRegisterTypes::Cop2Register);

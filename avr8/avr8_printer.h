@@ -8,5 +8,5 @@ class AVR8Printer: public Printer
 {
     public:
         AVR8Printer(Disassembler* disassembler);
-        std::string reg(const RegisterOperand &regop) const override;
+        String reg(const RegisterOperand &regop) const override;
 };

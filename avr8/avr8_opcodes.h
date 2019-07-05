@@ -1,6 +1,6 @@
 #pragma once
 
-#include <redasm/types/base_types.h>
+#include <redasm/types/base.h>
 
 namespace REDasm {
 

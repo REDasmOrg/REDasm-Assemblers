@@ -89,7 +89,7 @@ void X86Assembler::init(const AssemblerRequest &request)
     else
     {
         if(!request.modeIs("x86_32"))
-            r_ctx->log("Unknown mode: " + Utils::quoted(request.mode) + ", falling back to x86_32");
+            r_ctx->log("Unknown mode: " + String(request.mode).quoted() + ", falling back to x86_32");
 
         this->open(CS_ARCH_X86, CS_MODE_32);
     }
@@ -128,7 +128,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
                     instruction->disp(X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.scale, mem.disp);
             }
             else if((mem.index == X86_REG_INVALID) && this->isIP(mem.base)) // Handle case [xip + disp]
-                instruction->mem(instruction->address() + instruction->size() + mem.disp);
+                instruction->mem(instruction->address + instruction->size + mem.disp);
             else if((mem.index == X86_REG_INVALID) && (mem.base == X86_REG_INVALID)) // Handle case [disp]
                 instruction->mem(mem.disp);
             else
@@ -221,7 +221,7 @@ void X86Assembler::setBranchTarget(Instruction *instruction) { instruction->targ
 
 void X86Assembler::checkLea(Instruction *instruction)
 {
-    instruction->setType(InstructionType::Load);
+    instruction->type = InstructionType::Load;
     Operand* op1 = instruction->op(1);
 
     if(!op1->is(OperandType::Memory))
@@ -232,7 +232,7 @@ void X86Assembler::checkLea(Instruction *instruction)
 
 void X86Assembler::compareOp1(Instruction *instruction)
 {
-    instruction->setType(InstructionType::Compare);
+    instruction->type = InstructionType::Compare;
     Operand* op1 = instruction->op(1);
     op1->checkCharacter();
 }

@@ -105,7 +105,7 @@ void MipsAssembler::init(const AssemblerRequest &request)
         this->open(CS_ARCH_MIPS, CS_MODE_MICRO | CS_MODE_LITTLE_ENDIAN);
     else
     {
-        r_ctx->log("Unknown mode: " + Utils::quoted(request.mode) + ", falling back to MIPS32 Little Endian");
+        r_ctx->log("Unknown mode: " + String(request.mode).quoted() + ", falling back to MIPS32 Little Endian");
         this->open(CS_ARCH_MIPS, CS_MODE_MIPS32 | CS_MODE_LITTLE_ENDIAN);
     }
 }
@@ -152,11 +152,11 @@ void MipsAssembler::checkJr(Instruction *instruction) const
 {
     if(instruction->op(0)->reg.r != MIPS_REG_RA)
     {
-        instruction->type() = InstructionType::Jump;
+        instruction->type = InstructionType::Jump;
         instruction->op(0)->asTarget();
     }
     else
-        instruction->type() = InstructionType::Stop;
+        instruction->type = InstructionType::Stop;
 }
 
 REDASM_ASSEMBLER("MIPS", "Dax", "MIT", 1)

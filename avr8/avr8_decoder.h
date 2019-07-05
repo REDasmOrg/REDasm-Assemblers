@@ -3,7 +3,7 @@
 #include <forward_list>
 #include <string>
 #include <list>
-#include <redasm/types/base_types.h>
+#include <redasm/types/base.h>
 
 namespace REDasm {
 
