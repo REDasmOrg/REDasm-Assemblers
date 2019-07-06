@@ -8,7 +8,7 @@ MipsAlgorithm::MipsAlgorithm(Disassembler *disassembler): ControlFlowAlgorithm(d
     m_delayslotinstructions.insert(MIPS_INS_JR);
 }
 
-void MipsAlgorithm::onDecoded(Instruction* instruction)
+void MipsAlgorithm::onDecoded(const CachedInstruction &instruction)
 {
     if(m_pendingdelayslots.find(instruction->address) != m_pendingdelayslots.end())
     {

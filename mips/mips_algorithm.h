@@ -10,7 +10,7 @@ class MipsAlgorithm : public ControlFlowAlgorithm
         MipsAlgorithm(Disassembler* disassembler);
 
     protected:
-        virtual void onDecoded(Instruction *instruction);
+        void onDecoded(const CachedInstruction& instruction) override;
 
     private:
         std::set<address_t> m_pendingdelayslots;
