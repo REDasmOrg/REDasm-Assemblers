@@ -1,7 +1,8 @@
 #include "x86.h"
 #include "x86_printer.h"
-#include <capstone/capstone.h>
+#include <redasm/disassembler/listing/listingdocumentiterator.h>
 #include <redasm/support/utils.h>
+#include <capstone/capstone.h>
 
 #define X86_REGISTER(reg) ((reg == X86_REG_INVALID) ? REGISTER_INVALID : reg)
 
@@ -93,6 +94,22 @@ void X86Assembler::init(const AssemblerRequest &request)
 
         this->open(CS_ARCH_X86, CS_MODE_32);
     }
+}
+
+Symbol *X86Assembler::findTrampoline(ListingDocumentIterator *it) const
+{
+    const ListingItem* item = it->next();
+    CachedInstruction instruction = r_document->instruction(item->address());
+
+    if(!instruction->is(InstructionType::Jump))
+        return nullptr;
+
+    auto target = r_disassembler->getTarget(item->address());
+
+    if(!target.valid)
+        return nullptr;
+
+    return r_document->symbol(target);
 }
 
 Printer *X86Assembler::doCreatePrinter(Disassembler *disassembler) const { return new X86Printer(disassembler); }
