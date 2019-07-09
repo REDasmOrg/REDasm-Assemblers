@@ -1,10 +1,8 @@
 #include "metaarm.h"
-#include "metaarm_algorithm.h"
-#include "metaarm_printer.h"
-#include "../arm/arm.h"
 #include "../arm/arm_thumb.h"
+#include "../arm/arm.h"
 
-MetaARMAssembler::MetaARMAssembler(): Assembler()
+MetaARMAssembler::MetaARMAssembler(): ARMAbstractAssembler()
 {
     m_armassembler = new ARMAssembler();
     m_thumbassembler = new ARMThumbAssembler();
@@ -28,8 +26,6 @@ u64 MetaARMAssembler::pc(const Instruction* instruction) const
     return m_armassembler->pc(instruction);
 }
 
-Algorithm *MetaARMAssembler::doCreateAlgorithm(Disassembler *disassembler) const { return new MetaARMAlgorithm(disassembler);  }
-Printer *MetaARMAssembler::doCreatePrinter(Disassembler *disassembler) const { return new MetaARMPrinter(disassembler);  }
 ARMAssembler *MetaARMAssembler::armAssembler() { return m_armassembler; }
 ARMThumbAssembler *MetaARMAssembler::thumbAssembler() { return m_thumbassembler; }
 bool MetaARMAssembler::isPC(const Operand *op) const { return m_armassembler->isPC(op); }

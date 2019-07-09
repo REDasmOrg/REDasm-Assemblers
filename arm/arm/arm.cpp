@@ -1,6 +1,5 @@
 #include "arm.h"
 #include "arm_common.h"
-#include "../metaarm/metaarm_printer.h"
 #include <capstone/capstone.h>
 
 ARMAssembler::ARMAssembler(): ARMCommonAssembler() { }
@@ -19,4 +18,3 @@ u64 ARMAssembler::pc(const Instruction *instruction) const
 }
 
 void ARMAssembler::init(const AssemblerRequest &req) { this->open(CS_ARCH_ARM, CS_MODE_ARM); }
-Printer *ARMAssembler::doCreatePrinter(Disassembler *disassembler) const { return new MetaARMPrinter(disassembler); }

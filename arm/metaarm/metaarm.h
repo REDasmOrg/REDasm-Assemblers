@@ -15,10 +15,6 @@ class MetaARMAssembler: public Assembler, public ARMAbstractAssembler
         bool decode(const BufferView& view, Instruction *instruction) override;
         u64 pc(const Instruction *instruction) const override;
 
-    protected:
-        Algorithm* doCreateAlgorithm(Disassembler* disassembler) const override;
-        Printer* doCreatePrinter(Disassembler* disassembler) const override;
-
     public:
         ARMAssembler* armAssembler();
         ARMThumbAssembler* thumbAssembler();
@@ -33,4 +29,6 @@ class MetaARMAssembler: public Assembler, public ARMAbstractAssembler
         ARMAssembler* m_armassembler;
         ARMThumbAssembler* m_thumbassembler;
         Assembler* m_assembler;
+
+    friend class ARMProxyAssembler;
 };

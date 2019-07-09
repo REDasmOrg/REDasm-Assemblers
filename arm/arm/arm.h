@@ -9,7 +9,4 @@ class ARMAssembler: public ARMCommonAssembler
         size_t bits() const override;
         u64 pc(const Instruction* instruction) const override;
         void init(const AssemblerRequest& req) override;
-
-    protected:
-        Printer* doCreatePrinter(Disassembler* disassembler) const override;
 };

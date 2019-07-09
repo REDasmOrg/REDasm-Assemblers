@@ -1,5 +1,7 @@
 #include "arm_common.h"
 #include <capstone/capstone.h>
+#include <redasm/disassembler/listing/listingdocumentiterator.h>
+#include <redasm/redasm.h>
 
 ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
 {
@@ -28,6 +30,43 @@ ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
 ARMCommonAssembler::~ARMCommonAssembler() { }
 bool ARMCommonAssembler::isPC(const Operand *op) const { return op && (op->is(OperandType::Register) && this->isPC(op->reg.r)); }
 bool ARMCommonAssembler::isLR(const Operand *op) const { return op && (op->is(OperandType::Register) && this->isLR(op->reg.r)); }
+
+Symbol *ARMCommonAssembler::findTrampoline(ListingDocumentIterator *it) const
+{
+    const ListingItem* item = it->next();
+    CachedInstruction instruction1 = r_document->instruction(item->address());
+
+    if(!it->hasNext())
+        return nullptr;
+
+    item = it->next();
+
+    if(!item->is(ListingItemType::InstructionItem))
+        return nullptr;
+
+    const CachedInstruction& instruction2 = r_document->instruction(item->address());
+
+    if(!instruction1 || !instruction2 || instruction1->isInvalid() || instruction2->isInvalid())
+        return nullptr;
+
+    if((instruction1->mnemonic != "ldr") || (instruction2->mnemonic != "ldr"))
+        return nullptr;
+
+    if(!instruction1->op(1)->is(OperandType::Memory) || (instruction2->op(0)->reg.r != ARM_REG_PC))
+        return nullptr;
+
+    u64 target = instruction1->op(1)->u_value, importaddress = 0;
+
+    if(!r_disassembler->readAddress(target, sizeof(u32), &importaddress))
+        return nullptr;
+
+    Symbol *symbol = r_document->symbol(target), *impsymbol = r_document->symbol(importaddress);
+
+    if(symbol && impsymbol)
+        r_document->lock(symbol->address, "imp." + impsymbol->name);
+
+    return impsymbol;
+}
 
 void ARMCommonAssembler::onDecoded(Instruction* instruction)
 {
