@@ -11,12 +11,12 @@ size_t ARMProxyAssembler::bits() const { return m_armassembler->bits(); }
 
 void ARMProxyAssembler::init(const AssemblerRequest &request)
 {
-    if(request.modeIs("arm"))
-        m_armassembler = std::make_unique<ARMAssembler>();
+    if(request.modeIs("armthumb"))
+        m_armassembler = std::make_unique<MetaARMAssembler>();
     else if(request.modeIs("thumb"))
         m_armassembler = std::make_unique<ARMThumbAssembler>();
     else
-        m_armassembler = std::make_unique<MetaARMAssembler>();
+        m_armassembler = std::make_unique<ARMAssembler>();
 
     m_armassembler->init(request);
 }
