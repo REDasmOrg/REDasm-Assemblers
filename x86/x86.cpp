@@ -184,13 +184,7 @@ s64 X86Assembler::bpIndex(s64 disp, OperandType& type) const
     return disp;
 }
 
-s64 X86Assembler::spIndex(s64 disp) const
-{
-    if(disp <= 0)
-        return -1;
-
-    return disp;
-}
+s64 X86Assembler::spIndex(s64 disp) const { return (disp <= 0) ? -1 : disp; }
 
 bool X86Assembler::isSP(register_id_t reg) const
 {
