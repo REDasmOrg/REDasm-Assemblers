@@ -23,15 +23,15 @@ void ARMProxyAssembler::init(const AssemblerRequest &request)
 
 bool ARMProxyAssembler::decode(const BufferView &view, Instruction *instruction) { return m_armassembler->decode(view, instruction); }
 
-Algorithm *ARMProxyAssembler::doCreateAlgorithm(Disassembler *disassembler) const
+Algorithm *ARMProxyAssembler::doCreateAlgorithm() const
 {
     if(dynamic_cast<MetaARMAssembler*>(m_armassembler.get()))
-        return new MetaARMAlgorithm(disassembler);
+        return new MetaARMAlgorithm();
 
-    return Assembler::doCreateAlgorithm(disassembler);
+    return Assembler::doCreateAlgorithm();
 }
 
-Printer *ARMProxyAssembler::doCreatePrinter(Disassembler *disassembler) const { return new MetaARMPrinter(disassembler); }
+Printer *ARMProxyAssembler::doCreatePrinter() const { return new MetaARMPrinter(); }
 
 REDASM_ASSEMBLER("ARM", "Dax", "MIT", 1)
 REDASM_LOAD { arm.plugin = new ARMProxyAssembler(); return true; }

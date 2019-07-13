@@ -1,6 +1,6 @@
 #include "x86_printer.h"
 
-X86Printer::X86Printer(Disassembler *disassembler): CapstonePrinter(disassembler) { }
+X86Printer::X86Printer(): CapstonePrinter() { }
 
 String X86Printer::loc(const Operand* op) const
 {

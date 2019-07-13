@@ -14,7 +14,7 @@ class X86Assembler: public CapstoneAssembler
         Symbol* findTrampoline(ListingDocumentIterator* it) const override;
 
     protected:
-        Printer* doCreatePrinter(Disassembler* disassembler) const override;
+        Printer* doCreatePrinter() const override;
         void onDecoded(Instruction* instruction) override;
 
     private:

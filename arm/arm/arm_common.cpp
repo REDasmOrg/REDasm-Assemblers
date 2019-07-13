@@ -34,7 +34,7 @@ bool ARMCommonAssembler::isLR(const Operand *op) const { return op && (op->is(Op
 Symbol *ARMCommonAssembler::findTrampoline(ListingDocumentIterator *it) const
 {
     const ListingItem* item = it->next();
-    CachedInstruction instruction1 = r_document->instruction(item->address());
+    CachedInstruction instruction1 = r_doc->instruction(item->address());
 
     if(!it->hasNext())
         return nullptr;
@@ -44,7 +44,7 @@ Symbol *ARMCommonAssembler::findTrampoline(ListingDocumentIterator *it) const
     if(!item->is(ListingItemType::InstructionItem))
         return nullptr;
 
-    const CachedInstruction& instruction2 = r_document->instruction(item->address());
+    const CachedInstruction& instruction2 = r_doc->instruction(item->address());
 
     if(!instruction1 || !instruction2 || instruction1->isInvalid() || instruction2->isInvalid())
         return nullptr;
@@ -57,13 +57,13 @@ Symbol *ARMCommonAssembler::findTrampoline(ListingDocumentIterator *it) const
 
     u64 target = instruction1->op(1)->u_value, importaddress = 0;
 
-    if(!r_disassembler->readAddress(target, sizeof(u32), &importaddress))
+    if(!r_disasm->readAddress(target, sizeof(u32), &importaddress))
         return nullptr;
 
-    Symbol *symbol = r_document->symbol(target), *impsymbol = r_document->symbol(importaddress);
+    Symbol *symbol = r_doc->symbol(target), *impsymbol = r_doc->symbol(importaddress);
 
     if(symbol && impsymbol)
-        r_document->lock(symbol->address, "imp." + impsymbol->name);
+        r_doc->lock(symbol->address, "imp." + impsymbol->name);
 
     return impsymbol;
 }

@@ -7,7 +7,7 @@ using namespace REDasm;
 class MetaARMAlgorithm : public ControlFlowAlgorithm
 {
     public:
-        MetaARMAlgorithm(Disassembler* disassembler);
+        MetaARMAlgorithm();
 
     protected:
         void onEmulatedOperand(const Operand* op, const CachedInstruction& instruction, u64 value) override;

@@ -7,7 +7,7 @@ using namespace REDasm;
 class MipsPrinter : public CapstonePrinter
 {
     public:
-        MipsPrinter(Disassembler* disassembler);
+        MipsPrinter();
         String reg(const RegisterOperand& regop) const override;
         String disp(const Operand* operand) const override;
 };

@@ -23,7 +23,7 @@ class AVR8Assembler: public Assembler
         void decodeOperand(u32 opvalue, Instruction* instruction, const AVR8Operand& avrop, size_t opidx);
 
     protected:
-        Printer* doCreatePrinter(Disassembler* disassembler) const override;
+        Printer* doCreatePrinter() const override;
         bool decodeInstruction(const BufferView &view, Instruction* instruction) override;
 
     private:

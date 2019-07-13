@@ -7,7 +7,7 @@ using namespace REDasm;
 class MipsAlgorithm : public ControlFlowAlgorithm
 {
     public:
-        MipsAlgorithm(Disassembler* disassembler);
+        MipsAlgorithm();
 
     protected:
         void onDecoded(const CachedInstruction& instruction) override;

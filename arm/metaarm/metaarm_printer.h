@@ -7,7 +7,7 @@ using namespace REDasm;
 class MetaARMPrinter: public CapstonePrinter
 {
     public:
-        MetaARMPrinter(Disassembler* disassembler);
+        MetaARMPrinter();
 
     public:
         String size(const Operand* operand) const override;

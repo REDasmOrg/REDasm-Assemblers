@@ -7,6 +7,6 @@ using namespace REDasm;
 class X86Printer: public CapstonePrinter
 {
     public:
-        X86Printer(Disassembler *disassembler);
+        X86Printer();
         virtual String loc(const Operand *op) const;
 };

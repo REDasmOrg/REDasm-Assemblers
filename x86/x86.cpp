@@ -99,20 +99,20 @@ void X86Assembler::init(const AssemblerRequest &request)
 Symbol *X86Assembler::findTrampoline(ListingDocumentIterator *it) const
 {
     const ListingItem* item = it->next();
-    CachedInstruction instruction = r_document->instruction(item->address());
+    CachedInstruction instruction = r_doc->instruction(item->address());
 
     if(!instruction->is(InstructionType::Jump))
         return nullptr;
 
-    auto target = r_disassembler->getTarget(item->address());
+    auto target = r_disasm->getTarget(item->address());
 
     if(!target.valid)
         return nullptr;
 
-    return r_document->symbol(target);
+    return r_doc->symbol(target);
 }
 
-Printer *X86Assembler::doCreatePrinter(Disassembler *disassembler) const { return new X86Printer(disassembler); }
+Printer *X86Assembler::doCreatePrinter() const { return new X86Printer(); }
 
 void X86Assembler::onDecoded(Instruction *instruction)
 {

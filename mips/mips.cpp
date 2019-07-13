@@ -110,8 +110,8 @@ void MipsAssembler::init(const AssemblerRequest &request)
     }
 }
 
-Algorithm *MipsAssembler::doCreateAlgorithm(Disassembler *disassembler) const { return new MipsAlgorithm(disassembler); }
-Printer *MipsAssembler::doCreatePrinter(Disassembler *disassembler) const { return new MipsPrinter(disassembler); }
+Algorithm *MipsAssembler::doCreateAlgorithm() const { return new MipsAlgorithm(); }
+Printer *MipsAssembler::doCreatePrinter() const { return new MipsPrinter(); }
 
 bool MipsAssembler::decodeInstruction(const BufferView &view, Instruction *instruction)
 {

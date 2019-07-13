@@ -42,7 +42,7 @@ AVR8Assembler::AVR8Assembler(): Assembler()
 }
 
 size_t AVR8Assembler::bits() const { return 16; }
-Printer *AVR8Assembler::doCreatePrinter(Disassembler *disassembler) const { return new AVR8Printer(disassembler); }
+Printer *AVR8Assembler::doCreatePrinter() const { return new AVR8Printer(); }
 
 void AVR8Assembler::compileInstruction(Instruction *instruction, const AVR8Operand& avrop, size_t opindex)
 {

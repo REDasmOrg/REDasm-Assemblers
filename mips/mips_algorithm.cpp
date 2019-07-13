@@ -1,7 +1,7 @@
 #include "mips_algorithm.h"
 #include <capstone/capstone.h>
 
-MipsAlgorithm::MipsAlgorithm(Disassembler *disassembler): ControlFlowAlgorithm(disassembler)
+MipsAlgorithm::MipsAlgorithm(): ControlFlowAlgorithm()
 {
     m_delayslotinstructions.insert(MIPS_INS_J);
     m_delayslotinstructions.insert(MIPS_INS_JAL);

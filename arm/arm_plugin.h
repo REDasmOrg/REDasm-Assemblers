@@ -13,8 +13,8 @@ class ARMProxyAssembler: public Assembler
         bool decode(const BufferView& view, Instruction *instruction) override;
 
     protected:
-        Algorithm * doCreateAlgorithm(Disassembler *disassembler) const override;
-        Printer* doCreatePrinter(Disassembler *disassembler) const override;
+        Algorithm * doCreateAlgorithm() const override;
+        Printer* doCreatePrinter() const override;
 
     private:
         std::unique_ptr<Assembler> m_armassembler;

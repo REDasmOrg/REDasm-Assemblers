@@ -13,8 +13,8 @@ class MipsAssembler: public CapstoneAssembler
         void init(const AssemblerRequest &request) override;
 
     protected:
-        Algorithm* doCreateAlgorithm(Disassembler* disassembler) const override;
-        Printer* doCreatePrinter(Disassembler* disassembler) const override;
+        Algorithm* doCreateAlgorithm() const override;
+        Printer* doCreatePrinter() const override;
         bool decodeInstruction(const BufferView &view, Instruction* instruction) override;
         void onDecoded(Instruction* instruction) override;
 

@@ -3,13 +3,14 @@
 #include "metaarm_isa.h"
 #include <redasm/disassembler/disassembler.h>
 #include <redasm/plugins/loader/loader.h>
+#include <redasm/redasm.h>
 #include <capstone/capstone.h>
 
-MetaARMAlgorithm::MetaARMAlgorithm(Disassembler *disassembler): ControlFlowAlgorithm(disassembler) { }
+MetaARMAlgorithm::MetaARMAlgorithm(): ControlFlowAlgorithm() { }
 
 void MetaARMAlgorithm::onEmulatedOperand(const Operand *op, const CachedInstruction &instruction, u64 value)
 {
-    auto* metaarm = dynamic_cast<MetaARMAssembler*>(this->disassembler()->assembler());
+    auto* metaarm = dynamic_cast<MetaARMAssembler*>(r_asm);
 
     if(metaarm->isPC(op) || metaarm->isLR(op)) // Don't generate references for PC/LR registers
         return;
@@ -25,7 +26,7 @@ void MetaARMAlgorithm::enqueueTarget(address_t target, const CachedInstruction &
 
 void MetaARMAlgorithm::decodeState(const State *state)
 {
-    auto* metaarm = dynamic_cast<MetaARMAssembler*>(this->disassembler()->assembler());
+    auto* metaarm = dynamic_cast<MetaARMAssembler*>(r_asm);
 
     if(state->address & 0x1)
     {
@@ -35,8 +36,8 @@ void MetaARMAlgorithm::decodeState(const State *state)
     }
 
     int res = MetaARMAssemblerISA::classify(state->address,
-                                            this->disassembler()->loader()->view(state->address),
-                                            this->disassembler(),
+                                            r_ldr->view(state->address),
+                                            r_disasm,
                                             metaarm->armAssembler());
 
     if(res == MetaARMAssemblerISA::Thumb)
@@ -59,7 +60,7 @@ void MetaARMAlgorithm::pointerState(const State *state)
 {
     u64 value = 0;
 
-    if(!this->disassembler()->dereference(state->address, &value))
+    if(!r_disasm->dereference(state->address, &value))
     {
         FORWARD_STATE(Algorithm::ImmediateState, state);
         return;

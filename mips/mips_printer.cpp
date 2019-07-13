@@ -1,7 +1,7 @@
 #include "mips_printer.h"
 #include "mips_quirks.h"
 
-MipsPrinter::MipsPrinter(Disassembler *disassembler): CapstonePrinter(disassembler) { }
+MipsPrinter::MipsPrinter(): CapstonePrinter() { }
 
 String MipsPrinter::reg(const RegisterOperand &regop) const
 {
