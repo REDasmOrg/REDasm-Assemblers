@@ -1,6 +1,7 @@
 #pragma once
 
 #include <redasm/plugins/assembler/algorithm/controlflow.h>
+#include <set>
 
 using namespace REDasm;
 
