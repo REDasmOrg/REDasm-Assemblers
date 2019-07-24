@@ -1,6 +1,5 @@
 #include "x86.h"
 #include "x86_printer.h"
-#include <redasm/disassembler/listing/listingdocumentiterator.h>
 #include <redasm/support/utils.h>
 #include <capstone/capstone.h>
 
@@ -96,9 +95,9 @@ void X86Assembler::init(const AssemblerRequest &request)
     }
 }
 
-Symbol *X86Assembler::findTrampoline(ListingDocumentIterator *it) const
+Symbol *X86Assembler::findTrampoline(size_t index) const
 {
-    const ListingItem* item = it->next();
+    const ListingItem* item = r_doc->itemAt(index);
     CachedInstruction instruction = r_doc->instruction(item->address());
 
     if(!instruction->is(InstructionType::Jump))

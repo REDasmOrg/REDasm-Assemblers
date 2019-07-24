@@ -11,7 +11,7 @@ class X86Assembler: public CapstoneAssembler
         X86Assembler();
         size_t bits() const override;
         void init(const AssemblerRequest &request) override;
-        Symbol* findTrampoline(ListingDocumentIterator* it) const override;
+        Symbol* findTrampoline(size_t index) const override;
 
     protected:
         Printer* doCreatePrinter() const override;

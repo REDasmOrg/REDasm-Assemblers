@@ -1,6 +1,5 @@
 #include "arm_common.h"
 #include <capstone/capstone.h>
-#include <redasm/disassembler/listing/listingdocumentiterator.h>
 #include <redasm/redasm.h>
 
 ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
@@ -31,15 +30,15 @@ ARMCommonAssembler::~ARMCommonAssembler() { }
 bool ARMCommonAssembler::isPC(const Operand *op) const { return op && (op->is(OperandType::Register) && this->isPC(op->reg.r)); }
 bool ARMCommonAssembler::isLR(const Operand *op) const { return op && (op->is(OperandType::Register) && this->isLR(op->reg.r)); }
 
-Symbol *ARMCommonAssembler::findTrampoline(ListingDocumentIterator *it) const
+Symbol *ARMCommonAssembler::findTrampoline(size_t index) const
 {
-    const ListingItem* item = it->next();
+    const ListingItem* item = r_doc->itemAt(index++);
     CachedInstruction instruction1 = r_doc->instruction(item->address());
 
-    if(!it->hasNext())
+    if(index >= r_doc->size())
         return nullptr;
 
-    item = it->next();
+    item = r_doc->itemAt(index);
 
     if(!item->is(ListingItemType::InstructionItem))
         return nullptr;
@@ -115,11 +114,9 @@ void ARMCommonAssembler::checkStop(Instruction* instruction) const
     if(arm.cc != ARM_CC_AL)
         return;
 
-    auto it = instruction->iterator();
-
-    while(it.hasNext())
+    for(size_t i = 0; i < instruction->operandsCount(); i++)
     {
-        const Operand* op = variant_object<Operand>(it.next());
+        const Operand* op = instruction->op(i);
 
         if(!op->is(OperandType::Register) || !this->isPC(op->reg.r))
             continue;
