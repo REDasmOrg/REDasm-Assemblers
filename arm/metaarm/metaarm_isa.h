@@ -15,5 +15,5 @@ class MetaARMAssemblerISA
         static int classify(address_t address, const BufferView& view, Disassembler* disassembler, Assembler* armassembler);
 
     private:
-        static bool validateBranch(const Instruction *instruction, Disassembler* disassembler);
+        static bool validateBranch(const Instruction *instruction);
 };

@@ -20,7 +20,7 @@ int MetaARMAssemblerISA::classify(address_t address, const BufferView &view, Dis
         if(instruction.is(InstructionType::Stop) || (instruction.is(InstructionType::Jump) && !instruction.is(InstructionType::Conditional)))
             break;
 
-        if(instruction.is(InstructionType::Branch) && !MetaARMAssemblerISA::validateBranch(&instruction, disassembler))
+        if(instruction.is(InstructionType::Branch) && !MetaARMAssemblerISA::validateBranch(&instruction))
             return MetaARMAssemblerISA::Thumb;
 
         address += instruction.size;
@@ -30,14 +30,13 @@ int MetaARMAssemblerISA::classify(address_t address, const BufferView &view, Dis
     return MetaARMAssemblerISA::ARM;
 }
 
-bool MetaARMAssemblerISA::validateBranch(const Instruction* instruction, Disassembler *disassembler)
+bool MetaARMAssemblerISA::validateBranch(const Instruction* instruction)
 {
-    ReferenceSet targets = disassembler->getTargets(instruction->address);
-    auto& document = disassembler->document();
+    SortedSet targets = r_disasm->getTargets(instruction->address);
 
-    for(address_t target : targets)
+    for(size_t i = 0; i < targets.size(); i++)
     {
-        if(!document->segment(target))
+        if(!r_doc->segment(targets[i].toU64()))
             return false;
     }
 
