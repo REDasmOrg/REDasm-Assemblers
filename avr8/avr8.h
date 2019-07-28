@@ -3,6 +3,7 @@
 // http://roncella.iet.unipi.it/Didattica/Corsi/Elettronica/Risorse/Atmel-0856-AVR-Instruction-Set-Manual.pdf
 // Based on: https://github.com/vsergeev/vavrdisasm
 
+#include <unordered_map>
 #include <redasm/redasm.h>
 #include <redasm/plugins/assembler/assembler.h>
 #include "avr8_decoder.h"
