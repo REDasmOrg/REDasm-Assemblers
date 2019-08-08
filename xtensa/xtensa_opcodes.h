@@ -48,7 +48,7 @@ enum {
     Call0, Call4, Call8, Call12, Callx0, Callx4, Callx8, Callx12,
     Dsync,
     Entry, Esync, Excw, Extui, Extw,
-    Isync,
+    Isync, Ill,
     J, Jx,
     L8ui, L16si, L16ui, L32i, L32r,
     Memw, Moveqz, Movgez, Movi, Movltz, Movnez, Mul16s, Mul16u, Mull, Muluh,

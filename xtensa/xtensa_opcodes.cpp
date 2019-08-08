@@ -51,6 +51,7 @@ const XtensaInstructionDefinition definitions[] = {
     { XtensaOpcodes::Extui, "extui", 0x40000, 0xe000f, XtensaOpcodeFormat::RRR_extui, InstructionType::None, false },
     { XtensaOpcodes::Extw, "extw", 0x20d0, 0xffffff, XtensaOpcodeFormat::None, InstructionType::None, false },
     { XtensaOpcodes::Isync, "isync", 0x2000, 0xffffff, XtensaOpcodeFormat::None, InstructionType::None, false },
+    { XtensaOpcodes::Ill, "ill", 0x000000, 0xffffff, XtensaOpcodeFormat::None, InstructionType::Privileged, false },
     { XtensaOpcodes::J, "j", 0x6, 0x3f, XtensaOpcodeFormat::CALL, InstructionType::Jump, false },
     { XtensaOpcodes::Jx, "jx", 0xa0, 0xfff0ff, XtensaOpcodeFormat::CALLX, InstructionType::Jump, false },
     { XtensaOpcodes::L8ui, "l8ui", 0x2, 0xf00f, XtensaOpcodeFormat::RRI8_disp, InstructionType::None, false },
