@@ -165,7 +165,9 @@ void XtensaDecoder::formatRRR_sext(Instruction *instruction, const XTensaOpcodeB
 
 void XtensaDecoder::formatRRR_sll(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
 {
-    r_ctx->log("Operands missing @ " + String::hex(instruction->address));
+    u8 r = (xbytes->opcode & 0xF000) >> 12;
+    u8 s = (xbytes->opcode & 0xF00) >> 8;
+    instruction->reg(r)->reg(s);
 }
 
 void XtensaDecoder::formatRRR_slli(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
@@ -198,12 +200,15 @@ void XtensaDecoder::formatRRR_sh(Instruction *instruction, const XTensaOpcodeByt
 
 void XtensaDecoder::formatRRR_ssa(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
 {
-    r_ctx->log("Operands missing @ " + String::hex(instruction->address));
+    u8 s = (xbytes->opcode & 0xF00) >> 8;
+    instruction->reg(s);
 }
 
 void XtensaDecoder::formatRRR_ssai(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
 {
-    r_ctx->log("Operands missing @ " + String::hex(instruction->address));
+    u8 sa3_0 = (xbytes->opcode & 0xF00) >> 8;
+    u8 sa4 = (xbytes->opcode & 0x10) >> 4;
+    instruction->cnst((sa4 << 4) | sa3_0);
 }
 
 void XtensaDecoder::formatRRI8(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
@@ -256,7 +261,10 @@ void XtensaDecoder::formatRRI8_disp(Instruction *instruction, const XTensaOpcode
 
 void XtensaDecoder::formatRRI8_disp16(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
 {
-    r_ctx->log("Operands missing @ " + String::hex(instruction->address));
+    u16 imm8 = (xbytes->opcode & 0xFF0000) >> 16;
+    u8 s = (xbytes->opcode & 0xF00) >> 8;
+    u8 t = (xbytes->opcode & 0xF0) >> 4;
+    instruction->reg(t)->reg(s)->cnst(imm8 * 2);
 }
 
 void XtensaDecoder::formatRRI8_disp32(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
@@ -379,5 +387,7 @@ void XtensaDecoder::formatRI6(Instruction *instruction, const XTensaOpcodeBytes 
 
 void XtensaDecoder::formatRI12S3(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
 {
-    r_ctx->log("Operands missing @ " + String::hex(instruction->address));
+    u16 imm12 = (xbytes->opcode & 0xFFF000) >> 12;
+    u8 s = (xbytes->opcode & 0xF00) >> 8;
+    instruction->reg(s)->cnst(imm12 * 8);
 }
