@@ -16,7 +16,6 @@ String XtensaPrinter::reg(const RegisterOperand &regop) const
         if(it != m_specialregisters.end())
             return it->second;
 
-        r_ctx->log("Unknown special register " + String::number(regop.r));
         return "???";
     }
 
