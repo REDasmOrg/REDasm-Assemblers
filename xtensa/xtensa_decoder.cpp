@@ -62,7 +62,7 @@ bool XtensaDecoder::decode(const BufferView &view, Instruction *instruction)
         case XtensaOpcodeFormat::RRRN:        this->formatRRRN(instruction, &xbytes, def);        break;
         case XtensaOpcodeFormat::RRRN_disp:   this->formatRRRN_disp(instruction, &xbytes, def);   break;
         case XtensaOpcodeFormat::RRRN_addi:   this->formatRRRN_addi(instruction, &xbytes, def);   break;
-        case XtensaOpcodeFormat::RRRN_2r:     this->formatRRR_2r(instruction, &xbytes, def);      break;
+        case XtensaOpcodeFormat::RRRN_2r:     this->formatRRRN_2r(instruction, &xbytes, def);     break;
         case XtensaOpcodeFormat::RI7:         this->formatRI7(instruction, &xbytes, def);         break;
         case XtensaOpcodeFormat::RI6:         this->formatRI6(instruction, &xbytes, def);         break;
         case XtensaOpcodeFormat::RI12S3:      this->formatRI12S3(instruction, &xbytes, def);      break;
@@ -272,7 +272,6 @@ void XtensaDecoder::formatRRI8_disp32(Instruction *instruction, const XTensaOpco
     s8 imm8 = (xbytes->opcode & 0xFF0000) >> 16;
     u8 s = (xbytes->opcode & 0xF00) >> 8;
     u8 t = (xbytes->opcode & 0xF0) >> 4;
-
     instruction->reg(t)->disp(s, (imm8 << 2));
 }
 
@@ -366,7 +365,9 @@ void XtensaDecoder::formatRRRN_addi(Instruction *instruction, const XTensaOpcode
 
 void XtensaDecoder::formatRRRN_2r(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
 {
-    r_ctx->log("Operands missing @ " + String::hex(instruction->address));
+    u8 s = (xbytes->opcode & 0xF00) >> 8;
+    u8 t = (xbytes->opcode & 0xF0) >> 4;
+    instruction->reg(t)->reg(s);
 }
 
 void XtensaDecoder::formatRI7(Instruction *instruction, const XTensaOpcodeBytes *xbytes, const XtensaInstructionDefinition *def) const
