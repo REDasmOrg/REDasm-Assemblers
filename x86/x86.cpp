@@ -82,6 +82,8 @@ size_t X86Assembler::bits() const
 
 void X86Assembler::init(const AssemblerRequest &request)
 {
+    CapstoneAssembler::init(request);
+
     if(request.modeIs("x86_16"))
         this->open(CS_ARCH_X86, CS_MODE_16);
     else if(request.modeIs("x86_64"))
