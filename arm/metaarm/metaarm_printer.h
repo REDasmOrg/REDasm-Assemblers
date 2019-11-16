@@ -10,6 +10,6 @@ class MetaARMPrinter: public CapstonePrinter
         MetaARMPrinter();
 
     public:
-        String size(const Operand* operand) const override;
+        String size(const Operand*) const override;
         String mem(const Operand* operand) const override;
 };

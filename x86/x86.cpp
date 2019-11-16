@@ -97,18 +97,15 @@ void X86Assembler::init(const AssemblerRequest &request)
     }
 }
 
-Symbol *X86Assembler::findTrampoline(size_t index) const
+const Symbol *X86Assembler::findTrampoline(size_t index) const
 {
-    const ListingItem* item = r_doc->itemAt(index);
-    CachedInstruction instruction = r_doc->instruction(item->address());
+    ListingItem item = r_doc->itemAt(index);
+    if(!item.isValid()) return nullptr;
+    CachedInstruction instruction = r_doc->instruction(item.address);
+    if(!instruction->typeIs(InstructionType::Jump)) return nullptr;
 
-    if(!instruction->is(InstructionType::Jump))
-        return nullptr;
-
-    auto target = r_disasm->getTarget(item->address());
-
-    if(!target.valid)
-        return nullptr;
+    auto target = r_disasm->getTarget(item.address);
+    if(!target.valid) return nullptr;
 
     return r_doc->symbol(target);
 }
@@ -119,7 +116,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
 {
     CapstoneAssembler::onDecoded(instruction);
 
-    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userData());
+    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userdata);
     const cs_x86& x86 = insn->detail->x86;
 
     for(size_t i = 0; i < x86.op_count; i++)
@@ -132,9 +129,9 @@ void X86Assembler::onDecoded(Instruction *instruction)
 
             if((mem.index == X86_REG_INVALID) && mem.disp && this->isBP(mem.base)) // Check locals/arguments
             {
-                OperandType type = OperandType::None;
-                locindex = this->bpIndex(mem.disp, type);
-                instruction->local(locindex, X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.disp, type);
+                OperandFlags flags = OperandFlags::None;
+                locindex = this->bpIndex(mem.disp, flags);
+                instruction->local(locindex, X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.disp, flags);
             }
             else if(this->isSP(mem.base)) // Check locals
             {
@@ -159,29 +156,22 @@ void X86Assembler::onDecoded(Instruction *instruction)
     }
 }
 
-s64 X86Assembler::bpIndex(s64 disp, OperandType& type) const
+s64 X86Assembler::bpIndex(s64 disp, OperandFlags& flags) const
 {
     if(disp < 0)
     {
-        type = OperandType::Local;
+        flags = OperandFlags::Local;
         return -disp;
     }
 
     s32 size = 0;
 
-    if(this->mode() == CS_MODE_16)
-        size = 2;
-    else if(this->mode() == CS_MODE_32)
-        size = 4;
-    else if(this->mode() == CS_MODE_64)
-        size = 8;
+    if(this->mode() == CS_MODE_16) size = 2;
+    else if(this->mode() == CS_MODE_32) size = 4;
+    else if(this->mode() == CS_MODE_64) size = 8;
 
-    if(disp < (size * 2))
-        return -1;
-
-    if(disp > 0)
-        type = OperandType::Argument;
-
+    if(disp < (size * 2)) return -1;
+    if(disp > 0) flags = OperandFlags::Argument;
     return disp;
 }
 
@@ -235,9 +225,7 @@ void X86Assembler::checkLea(Instruction *instruction)
 {
     instruction->type = InstructionType::Load;
     Operand* op1 = instruction->op(1);
-
-    if(!op1->is(OperandType::Memory))
-        return;
+    if(!REDasm::typeIs(op1, OperandType::Memory)) return;
 
     op1->type = OperandType::Immediate;
 }
@@ -245,8 +233,7 @@ void X86Assembler::checkLea(Instruction *instruction)
 void X86Assembler::compareOp1(Instruction *instruction)
 {
     instruction->type = InstructionType::Compare;
-    Operand* op1 = instruction->op(1);
-    op1->checkCharacter();
+    Operand::checkCharacter(instruction->op(1));
 }
 
 REDASM_ASSEMBLER("x86", "Dax", "MIT", 1)

@@ -124,7 +124,7 @@ bool MipsAssembler::decodeInstruction(const BufferView &view, Instruction *instr
 void MipsAssembler::onDecoded(Instruction *instruction)
 {
     CapstoneAssembler::onDecoded(instruction);
-    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userData());
+    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userdata);
 
     if(!insn)
         return;
@@ -153,7 +153,7 @@ void MipsAssembler::checkJr(Instruction *instruction) const
     if(instruction->op(0)->reg.r != MIPS_REG_RA)
     {
         instruction->type = InstructionType::Jump;
-        instruction->op(0)->asTarget();
+        Operand::asTarget(instruction->op(0));
     }
     else
         instruction->type = InstructionType::Stop;

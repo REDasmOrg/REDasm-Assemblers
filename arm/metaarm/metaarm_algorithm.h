@@ -10,7 +10,6 @@ class MetaARMAlgorithm : public ControlFlowAlgorithm
         MetaARMAlgorithm();
 
     protected:
-        void onEmulatedOperand(const Operand* op, const CachedInstruction& instruction, u64 value) override;
         void enqueueTarget(address_t target, const CachedInstruction& instruction) override;
         void decodeState(const State *state) override;
         void memoryState(const State* state) override;

@@ -8,16 +8,6 @@
 
 MetaARMAlgorithm::MetaARMAlgorithm(): ControlFlowAlgorithm() { }
 
-void MetaARMAlgorithm::onEmulatedOperand(const Operand *op, const CachedInstruction &instruction, u64 value)
-{
-    auto* metaarm = dynamic_cast<MetaARMAssembler*>(r_asm);
-
-    if(metaarm->isPC(op) || metaarm->isLR(op)) // Don't generate references for PC/LR registers
-        return;
-
-    ControlFlowAlgorithm::onEmulatedOperand(op, instruction, value & 0xFFFFFFFE);
-}
-
 void MetaARMAlgorithm::enqueueTarget(address_t target, const CachedInstruction &instruction)
 {
     address_t ctarget = target & 0xFFFFFFFE;

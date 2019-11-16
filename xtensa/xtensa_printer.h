@@ -10,7 +10,7 @@ class XtensaPrinter: public Printer
 {
     public:
         XtensaPrinter();
-        String reg(const RegisterOperand &regop) const override;
+        String reg(const RegisterOperand* regop) const override;
 
     private:
         static void initSpecialRegisters();

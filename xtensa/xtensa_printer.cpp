@@ -7,11 +7,11 @@ XtensaPrinter::XtensaPrinter(): Printer()
     XtensaPrinter::initSpecialRegisters();
 }
 
-String XtensaPrinter::reg(const RegisterOperand &regop) const
+String XtensaPrinter::reg(const RegisterOperand* regop) const
 {
-    if(regop.tag)
+    if(regop->tag)
     {
-        auto it = m_specialregisters.find(regop.r);
+        auto it = m_specialregisters.find(regop->r);
 
         if(it != m_specialregisters.end())
             return it->second;
@@ -19,7 +19,7 @@ String XtensaPrinter::reg(const RegisterOperand &regop) const
         return "???";
     }
 
-    return "a" + String::number(regop.r);
+    return "a" + String::number(regop->r);
 }
 
 void XtensaPrinter::initSpecialRegisters()

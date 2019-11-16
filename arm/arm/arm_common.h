@@ -20,7 +20,7 @@ class ARMCommonAssembler: public CapstoneAssembler, public ARMAbstractAssembler
         virtual ~ARMCommonAssembler();
         bool isPC(const Operand* op) const;
         bool isLR(const Operand* op) const;
-        Symbol* findTrampoline(size_t index) const override;
+        const Symbol* findTrampoline(size_t index) const override;
 
     protected:
         void onDecoded(Instruction *instruction) override;

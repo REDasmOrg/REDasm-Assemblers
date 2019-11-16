@@ -27,43 +27,28 @@ ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
 }
 
 ARMCommonAssembler::~ARMCommonAssembler() { }
-bool ARMCommonAssembler::isPC(const Operand *op) const { return op && (op->is(OperandType::Register) && this->isPC(op->reg.r)); }
-bool ARMCommonAssembler::isLR(const Operand *op) const { return op && (op->is(OperandType::Register) && this->isLR(op->reg.r)); }
+bool ARMCommonAssembler::isPC(const Operand* op) const { return op && REDasm::typeIs(op, OperandType::Register) && this->isPC(op->reg.r); }
+bool ARMCommonAssembler::isLR(const Operand* op) const { return op && REDasm::typeIs(op, OperandType::Register) && this->isLR(op->reg.r); }
 
-Symbol *ARMCommonAssembler::findTrampoline(size_t index) const
+const Symbol *ARMCommonAssembler::findTrampoline(size_t index) const
 {
-    const ListingItem* item = r_doc->itemAt(index++);
-    CachedInstruction instruction1 = r_doc->instruction(item->address());
-
-    if(index >= r_doc->size())
-        return nullptr;
+    ListingItem item = r_doc->itemAt(index++);
+    CachedInstruction instruction1 = r_doc->instruction(item.address);
+    if(index >= r_doc->itemsCount()) return nullptr;
 
     item = r_doc->itemAt(index);
+    if(!item.is(ListingItemType::InstructionItem)) return nullptr;
 
-    if(!item->is(ListingItemType::InstructionItem))
-        return nullptr;
-
-    const CachedInstruction& instruction2 = r_doc->instruction(item->address());
-
-    if(!instruction1 || !instruction2 || instruction1->isInvalid() || instruction2->isInvalid())
-        return nullptr;
-
-    if((instruction1->mnemonic != "ldr") || (instruction2->mnemonic != "ldr"))
-        return nullptr;
-
-    if(!instruction1->op(1)->is(OperandType::Memory) || (instruction2->op(0)->reg.r != ARM_REG_PC))
-        return nullptr;
+    CachedInstruction instruction2 = r_doc->instruction(item.address);
+    if(!instruction1 || !instruction2 || instruction1->isInvalid() || instruction2->isInvalid()) return nullptr;
+    if(instruction1->is("ldr") || instruction2->is("ldr")) return nullptr;
+    if(!REDasm::typeIs(instruction1->op(1), OperandType::Memory) || (instruction2->op(0)->reg.r != ARM_REG_PC)) return nullptr;
 
     u64 target = instruction1->op(1)->u_value, importaddress = 0;
+    if(!r_disasm->readAddress(target, sizeof(u32), &importaddress)) return nullptr;
 
-    if(!r_disasm->readAddress(target, sizeof(u32), &importaddress))
-        return nullptr;
-
-    Symbol *symbol = r_doc->symbol(target), *impsymbol = r_doc->symbol(importaddress);
-
-    if(symbol && impsymbol)
-        r_doc->lock(symbol->address, "imp." + impsymbol->name);
-
+    const Symbol *symbol = r_doc->symbol(target), *impsymbol = r_doc->symbol(importaddress);
+    if(symbol && impsymbol) r_doc->rename(symbol->address, "imp." + impsymbol->name);
     return impsymbol;
 }
 
@@ -71,7 +56,7 @@ void ARMCommonAssembler::onDecoded(Instruction* instruction)
 {
     CapstoneAssembler::onDecoded(instruction);
 
-    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userData());
+    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userdata);
     const cs_arm& arm = insn->detail->arm;
 
     for(size_t i = 0; i < arm.op_count; i++)
@@ -99,7 +84,7 @@ bool ARMCommonAssembler::isLR(register_id_t reg) const { return reg == ARM_REG_L
 
 void ARMCommonAssembler::checkB(Instruction* instruction) const
 {
-    const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userData())->detail->arm;
+    const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userdata)->detail->arm;
 
     if(arm.cc != ARM_CC_AL)
         instruction->type |= InstructionType::Conditional;
@@ -109,16 +94,14 @@ void ARMCommonAssembler::checkB(Instruction* instruction) const
 
 void ARMCommonAssembler::checkStop(Instruction* instruction) const
 {
-    const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userData())->detail->arm;
+    const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userdata)->detail->arm;
+    if(arm.cc != ARM_CC_AL) return;
 
-    if(arm.cc != ARM_CC_AL)
-        return;
-
-    for(size_t i = 0; i < instruction->operandsCount(); i++)
+    for(size_t i = 0; i < instruction->operandscount; i++)
     {
         const Operand* op = instruction->op(i);
 
-        if(!op->is(OperandType::Register) || !this->isPC(op->reg.r))
+        if(!REDasm::typeIs(op, OperandType::Register) || !this->isPC(op->reg.r))
             continue;
 
         instruction->type = InstructionType::Stop;
@@ -128,7 +111,7 @@ void ARMCommonAssembler::checkStop(Instruction* instruction) const
 
 void ARMCommonAssembler::checkStop_0(Instruction *instruction) const
 {
-    const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userData())->detail->arm;
+    const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userdata)->detail->arm;
     instruction->op(1)->size = sizeof(u32);
 
     if((arm.cc == ARM_CC_AL) && this->isPC(instruction->firstOperand()))

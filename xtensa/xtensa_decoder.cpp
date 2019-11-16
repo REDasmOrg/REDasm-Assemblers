@@ -18,7 +18,7 @@ bool XtensaDecoder::decode(const BufferView &view, Instruction *instruction)
         return false;
     }
 
-    instruction->mnemonic = def->mnemonic;
+    instruction->mnemonic(def->mnemonic);
     instruction->type = def->type;
     instruction->size = def->narrow ? 2 : 3;
 

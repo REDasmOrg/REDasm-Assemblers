@@ -17,10 +17,10 @@ int MetaARMAssemblerISA::classify(address_t address, const BufferView &view, Dis
         if(!armassembler->decode(cview, &instruction))
             return MetaARMAssemblerISA::Thumb;
 
-        if(instruction.is(InstructionType::Stop) || (instruction.is(InstructionType::Jump) && !instruction.is(InstructionType::Conditional)))
+        if(instruction.typeIs(InstructionType::Stop) || (instruction.typeIs(InstructionType::Jump) && !instruction.typeIs(InstructionType::Conditional)))
             break;
 
-        if(instruction.is(InstructionType::Branch) && !MetaARMAssemblerISA::validateBranch(&instruction))
+        if(instruction.typeIs(InstructionType::Branch) && !MetaARMAssemblerISA::validateBranch(&instruction))
             return MetaARMAssemblerISA::Thumb;
 
         address += instruction.size;
