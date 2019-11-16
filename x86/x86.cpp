@@ -7,44 +7,44 @@
 
 X86Assembler::X86Assembler(): CapstoneAssembler()
 {
-    SET_INSTRUCTION_TYPE(X86_INS_JA, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JAE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JB, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JBE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JCXZ, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JECXZ, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JG, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JGE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JL, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JLE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JNE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JNO, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JNP, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JNS, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JO, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JP, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_JS, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_LOOP, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_LOOPE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_LOOPNE, InstructionType::Conditional);
-    SET_INSTRUCTION_TYPE(X86_INS_PUSH, InstructionType::Push);
-    SET_INSTRUCTION_TYPE(X86_INS_PUSHAL, InstructionType::Push);
-    SET_INSTRUCTION_TYPE(X86_INS_PUSHAW, InstructionType::Push);
-    SET_INSTRUCTION_TYPE(X86_INS_PUSHF, InstructionType::Push);
-    SET_INSTRUCTION_TYPE(X86_INS_PUSHFD, InstructionType::Push);
-    SET_INSTRUCTION_TYPE(X86_INS_PUSHFQ, InstructionType::Push);
-    SET_INSTRUCTION_TYPE(X86_INS_POP, InstructionType::Pop);
-    SET_INSTRUCTION_TYPE(X86_INS_POPAL, InstructionType::Pop);
-    SET_INSTRUCTION_TYPE(X86_INS_POPAW, InstructionType::Pop);
-    SET_INSTRUCTION_TYPE(X86_INS_POPF, InstructionType::Pop);
-    SET_INSTRUCTION_TYPE(X86_INS_POPFD, InstructionType::Pop);
-    SET_INSTRUCTION_TYPE(X86_INS_POPFQ, InstructionType::Pop);
-    SET_INSTRUCTION_TYPE(X86_INS_HLT, InstructionType::Stop);
-    SET_INSTRUCTION_TYPE(X86_INS_RET, InstructionType::Stop);
-    SET_INSTRUCTION_TYPE(X86_INS_NOP, InstructionType::Nop);
-    SET_INSTRUCTION_TYPE(X86_INS_MOV, InstructionType::Load);
-    SET_INSTRUCTION_TYPE(X86_INS_TEST, InstructionType::Compare);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JA, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JAE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JB, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JBE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JCXZ, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JECXZ, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JG, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JGE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JL, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JLE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNO, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNP, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNS, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JO, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JP, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JS, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_LOOP, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPNE, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSH, InstructionType::Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHAL, InstructionType::Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHAW, InstructionType::Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHF, InstructionType::Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHFD, InstructionType::Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHFQ, InstructionType::Push);
+    CLASSIFY_INSTRUCTION(X86_INS_POP, InstructionType::Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPAL, InstructionType::Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPAW, InstructionType::Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPF, InstructionType::Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPFD, InstructionType::Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPFQ, InstructionType::Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_HLT, InstructionType::Stop);
+    CLASSIFY_INSTRUCTION(X86_INS_RET, InstructionType::Stop);
+    CLASSIFY_INSTRUCTION(X86_INS_NOP, InstructionType::Nop);
+    CLASSIFY_INSTRUCTION(X86_INS_MOV, InstructionType::Load);
+    CLASSIFY_INSTRUCTION(X86_INS_TEST, InstructionType::Compare);
 
     REGISTER_INSTRUCTION(X86_INS_JA, &X86Assembler::setBranchTarget);
     REGISTER_INSTRUCTION(X86_INS_JAE, &X86Assembler::setBranchTarget);
@@ -72,10 +72,12 @@ X86Assembler::X86Assembler(): CapstoneAssembler()
 
 size_t X86Assembler::bits() const
 {
-    if(this->mode() == CS_MODE_16)
-        return 16;
-    if(this->mode() == CS_MODE_64)
-        return 64;
+    switch(this->mode())
+    {
+        case CS_MODE_16: return 16;
+        case CS_MODE_64: return 64;
+        default: break;
+    }
 
     return 32;
 }
@@ -102,7 +104,7 @@ const Symbol *X86Assembler::findTrampoline(size_t index) const
     ListingItem item = r_doc->itemAt(index);
     if(!item.isValid()) return nullptr;
     CachedInstruction instruction = r_doc->instruction(item.address);
-    if(!instruction->typeIs(InstructionType::Jump)) return nullptr;
+    if(!instruction->isJump()) return nullptr;
 
     auto target = r_disasm->getTarget(item.address);
     if(!target.valid) return nullptr;
@@ -233,7 +235,7 @@ void X86Assembler::checkLea(Instruction *instruction)
 void X86Assembler::compareOp1(Instruction *instruction)
 {
     instruction->type = InstructionType::Compare;
-    Operand::checkCharacter(instruction->op(1));
+    instruction->op(1)->checkCharacter();
 }
 
 REDASM_ASSEMBLER("x86", "Dax", "MIT", 1)

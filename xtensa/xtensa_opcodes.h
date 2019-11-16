@@ -36,6 +36,7 @@ struct XtensaInstructionDefinition
     u32 opcode, mask;
     XtensaOpcodeFormat format;
     InstructionType type;
+    InstructionFlags flags;
     bool narrow;
 };
 

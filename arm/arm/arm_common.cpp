@@ -4,15 +4,15 @@
 
 ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
 {
-    SET_INSTRUCTION_TYPE(ARM_INS_ADD, InstructionType::Add);
-    SET_INSTRUCTION_TYPE(ARM_INS_ADC, InstructionType::Add);
-    SET_INSTRUCTION_TYPE(ARM_INS_SUB, InstructionType::Sub);
-    SET_INSTRUCTION_TYPE(ARM_INS_SBC, InstructionType::Sub);
-    SET_INSTRUCTION_TYPE(ARM_INS_RSB, InstructionType::Sub);
-    SET_INSTRUCTION_TYPE(ARM_INS_RSC, InstructionType::Sub);
-    SET_INSTRUCTION_TYPE(ARM_INS_LSL, InstructionType::Lsh);
-    SET_INSTRUCTION_TYPE(ARM_INS_LSR, InstructionType::Rsh);
-    SET_INSTRUCTION_TYPE(ARM_INS_ASR, InstructionType::Rsh);
+    CLASSIFY_INSTRUCTION(ARM_INS_ADD, InstructionType::Add);
+    CLASSIFY_INSTRUCTION(ARM_INS_ADC, InstructionType::Add);
+    CLASSIFY_INSTRUCTION(ARM_INS_SUB, InstructionType::Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_SBC, InstructionType::Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_RSB, InstructionType::Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_RSC, InstructionType::Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_LSL, InstructionType::Lsh);
+    CLASSIFY_INSTRUCTION(ARM_INS_LSR, InstructionType::Rsh);
+    CLASSIFY_INSTRUCTION(ARM_INS_ASR, InstructionType::Rsh);
 
     REGISTER_INSTRUCTION(ARM_INS_B, &ARMCommonAssembler::checkB);
     REGISTER_INSTRUCTION(ARM_INS_BL, &ARMCommonAssembler::checkCallT0);
@@ -87,7 +87,7 @@ void ARMCommonAssembler::checkB(Instruction* instruction) const
     const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userdata)->detail->arm;
 
     if(arm.cc != ARM_CC_AL)
-        instruction->type |= InstructionType::Conditional;
+        instruction->flags |= InstructionFlags::Conditional;
 
     instruction->targetIdx(0);
 }

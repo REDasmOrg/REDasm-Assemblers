@@ -15,7 +15,7 @@ void MipsAlgorithm::onDecoded(const CachedInstruction &instruction)
         Algorithm::onDecoded(instruction);
         m_pendingdelayslots.erase(instruction->address);
 
-        if(instruction->typeIs(InstructionType::Stop))
+        if(instruction->isStop())
             return;
     }
 
