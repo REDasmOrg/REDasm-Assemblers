@@ -35,8 +35,8 @@ struct XtensaInstructionDefinition
     const char* mnemonic;
     u32 opcode, mask;
     XtensaOpcodeFormat format;
-    InstructionType type;
-    InstructionFlags flags;
+    type_t type;
+    flag_t flags;
     bool narrow;
 };
 

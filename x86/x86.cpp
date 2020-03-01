@@ -131,7 +131,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
 
             if((mem.index == X86_REG_INVALID) && mem.disp && this->isBP(mem.base)) // Check locals/arguments
             {
-                OperandFlags flags = OperandFlags::None;
+                flag_t flags = OperandFlags::None;
                 locindex = this->bpIndex(mem.disp, flags);
                 instruction->local(locindex, X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.disp, flags);
             }
@@ -158,7 +158,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
     }
 }
 
-s64 X86Assembler::bpIndex(s64 disp, OperandFlags& flags) const
+s64 X86Assembler::bpIndex(s64 disp, flag_t& flags) const
 {
     if(disp < 0)
     {
