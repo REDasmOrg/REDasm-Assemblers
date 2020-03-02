@@ -4,15 +4,15 @@
 
 ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
 {
-    CLASSIFY_INSTRUCTION(ARM_INS_ADD, InstructionType::Add);
-    CLASSIFY_INSTRUCTION(ARM_INS_ADC, InstructionType::Add);
-    CLASSIFY_INSTRUCTION(ARM_INS_SUB, InstructionType::Sub);
-    CLASSIFY_INSTRUCTION(ARM_INS_SBC, InstructionType::Sub);
-    CLASSIFY_INSTRUCTION(ARM_INS_RSB, InstructionType::Sub);
-    CLASSIFY_INSTRUCTION(ARM_INS_RSC, InstructionType::Sub);
-    CLASSIFY_INSTRUCTION(ARM_INS_LSL, InstructionType::Lsh);
-    CLASSIFY_INSTRUCTION(ARM_INS_LSR, InstructionType::Rsh);
-    CLASSIFY_INSTRUCTION(ARM_INS_ASR, InstructionType::Rsh);
+    CLASSIFY_INSTRUCTION(ARM_INS_ADD, Instruction::T_Add);
+    CLASSIFY_INSTRUCTION(ARM_INS_ADC, Instruction::T_Add);
+    CLASSIFY_INSTRUCTION(ARM_INS_SUB, Instruction::T_Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_SBC, Instruction::T_Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_RSB, Instruction::T_Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_RSC, Instruction::T_Sub);
+    CLASSIFY_INSTRUCTION(ARM_INS_LSL, Instruction::T_Lsh);
+    CLASSIFY_INSTRUCTION(ARM_INS_LSR, Instruction::T_Rsh);
+    CLASSIFY_INSTRUCTION(ARM_INS_ASR, Instruction::T_Rsh);
 
     REGISTER_INSTRUCTION(ARM_INS_B, &ARMCommonAssembler::checkB);
     REGISTER_INSTRUCTION(ARM_INS_BL, &ARMCommonAssembler::checkCallT0);
@@ -27,8 +27,8 @@ ARMCommonAssembler::ARMCommonAssembler(): CapstoneAssembler()
 }
 
 ARMCommonAssembler::~ARMCommonAssembler() { }
-bool ARMCommonAssembler::isPC(const Operand* op) const { return op && REDasm::typeIs(op, OperandType::Register) && this->isPC(op->reg.r); }
-bool ARMCommonAssembler::isLR(const Operand* op) const { return op && REDasm::typeIs(op, OperandType::Register) && this->isLR(op->reg.r); }
+bool ARMCommonAssembler::isPC(const Operand* op) const { return op && REDasm::typeIs(op, Operand::T_Register) && this->isPC(op->reg.r); }
+bool ARMCommonAssembler::isLR(const Operand* op) const { return op && REDasm::typeIs(op, Operand::T_Register) && this->isLR(op->reg.r); }
 
 const Symbol *ARMCommonAssembler::findTrampoline(size_t index) const
 {
@@ -42,7 +42,7 @@ const Symbol *ARMCommonAssembler::findTrampoline(size_t index) const
     CachedInstruction instruction2 = r_doc->instruction(item.address);
     if(!instruction1 || !instruction2 || instruction1->isInvalid() || instruction2->isInvalid()) return nullptr;
     if(instruction1->is("ldr") || instruction2->is("ldr")) return nullptr;
-    if(!REDasm::typeIs(instruction1->op(1), OperandType::Memory) || (instruction2->op(0)->reg.r != ARM_REG_PC)) return nullptr;
+    if(!REDasm::typeIs(instruction1->op(1), Operand::T_Memory) || (instruction2->op(0)->reg.r != ARM_REG_PC)) return nullptr;
 
     u64 target = instruction1->op(1)->u_value, importaddress = 0;
     if(!r_disasm->readAddress(target, sizeof(u32), &importaddress)) return nullptr;
@@ -87,7 +87,7 @@ void ARMCommonAssembler::checkB(Instruction* instruction) const
     const cs_arm& arm = reinterpret_cast<cs_insn*>(instruction->userdata)->detail->arm;
 
     if(arm.cc != ARM_CC_AL)
-        instruction->flags |= InstructionFlags::Conditional;
+        instruction->flags |= Instruction::F_Conditional;
 
     instruction->targetIdx(0);
 }
@@ -101,10 +101,10 @@ void ARMCommonAssembler::checkStop(Instruction* instruction) const
     {
         const Operand* op = instruction->op(i);
 
-        if(!REDasm::typeIs(op, OperandType::Register) || !this->isPC(op->reg.r))
+        if(!REDasm::typeIs(op, Operand::T_Register) || !this->isPC(op->reg.r))
             continue;
 
-        instruction->type = InstructionType::Stop;
+        instruction->type = Instruction::T_Stop;
         break;
     }
 }
@@ -116,19 +116,19 @@ void ARMCommonAssembler::checkStop_0(Instruction *instruction) const
 
     if((arm.cc == ARM_CC_AL) && this->isPC(instruction->firstOperand()))
     {
-        instruction->type = InstructionType::Stop;
+        instruction->type = Instruction::T_Stop;
         return;
     }
 }
 
 void ARMCommonAssembler::checkJumpT0(Instruction *instruction) const
 {
-    instruction->type = InstructionType::Jump;
+    instruction->type = Instruction::T_Jump;
     instruction->targetIdx(0);
 }
 
 void ARMCommonAssembler::checkCallT0(Instruction *instruction) const
 {
-    instruction->type = InstructionType::Call;
+    instruction->type = Instruction::T_Call;
     instruction->targetIdx(0);
 }

@@ -7,54 +7,54 @@
 
 MipsAssembler::MipsAssembler(): CapstoneAssembler()
 {
-    CLASSIFY_INSTRUCTION(MIPS_INS_NOP, InstructionType::Nop);
-    CLASSIFY_INSTRUCTION(MIPS_INS_BREAK, InstructionType::Stop);
-    CLASSIFY_INSTRUCTION(MIPS_INS_J, InstructionType::Jump);
-    CLASSIFY_INSTRUCTION(MIPS_INS_B, InstructionType::Jump);
-    CLASSIFY_INSTRUCTION(MIPS_INS_JAL, InstructionType::Call);
-    CLASSIFY_INSTRUCTION(MIPS_INS_JALR, InstructionType::Call);
-    CLASSIFY_INSTRUCTION(MIPS_INS_BAL, InstructionType::Call);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BEQZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNEZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNEL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLEZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLEZC, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLEZL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLTZL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGTZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZC, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZAL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGTZL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZALL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLTZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNEL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BEQ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BEQL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BC1F, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BC1FL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BC1TL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(MIPS_INS_BBIT132, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION(MIPS_INS_ADD, InstructionType::Add);
-    CLASSIFY_INSTRUCTION(MIPS_INS_ADDI, InstructionType::Add);
-    CLASSIFY_INSTRUCTION(MIPS_INS_ADDIU, InstructionType::Add);
-    CLASSIFY_INSTRUCTION(MIPS_INS_ADDU, InstructionType::Add);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SUB, InstructionType::Sub);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SUBU, InstructionType::Sub);
-    CLASSIFY_INSTRUCTION(MIPS_INS_MUL, InstructionType::Mul);
-    CLASSIFY_INSTRUCTION(MIPS_INS_AND, InstructionType::And);
-    CLASSIFY_INSTRUCTION(MIPS_INS_ANDI, InstructionType::And);
-    CLASSIFY_INSTRUCTION(MIPS_INS_OR, InstructionType::Or);
-    CLASSIFY_INSTRUCTION(MIPS_INS_ORI, InstructionType::Or);
-    CLASSIFY_INSTRUCTION(MIPS_INS_XOR, InstructionType::Xor);
-    CLASSIFY_INSTRUCTION(MIPS_INS_XORI, InstructionType::Xor);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SLL, InstructionType::Lsh);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SLLV, InstructionType::Lsh);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SRL, InstructionType::Rsh);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SRLV, InstructionType::Rsh);
-    CLASSIFY_INSTRUCTION(MIPS_INS_SRAV, InstructionType::Rsh);
+    CLASSIFY_INSTRUCTION(MIPS_INS_NOP, Instruction::T_Nop);
+    CLASSIFY_INSTRUCTION(MIPS_INS_BREAK, Instruction::T_Stop);
+    CLASSIFY_INSTRUCTION(MIPS_INS_J, Instruction::T_Jump);
+    CLASSIFY_INSTRUCTION(MIPS_INS_B, Instruction::T_Jump);
+    CLASSIFY_INSTRUCTION(MIPS_INS_JAL, Instruction::T_Call);
+    CLASSIFY_INSTRUCTION(MIPS_INS_JALR, Instruction::T_Call);
+    CLASSIFY_INSTRUCTION(MIPS_INS_BAL, Instruction::T_Call);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BEQZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNEZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNEL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLEZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLEZC, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLEZL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLTZL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGTZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZC, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZAL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGTZL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BGEZALL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BLTZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BNEL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BEQ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BEQL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BC1F, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BC1FL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BC1TL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(MIPS_INS_BBIT132, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION(MIPS_INS_ADD, Instruction::T_Add);
+    CLASSIFY_INSTRUCTION(MIPS_INS_ADDI, Instruction::T_Add);
+    CLASSIFY_INSTRUCTION(MIPS_INS_ADDIU, Instruction::T_Add);
+    CLASSIFY_INSTRUCTION(MIPS_INS_ADDU, Instruction::T_Add);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SUB, Instruction::T_Sub);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SUBU, Instruction::T_Sub);
+    CLASSIFY_INSTRUCTION(MIPS_INS_MUL, Instruction::T_Mul);
+    CLASSIFY_INSTRUCTION(MIPS_INS_AND, Instruction::T_And);
+    CLASSIFY_INSTRUCTION(MIPS_INS_ANDI, Instruction::T_And);
+    CLASSIFY_INSTRUCTION(MIPS_INS_OR, Instruction::T_Or);
+    CLASSIFY_INSTRUCTION(MIPS_INS_ORI, Instruction::T_Or);
+    CLASSIFY_INSTRUCTION(MIPS_INS_XOR, Instruction::T_Xor);
+    CLASSIFY_INSTRUCTION(MIPS_INS_XORI, Instruction::T_Xor);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SLL, Instruction::T_Lsh);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SLLV, Instruction::T_Lsh);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SRL, Instruction::T_Rsh);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SRLV, Instruction::T_Rsh);
+    CLASSIFY_INSTRUCTION(MIPS_INS_SRAV, Instruction::T_Rsh);
 
     REGISTER_INSTRUCTION(MIPS_INS_JR, &MipsAssembler::checkJr);
     REGISTER_INSTRUCTION(MIPS_INS_J, &MipsAssembler::setTargetOp0);
@@ -152,11 +152,11 @@ void MipsAssembler::checkJr(Instruction *instruction) const
 {
     if(instruction->op(0)->reg.r != MIPS_REG_RA)
     {
-        instruction->type = InstructionType::Jump;
+        instruction->type = Instruction::T_Jump;
         instruction->op(0)->asTarget();
     }
     else
-        instruction->type = InstructionType::Stop;
+        instruction->type = Instruction::T_Stop;
 }
 
 REDASM_ASSEMBLER("MIPS", "Dax", "MIT", 1)

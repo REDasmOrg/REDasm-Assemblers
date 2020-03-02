@@ -7,44 +7,44 @@
 
 X86Assembler::X86Assembler(): CapstoneAssembler()
 {
-    CLASSIFY_INSTRUCTION_F(X86_INS_JA, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JAE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JB, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JBE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JCXZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JECXZ, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JG, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JGE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JL, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JLE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNO, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNP, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNS, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JO, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JP, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JS, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_LOOP, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPNE, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSH, InstructionType::Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHAL, InstructionType::Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHAW, InstructionType::Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHF, InstructionType::Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHFD, InstructionType::Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHFQ, InstructionType::Push);
-    CLASSIFY_INSTRUCTION(X86_INS_POP, InstructionType::Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPAL, InstructionType::Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPAW, InstructionType::Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPF, InstructionType::Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPFD, InstructionType::Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPFQ, InstructionType::Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_HLT, InstructionType::Stop);
-    CLASSIFY_INSTRUCTION(X86_INS_RET, InstructionType::Stop);
-    CLASSIFY_INSTRUCTION(X86_INS_NOP, InstructionType::Nop);
-    CLASSIFY_INSTRUCTION(X86_INS_MOV, InstructionType::Load);
-    CLASSIFY_INSTRUCTION(X86_INS_TEST, InstructionType::Compare);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JA, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JAE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JB, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JBE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JCXZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JECXZ, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JG, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JGE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JL, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JLE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNO, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNP, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JNS, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JO, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JP, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_JS, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_LOOP, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPNE, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSH, Instruction::T_Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHAL, Instruction::T_Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHAW, Instruction::T_Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHF, Instruction::T_Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHFD, Instruction::T_Push);
+    CLASSIFY_INSTRUCTION(X86_INS_PUSHFQ, Instruction::T_Push);
+    CLASSIFY_INSTRUCTION(X86_INS_POP, Instruction::T_Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPAL, Instruction::T_Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPAW, Instruction::T_Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPF, Instruction::T_Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPFD, Instruction::T_Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_POPFQ, Instruction::T_Pop);
+    CLASSIFY_INSTRUCTION(X86_INS_HLT, Instruction::T_Stop);
+    CLASSIFY_INSTRUCTION(X86_INS_RET, Instruction::T_Stop);
+    CLASSIFY_INSTRUCTION(X86_INS_NOP, Instruction::T_Nop);
+    CLASSIFY_INSTRUCTION(X86_INS_MOV, Instruction::T_Load);
+    CLASSIFY_INSTRUCTION(X86_INS_TEST, Instruction::T_Compare);
 
     REGISTER_INSTRUCTION(X86_INS_JA, &X86Assembler::setBranchTarget);
     REGISTER_INSTRUCTION(X86_INS_JAE, &X86Assembler::setBranchTarget);
@@ -131,7 +131,7 @@ void X86Assembler::onDecoded(Instruction *instruction)
 
             if((mem.index == X86_REG_INVALID) && mem.disp && this->isBP(mem.base)) // Check locals/arguments
             {
-                flag_t flags = OperandFlags::None;
+                flag_t flags = Operand::F_None;
                 locindex = this->bpIndex(mem.disp, flags);
                 instruction->local(locindex, X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.disp, flags);
             }
@@ -162,7 +162,7 @@ s64 X86Assembler::bpIndex(s64 disp, flag_t& flags) const
 {
     if(disp < 0)
     {
-        flags = OperandFlags::Local;
+        flags = Operand::F_Local;
         return -disp;
     }
 
@@ -173,7 +173,7 @@ s64 X86Assembler::bpIndex(s64 disp, flag_t& flags) const
     else if(this->mode() == CS_MODE_64) size = 8;
 
     if(disp < (size * 2)) return -1;
-    if(disp > 0) flags = OperandFlags::Argument;
+    if(disp > 0) flags = Operand::F_Argument;
     return disp;
 }
 
@@ -225,16 +225,16 @@ void X86Assembler::setBranchTarget(Instruction *instruction) { instruction->targ
 
 void X86Assembler::checkLea(Instruction *instruction)
 {
-    instruction->type = InstructionType::Load;
+    instruction->type = Instruction::T_Load;
     Operand* op1 = instruction->op(1);
-    if(!REDasm::typeIs(op1, OperandType::Memory)) return;
+    if(!REDasm::typeIs(op1, Operand::T_Memory)) return;
 
-    op1->type = OperandType::Immediate;
+    op1->type = Operand::T_Immediate;
 }
 
 void X86Assembler::compareOp1(Instruction *instruction)
 {
-    instruction->type = InstructionType::Compare;
+    instruction->type = Instruction::T_Compare;
     instruction->op(1)->checkCharacter();
 }
 

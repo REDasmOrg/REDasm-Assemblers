@@ -5,40 +5,40 @@
 
 AVR8Assembler::AVR8Assembler(): Assembler()
 {
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Nop_0000, InstructionType::Nop);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Nop_0000, Instruction::T_Nop);
 
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Break_9598, InstructionType::Stop);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Ret_9508, InstructionType::Stop);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Reti_9518, InstructionType::Stop);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Break_9598, Instruction::T_Stop);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Ret_9508, Instruction::T_Stop);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Reti_9518, Instruction::T_Stop);
 
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Ijmp_9409, InstructionType::Jump);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Eijmp_9419, InstructionType::Jump);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Jmp_940c, InstructionType::Jump);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Rjmp_c000, InstructionType::Jump);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Ijmp_9409, Instruction::T_Jump);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Eijmp_9419, Instruction::T_Jump);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Jmp_940c, Instruction::T_Jump);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Rjmp_c000, Instruction::T_Jump);
 
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brcc_f400, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brcs_f000, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Breq_f001, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brge_f404, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brhc_f405, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brhs_f005, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brid_f407, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brie_f007, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brlo_f000, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brlt_f004, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brmi_f002, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brne_f401, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brpl_f402, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brsh_f400, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brtc_f406, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brts_f006, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brvc_f403, InstructionType::Jump, InstructionFlags::Conditional);
-    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brvs_f003, InstructionType::Jump, InstructionFlags::Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brcc_f400, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brcs_f000, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Breq_f001, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brge_f404, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brhc_f405, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brhs_f005, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brid_f407, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brie_f007, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brlo_f000, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brlt_f004, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brmi_f002, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brne_f401, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brpl_f402, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brsh_f400, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brtc_f406, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brts_f006, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brvc_f403, Instruction::T_Jump, Instruction::F_Conditional);
+    CLASSIFY_INSTRUCTION_TF(AVR8Opcodes::Brvs_f003, Instruction::T_Jump, Instruction::F_Conditional);
 
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Icall_9509, InstructionType::Call);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Eicall_9519, InstructionType::Call);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Call_940e, InstructionType::Call);
-    CLASSIFY_INSTRUCTION(AVR8Opcodes::Rcall_d000, InstructionType::Call);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Icall_9509, Instruction::T_Call);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Eicall_9519, Instruction::T_Call);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Call_940e, Instruction::T_Call);
+    CLASSIFY_INSTRUCTION(AVR8Opcodes::Rcall_d000, Instruction::T_Call);
 }
 
 size_t AVR8Assembler::bits() const { return 16; }
