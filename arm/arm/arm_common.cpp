@@ -37,7 +37,7 @@ const Symbol *ARMCommonAssembler::findTrampoline(size_t index) const
     if(index >= r_doc->itemsCount()) return nullptr;
 
     item = r_doc->itemAt(index);
-    if(!item.is(ListingItemType::InstructionItem)) return nullptr;
+    if(!item.is(ListingItem::InstructionItem)) return nullptr;
 
     CachedInstruction instruction2 = r_doc->instruction(item.address);
     if(!instruction1 || !instruction2 || instruction1->isInvalid() || instruction2->isInvalid()) return nullptr;
