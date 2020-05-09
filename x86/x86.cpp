@@ -32,7 +32,7 @@ void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* in
             break;
     }
 
-    if(instruction->type != InstructionType_Stop)
+    if(!HAS_FLAG(instruction,InstructionFlags_Stop))
         RDDisassembler_EnqueueNext(disassembler, instruction);
 }
 
@@ -58,13 +58,13 @@ bool X86Assembler::render(RDRenderItemParams* rip)
 
     const RDOperand* op = rip->operand;
 
-    if(op->type == OperandType_Register)
+    if(IS_TYPE(op, OperandType_Register))
     {
         RDRendererItem_Push(rip->rendereritem, ZydisRegisterGetString(static_cast<ZydisRegister>(op->reg)), "register_fg", nullptr);
         return true;
     }
 
-    if(op->type == OperandType_Displacement)
+    if(IS_TYPE(op, OperandType_Displacement))
     {
         bool needsign = false;
         RDRendererItem_Push(rip->rendereritem, "[", nullptr, nullptr);
@@ -112,7 +112,7 @@ void X86Assembler::checkOperands(RDDisassembler* disassembler, const RDInstructi
     for(size_t i = 0; i < instruction->operandscount; i++)
     {
         const RDOperand* op = &instruction->operands[i];
-        if(instruction->operands[i].type == OperandType_Void) continue;
+        if(IS_TYPE(&instruction->operands[i], OperandType_Void)) continue;
         RDDisassembler_HandleOperand(disassembler, instruction, op);
     }
 }
@@ -124,8 +124,12 @@ void X86Assembler::categorizeInstruction(RDInstruction* instruction, const Zydis
         case ZYDIS_CATEGORY_PUSH:      instruction->type = InstructionType_Push; break;
         case ZYDIS_CATEGORY_POP:       instruction->type = InstructionType_Pop;  break;
         case ZYDIS_CATEGORY_CALL:      instruction->type = InstructionType_Call; break;
-        case ZYDIS_CATEGORY_RET:       instruction->type = InstructionType_Stop; break;
         case ZYDIS_CATEGORY_UNCOND_BR: instruction->type = InstructionType_Jump; break;
+
+        case ZYDIS_CATEGORY_RET:
+            instruction->type = InstructionType_Ret;
+            instruction->flags = InstructionFlags_Stop;
+            break;
 
         case ZYDIS_CATEGORY_COND_BR:
             instruction->type = InstructionType_Jump;
