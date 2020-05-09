@@ -1,243 +1,253 @@
 #include "x86.h"
-#include "x86_printer.h"
-#include <redasm/support/utils.h>
-#include <capstone/capstone.h>
+#include <rdapi/rdapi.h>
+#include <vector>
 
-#define X86_REGISTER(reg) ((reg == X86_REG_INVALID) ? REGISTER_INVALID : reg)
+#define BUFFER_SIZE 256
 
-X86Assembler::X86Assembler(): CapstoneAssembler()
+X86Assembler::X86Assembler(const RDPluginHeader* plugin)
 {
-    CLASSIFY_INSTRUCTION_F(X86_INS_JA, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JAE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JB, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JBE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JCXZ, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JECXZ, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JG, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JGE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JL, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JLE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNO, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNP, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JNS, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JO, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JP, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_JS, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_LOOP, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION_F(X86_INS_LOOPNE, Instruction::F_Conditional);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSH, Instruction::T_Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHAL, Instruction::T_Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHAW, Instruction::T_Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHF, Instruction::T_Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHFD, Instruction::T_Push);
-    CLASSIFY_INSTRUCTION(X86_INS_PUSHFQ, Instruction::T_Push);
-    CLASSIFY_INSTRUCTION(X86_INS_POP, Instruction::T_Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPAL, Instruction::T_Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPAW, Instruction::T_Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPF, Instruction::T_Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPFD, Instruction::T_Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_POPFQ, Instruction::T_Pop);
-    CLASSIFY_INSTRUCTION(X86_INS_HLT, Instruction::T_Stop);
-    CLASSIFY_INSTRUCTION(X86_INS_RET, Instruction::T_Stop);
-    CLASSIFY_INSTRUCTION(X86_INS_NOP, Instruction::T_Nop);
-    CLASSIFY_INSTRUCTION(X86_INS_MOV, Instruction::T_Load);
-    CLASSIFY_INSTRUCTION(X86_INS_TEST, Instruction::T_Compare);
+    m_plugin = reinterpret_cast<const RDAssemblerPlugin*>(plugin);
 
-    REGISTER_INSTRUCTION(X86_INS_JA, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JAE, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JB, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JBE, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JCXZ, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JECXZ, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JE, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JG, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JGE, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JL, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JLE, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JNE, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JNO, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JNP, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JNS, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JO, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JP, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JS, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_JMP, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_CALL, &X86Assembler::setBranchTarget);
-    REGISTER_INSTRUCTION(X86_INS_LEA, &X86Assembler::checkLea);
-    REGISTER_INSTRUCTION(X86_INS_CMP, &X86Assembler::compareOp1);
+    if(m_plugin->bits == 32) ZydisDecoderInit(&m_decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_ADDRESS_WIDTH_32);
+    else ZydisDecoderInit(&m_decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
+
+    ZydisFormatterInit(&m_formatter, ZYDIS_FORMATTER_STYLE_INTEL);
 }
 
-size_t X86Assembler::bits() const
+void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* instruction)
 {
-    switch(this->mode())
+    switch(instruction->type)
     {
-        case CS_MODE_16: return 16;
-        case CS_MODE_64: return 64;
+        case InstructionType_Call:
+            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
+            break;
+
+        case InstructionType_Jump:
+            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
+            if(instruction->flags & InstructionFlags_Conditional) break;
+            return;
+
+        default:
+            this->checkOperands(disassembler, instruction);
+            break;
+    }
+
+    if(instruction->type != InstructionType_Stop)
+        RDDisassembler_EnqueueNext(disassembler, instruction);
+}
+
+bool X86Assembler::decode(RDBufferView* view, RDInstruction* instruction)
+{
+    ZydisDecodedInstruction zinstr;
+
+    ZyanStatus s = ZydisDecoderDecodeBuffer(&m_decoder, RDBufferView_Data(view), static_cast<ZyanUSize>(RDBufferView_Size(view)), &zinstr);
+    if(!ZYAN_SUCCESS(s)) return false;
+
+    instruction->id = zinstr.mnemonic;
+    instruction->size = zinstr.length;
+    this->categorizeInstruction(instruction, &zinstr);
+    this->writeMnemonic(instruction, &zinstr);
+
+    this->writeOperands(instruction, &zinstr);
+    return true;
+}
+
+bool X86Assembler::render(RDRenderItemParams* rip)
+{
+    if(rip->type != RendererItemType_Operand) return false;
+
+    const RDOperand* op = rip->operand;
+
+    if(op->type == OperandType_Register)
+    {
+        RDRendererItem_Push(rip->rendereritem, ZydisRegisterGetString(static_cast<ZydisRegister>(op->reg)), "register_fg", nullptr);
+        return true;
+    }
+
+    if(op->type == OperandType_Displacement)
+    {
+        bool needsign = false;
+        RDRendererItem_Push(rip->rendereritem, "[", nullptr, nullptr);
+
+        if(op->base != RD_NREG)
+        {
+            RDRendererItem_Push(rip->rendereritem, ZydisRegisterGetString(static_cast<ZydisRegister>(op->base)), "register_fg", nullptr);
+            needsign = true;
+        }
+
+        if(op->index != RD_NREG)
+        {
+            if(needsign) RDRendererItem_Push(rip->rendereritem, "+", nullptr, nullptr);
+            RDRendererItem_Push(rip->rendereritem, ZydisRegisterGetString(static_cast<ZydisRegister>(op->index)), "register_fg", nullptr);
+
+            if(op->scale > 1)
+            {
+                RDRendererItem_Push(rip->rendereritem, "*", nullptr, nullptr);
+                RDRendererItem_Push(rip->rendereritem, std::to_string(op->scale).c_str(), "immediate_fg", nullptr);
+            }
+
+            needsign = true;
+        }
+
+        if(op->displacement > 0)
+        {
+            if(needsign) RDRendererItem_Push(rip->rendereritem, "+", nullptr, nullptr);
+            RDRenderer_Immediate(rip->renderer, rip);
+        }
+        else
+        {
+            RDRendererItem_Push(rip->rendereritem, "-", nullptr, nullptr);
+            RDRendererItem_Push(rip->rendereritem, std::to_string(std::abs(op->displacement)).c_str(), "immediate_fg", nullptr);
+        }
+
+        RDRendererItem_Push(rip->rendereritem, "]", nullptr, nullptr);
+        return true;
+    }
+
+    return false;
+}
+
+void X86Assembler::checkOperands(RDDisassembler* disassembler, const RDInstruction* instruction) const
+{
+    for(size_t i = 0; i < instruction->operandscount; i++)
+    {
+        const RDOperand* op = &instruction->operands[i];
+        if(instruction->operands[i].type == OperandType_Void) continue;
+        RDDisassembler_HandleOperand(disassembler, instruction, op);
+    }
+}
+
+void X86Assembler::categorizeInstruction(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const
+{
+    switch(zinstr->meta.category)
+    {
+        case ZYDIS_CATEGORY_PUSH:      instruction->type = InstructionType_Push; break;
+        case ZYDIS_CATEGORY_POP:       instruction->type = InstructionType_Pop;  break;
+        case ZYDIS_CATEGORY_CALL:      instruction->type = InstructionType_Call; break;
+        case ZYDIS_CATEGORY_RET:       instruction->type = InstructionType_Stop; break;
+        case ZYDIS_CATEGORY_UNCOND_BR: instruction->type = InstructionType_Jump; break;
+
+        case ZYDIS_CATEGORY_COND_BR:
+            instruction->type = InstructionType_Jump;
+            instruction->flags = InstructionFlags_Conditional;
+            break;
+
         default: break;
     }
-
-    return 32;
 }
 
-void X86Assembler::init(const AssemblerRequest &request)
+void X86Assembler::writeMnemonic(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const
 {
-    CapstoneAssembler::init(request);
+    std::vector<u8> buffer(BUFFER_SIZE);
+    ZydisFormatterTokenConst* token = nullptr;
+    std::string fullmnemonic;
 
-    if(request.modeIs("x86_16"))
-        this->open(CS_ARCH_X86, CS_MODE_16);
-    else if(request.modeIs("x86_64"))
-        this->open(CS_ARCH_X86, CS_MODE_64);
-    else
+    if(!ZYAN_SUCCESS(ZydisFormatterTokenizeInstruction(&m_formatter, zinstr, buffer.data(), buffer.size(), ZYDIS_RUNTIME_ADDRESS_NONE, &token)))
+        return;
+
+    ZydisTokenType tokentype;
+    ZyanConstCharPointer tokenvalue = nullptr;
+
+    while(token)
     {
-        if(!request.modeIs("x86_32"))
-            r_ctx->log("Unknown mode: " + String(request.mode).quoted() + ", falling back to x86_32");
+        ZydisFormatterTokenGetValue(token, &tokentype, &tokenvalue);
 
-        this->open(CS_ARCH_X86, CS_MODE_32);
-    }
-}
-
-const Symbol *X86Assembler::findTrampoline(size_t index) const
-{
-    ListingItem item = r_doc->itemAt(index);
-    if(!item.isValid()) return nullptr;
-    CachedInstruction instruction = r_doc->instruction(item.address);
-    if(!instruction->isJump()) return nullptr;
-
-    auto target = r_disasm->getTarget(item.address);
-    if(!target.valid) return nullptr;
-
-    return r_doc->symbol(target);
-}
-
-Printer *X86Assembler::doCreatePrinter() const { return new X86Printer(); }
-
-void X86Assembler::onDecoded(Instruction *instruction)
-{
-    CapstoneAssembler::onDecoded(instruction);
-
-    cs_insn* insn = reinterpret_cast<cs_insn*>(instruction->userdata);
-    const cs_x86& x86 = insn->detail->x86;
-
-    for(size_t i = 0; i < x86.op_count; i++)
-    {
-        const cs_x86_op& op = x86.operands[i];
-
-        if(op.type == X86_OP_MEM) {
-            const x86_op_mem& mem = op.mem;
-            s64 locindex = -1;
-
-            if((mem.index == X86_REG_INVALID) && mem.disp && this->isBP(mem.base)) // Check locals/arguments
-            {
-                flag_t flags = Operand::F_None;
-                locindex = this->bpIndex(mem.disp, flags);
-                instruction->local(locindex, X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.disp, flags);
-            }
-            else if(this->isSP(mem.base)) // Check locals
-            {
-                locindex = this->spIndex(mem.disp);
-
-                if(locindex != -1)
-                    instruction->local(locindex, X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.disp);
-                else
-                    instruction->disp(X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.scale, mem.disp);
-            }
-            else if((mem.index == X86_REG_INVALID) && this->isIP(mem.base)) // Handle case [xip + disp]
-                instruction->mem(instruction->address + instruction->size + mem.disp);
-            else if((mem.index == X86_REG_INVALID) && (mem.base == X86_REG_INVALID)) // Handle case [disp]
-                instruction->mem(mem.disp);
-            else
-                instruction->disp(X86_REGISTER(mem.base), X86_REGISTER(mem.index), mem.scale, mem.disp);
+        if(tokentype == ZYDIS_TOKEN_MNEMONIC)
+        {
+            if(!fullmnemonic.empty()) fullmnemonic += " ";
+            fullmnemonic += tokenvalue;
         }
-        else if(op.type == X86_OP_IMM)
-            instruction->imm(op.imm);
-        else if(op.type == X86_OP_REG)
-            instruction->reg(op.reg);
+        else if(tokentype == ZYDIS_TOKEN_PREFIX) fullmnemonic += tokenvalue;
+
+        if(!ZYAN_SUCCESS(ZydisFormatterTokenNext(&token))) token = nullptr;
     }
+
+    RDInstruction_SetMnemonic(instruction, fullmnemonic.c_str());
 }
 
-s64 X86Assembler::bpIndex(s64 disp, flag_t& flags) const
+void X86Assembler::writeOperands(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const
 {
-    if(disp < 0)
+    ZyanU64 calcaddress = 0;
+
+    for(size_t i = 0; i < zinstr->operand_count; i++)
     {
-        flags = Operand::F_Local;
-        return -disp;
+        const ZydisDecodedOperand& zop = zinstr->operands[i];
+        if(zop.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN) continue;
+
+        RDOperand* op = nullptr;
+
+        switch(zop.type)
+        {
+            case ZYDIS_OPERAND_TYPE_REGISTER:
+                op = RDInstruction_PushOperand(instruction, OperandType_Register);
+                op->reg = zop.reg.value;
+                break;
+
+            case ZYDIS_OPERAND_TYPE_IMMEDIATE:
+                op = RDInstruction_PushOperand(instruction, OperandType_Immediate);
+
+                if(!ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(zinstr, &zop, instruction->address, &calcaddress))) {
+                   if(zop.imm.is_signed) op->s_value = zop.imm.value.s;
+                   else op->u_value = zop.imm.value.u;
+                }
+                else op->u_value = calcaddress;
+
+                break;
+
+            case ZYDIS_OPERAND_TYPE_MEMORY:
+                op = RDInstruction_PushOperand(instruction, OperandType_Displacement);
+                this->writeMemoryOperand(op, &zop);
+                break;
+
+            default:
+                rd_log("Operand " + std::to_string(zop.type) + " not implemented");
+                continue;
+        }
     }
-
-    s32 size = 0;
-
-    if(this->mode() == CS_MODE_16) size = 2;
-    else if(this->mode() == CS_MODE_32) size = 4;
-    else if(this->mode() == CS_MODE_64) size = 8;
-
-    if(disp < (size * 2)) return -1;
-    if(disp > 0) flags = Operand::F_Argument;
-    return disp;
 }
 
-s64 X86Assembler::spIndex(s64 disp) const { return (disp <= 0) ? -1 : disp; }
-
-bool X86Assembler::isSP(register_id_t reg) const
+void X86Assembler::writeMemoryOperand(RDOperand* operand, const ZydisDecodedOperand* zop) const
 {
-    if(this->mode() == CS_MODE_16)
-        return reg == X86_REG_SP;
+    operand->type = OperandType_Displacement;
+    operand->scale = zop->mem.scale;
 
-    if(this->mode() == CS_MODE_32)
-        return reg == X86_REG_ESP;
+    if(zop->mem.base == ZYDIS_REGISTER_NONE) operand->base = RD_NREG;
+    else operand->base = zop->mem.base;
 
-    if(this->mode() == CS_MODE_64)
-        return reg == X86_REG_RSP;
+    if(zop->mem.index == ZYDIS_REGISTER_NONE) operand->index = RD_NREG;
+    else operand->index = zop->mem.index;
 
-    return false;
+    if(zop->mem.disp.has_displacement)  operand->displacement = zop->mem.disp.value;
+
+    if((operand->base == RD_NREG) && (operand->index == RD_NREG) && zop->mem.disp.has_displacement)
+        operand->type = OperandType_Memory;
 }
 
-bool X86Assembler::isBP(register_id_t reg) const
+static void init(RDPluginHeader* plugin) { plugin->puserdata = new X86Assembler(plugin); }
+static void free(RDPluginHeader* plugin) { delete reinterpret_cast<X86Assembler*>(plugin->userdata); }
+
+static bool decode(const RDAssemblerPlugin* plugin, RDBufferView* view, RDInstruction* instruction)
 {
-    if(this->mode() == CS_MODE_16)
-        return reg == X86_REG_BP;
-
-    if(this->mode() == CS_MODE_32)
-        return reg == X86_REG_EBP;
-
-    if(this->mode() == CS_MODE_64)
-        return reg == X86_REG_RBP;
-
-    return false;
+    return reinterpret_cast<X86Assembler*>(plugin->header.userdata)->decode(view, instruction);
 }
 
-bool X86Assembler::isIP(register_id_t reg) const
+static void emulate(const RDAssemblerPlugin* plugin, RDDisassembler* disassembler, const RDInstruction* instruction)
 {
-    if(this->mode() == CS_MODE_16)
-        return reg == X86_REG_IP;
-
-    if(this->mode() == CS_MODE_32)
-        return reg == X86_REG_EIP;
-
-    if(this->mode() == CS_MODE_64)
-        return reg == X86_REG_RIP;
-
-    return false;
+    reinterpret_cast<X86Assembler*>(plugin->header.userdata)->emulate(disassembler, instruction);
 }
 
-void X86Assembler::setBranchTarget(Instruction *instruction) { instruction->targetIdx(0); }
-
-void X86Assembler::checkLea(Instruction *instruction)
+static bool render(const RDAssemblerPlugin* plugin, RDRenderItemParams* rip)
 {
-    instruction->type = Instruction::T_Load;
-    Operand* op1 = instruction->op(1);
-    if(!REDasm::typeIs(op1, Operand::T_Memory)) return;
-
-    op1->type = Operand::T_Immediate;
+    return reinterpret_cast<X86Assembler*>(plugin->header.userdata)->render(rip);
 }
 
-void X86Assembler::compareOp1(Instruction *instruction)
+RD_PLUGIN(RDAssemblerPlugin, x86_32, "x86_32", init, free, 32, decode, emulate, render)
+RD_PLUGIN(RDAssemblerPlugin, x86_64, "x86_64", init, free, 64, decode, emulate, render)
+
+static void entry()
 {
-    instruction->type = Instruction::T_Compare;
-    instruction->op(1)->checkCharacter();
+    RDAssembler_Register(&x86_32);
+    RDAssembler_Register(&x86_64);
 }
 
-REDASM_ASSEMBLER("x86", "Dax", "MIT", 1)
-REDASM_LOAD { x86.plugin = new X86Assembler(); return true; }
-REDASM_UNLOAD { x86.plugin->release(); }
+RD_DECLARE_PLUGIN(entry)

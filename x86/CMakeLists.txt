@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.10)
 project(X86)
 find_package(REDasm REQUIRED)
 
-file(GLOB_RECURSE HEADERS *.h*)
-file(GLOB_RECURSE SOURCES *.cpp)
+set(HEADERS x86.h)
+set(SOURCES x86.cpp)
+
+option(ZYDIS_BUILD_TOOLS "" OFF)
+option(ZYDIS_BUILD_EXAMPLES "" OFF)
+add_subdirectory(zydis)
 
 redasm_plugin(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} PRIVATE Zydis)

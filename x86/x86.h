@@ -1,29 +1,25 @@
 #pragma once
 
-#include <redasm/plugins/assembler/capstoneassembler.h>
-#include <redasm/redasm.h>
+#include <rdapi/rdapi.h>
+#include <Zydis/Zydis.h>
 
-using namespace REDasm;
-
-class X86Assembler: public CapstoneAssembler
+class X86Assembler
 {
     public:
-        X86Assembler();
-        size_t bits() const override;
-        void init(const AssemblerRequest &request) override;
-        const Symbol* findTrampoline(size_t index) const override;
-
-    protected:
-        Printer* doCreatePrinter() const override;
-        void onDecoded(Instruction* instruction) override;
+        X86Assembler(const RDPluginHeader* plugin);
+        void emulate(RDDisassembler* disassembler, const RDInstruction* instruction);
+        bool decode(RDBufferView* view, RDInstruction* instruction);
+        bool render(RDRenderItemParams* rip);
 
     private:
-        void setBranchTarget(Instruction* instruction);
-        void checkLea(Instruction* instruction);
-        void compareOp1(Instruction* instruction);
-        s64 bpIndex(s64 disp, flag_t& flags) const;
-        s64 spIndex(s64 disp) const;
-        bool isSP(register_id_t reg) const;
-        bool isBP(register_id_t reg) const;
-        bool isIP(register_id_t reg) const;
+        void checkOperands(RDDisassembler* disassembler, const RDInstruction* instruction) const;
+        void categorizeInstruction(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
+        void writeMnemonic(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
+        void writeOperands(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
+        void writeMemoryOperand(RDOperand* operand, const ZydisDecodedOperand* zop) const;
+
+    private:
+        const RDAssemblerPlugin* m_plugin;
+        ZydisFormatter m_formatter;
+        ZydisDecoder m_decoder;
 };
