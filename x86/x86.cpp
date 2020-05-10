@@ -227,22 +227,22 @@ void X86Assembler::writeMemoryOperand(RDOperand* operand, const ZydisDecodedOper
         operand->type = OperandType_Memory;
 }
 
-static void init(RDPluginHeader* plugin) { plugin->puserdata = new X86Assembler(plugin); }
-static void free(RDPluginHeader* plugin) { delete reinterpret_cast<X86Assembler*>(plugin->userdata); }
+static void init(RDPluginHeader* plugin) { plugin->p_data = new X86Assembler(plugin); }
+static void free(RDPluginHeader* plugin) { delete reinterpret_cast<X86Assembler*>(plugin->p_data); }
 
 static bool decode(const RDAssemblerPlugin* plugin, RDBufferView* view, RDInstruction* instruction)
 {
-    return reinterpret_cast<X86Assembler*>(plugin->header.userdata)->decode(view, instruction);
+    return reinterpret_cast<X86Assembler*>(plugin->p_data)->decode(view, instruction);
 }
 
 static void emulate(const RDAssemblerPlugin* plugin, RDDisassembler* disassembler, const RDInstruction* instruction)
 {
-    reinterpret_cast<X86Assembler*>(plugin->header.userdata)->emulate(disassembler, instruction);
+    reinterpret_cast<X86Assembler*>(plugin->p_data)->emulate(disassembler, instruction);
 }
 
 static bool render(const RDAssemblerPlugin* plugin, RDRenderItemParams* rip)
 {
-    return reinterpret_cast<X86Assembler*>(plugin->header.userdata)->render(rip);
+    return reinterpret_cast<X86Assembler*>(plugin->p_data)->render(rip);
 }
 
 RD_PLUGIN(RDAssemblerPlugin, x86_32, "x86_32", init, free, 32, decode, emulate, render)
