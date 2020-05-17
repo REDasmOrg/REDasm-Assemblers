@@ -54,15 +54,9 @@ bool X86Assembler::decode(RDBufferView* view, RDInstruction* instruction)
 
 bool X86Assembler::render(RDRenderItemParams* rip)
 {
-    if(rip->type != RendererItemType_Operand) return false;
+    if(!IS_TYPE(rip, RendererItemType_Operand)) return false;
 
     const RDOperand* op = rip->operand;
-
-    if(IS_TYPE(op, OperandType_Register))
-    {
-        RDRendererItem_Push(rip->rendereritem, ZydisRegisterGetString(static_cast<ZydisRegister>(op->reg)), "register_fg", nullptr);
-        return true;
-    }
 
     if(IS_TYPE(op, OperandType_Displacement))
     {
@@ -199,8 +193,14 @@ void X86Assembler::writeOperands(RDInstruction* instruction, const ZydisDecodedI
                 break;
 
             case ZYDIS_OPERAND_TYPE_MEMORY:
-                op = RDInstruction_PushOperand(instruction, OperandType_Displacement);
-                this->writeMemoryOperand(op, &zop);
+                if(ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(zinstr, &zop, instruction->address, &calcaddress))) {
+                    op = RDInstruction_PushOperand(instruction, OperandType_Memory);
+                    op->u_value = calcaddress;
+                }
+                else {
+                    op = RDInstruction_PushOperand(instruction, OperandType_Displacement);
+                    this->writeMemoryOperand(op, &zop);
+                }
                 break;
 
             default:
@@ -245,13 +245,30 @@ static bool render(const RDAssemblerPlugin* plugin, RDRenderItemParams* rip)
     return reinterpret_cast<X86Assembler*>(plugin->p_data)->render(rip);
 }
 
-RD_PLUGIN(RDAssemblerPlugin, x86_32, "x86_32", init, free, 32, decode, emulate, render)
-RD_PLUGIN(RDAssemblerPlugin, x86_64, "x86_64", init, free, 64, decode, emulate, render)
+static const char* regname(RDAssemblerPlugin*, register_t r) { return ZydisRegisterGetString(static_cast<ZydisRegister>(r)); }
 
-static void entry()
+RD_PLUGIN(RDAssemblerPlugin, x86_32, "x86_32");
+RD_PLUGIN(RDAssemblerPlugin, x86_64, "x86_64");
+
+void redasm_entry()
 {
+    x86_32.bits = 32;
+    x86_32.init = &init;
+    x86_32.free = &free;
+    x86_32.regname = &regname;
+    x86_32.decode = &decode;
+    x86_32.emulate = &emulate;
+    x86_32.render = &render;
+    x86_32.regname = &regname;
+
+    x86_64.bits = 64;
+    x86_64.init = &init;
+    x86_64.free = &free;
+    x86_64.decode = &decode;
+    x86_64.emulate = &emulate;
+    x86_64.render = &render;
+    x86_64.regname = &regname;
+
     RDAssembler_Register(&x86_32);
     RDAssembler_Register(&x86_64);
 }
-
-RD_DECLARE_PLUGIN(entry)
