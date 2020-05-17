@@ -247,11 +247,9 @@ static bool render(const RDAssemblerPlugin* plugin, RDRenderItemParams* rip)
 
 static const char* regname(RDAssemblerPlugin*, register_t r) { return ZydisRegisterGetString(static_cast<ZydisRegister>(r)); }
 
-RD_PLUGIN(RDAssemblerPlugin, x86_32, "x86_32");
-RD_PLUGIN(RDAssemblerPlugin, x86_64, "x86_64");
-
 void redasm_entry()
 {
+    RD_PLUGIN_CREATE(RDAssemblerPlugin, x86_32, "x86_32");
     x86_32.bits = 32;
     x86_32.init = &init;
     x86_32.free = &free;
@@ -261,6 +259,7 @@ void redasm_entry()
     x86_32.render = &render;
     x86_32.regname = &regname;
 
+    RD_PLUGIN_CREATE(RDAssemblerPlugin, x86_64, "x86_64");
     x86_64.bits = 64;
     x86_64.init = &init;
     x86_64.free = &free;
