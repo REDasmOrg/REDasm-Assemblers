@@ -1,27 +1,36 @@
 #pragma once
 
-#include <redasm/redasm.h>
-#include <redasm/plugins/assembler/capstoneassembler.h>
+#include <rdapi/rdapi.h>
+#include <array>
+#include "mips_instruction.h"
+#include "mips_format.h"
 
-using namespace REDasm;
-
-class MipsAssembler: public CapstoneAssembler
+class MIPSDecoder
 {
-    public:
-        MipsAssembler();
-        size_t bits() const override;
-        void init(const AssemblerRequest &request) override;
+    private:
+        typedef bool (*Callback_MIPSDecode)(const MIPSInstruction*, RDInstruction*);
 
-    protected:
-        Algorithm* doCreateAlgorithm() const override;
-        Printer* doCreatePrinter() const override;
-        bool decodeInstruction(const BufferView &view, Instruction* instruction) override;
-        void onDecoded(Instruction* instruction) override;
+    public:
+        static const char* regname(struct RDAssemblerPlugin*, const RDInstruction*, register_id_t r);
+        static bool decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction);
+        static void emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler, const RDInstruction* instruction);
 
     private:
-        void setTargetOp0(Instruction* instruction) const;
-        void setTargetOp1(Instruction* instruction) const;
-        void setTargetOp2(Instruction* instruction) const;
-        void checkJr(Instruction* instruction) const;
+        static bool decodeR(const MIPSInstruction* mi, RDInstruction* instruction);
+        static bool decodeI(const MIPSInstruction* mi, RDInstruction* instruction);
+        static bool decodeJ(const MIPSInstruction* mi, RDInstruction* instruction);
+        static void applyFormat(const MIPSFormat* format, RDInstruction* instruction);
+        static size_t checkFormat(const MIPSInstruction* mi);
+        template<typename T> static T signExtend(T t, int bits);
+
+    private:
+        static std::array<Callback_MIPSDecode, MIPSEncoding_Count> m_decoders;
 };
 
+template<typename T>
+T MIPSDecoder::signExtend(T t, int bits)
+{
+    T m = 1;
+    m <<= bits - 1;
+    return (t ^ m) - m;
+}
