@@ -15,9 +15,10 @@ const char* MIPSDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, regis
     return GPR_REGISTERS[r];
 }
 
-bool MIPSDecoder::decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction)
+template<u32 (*Swap)(u32)> bool MIPSDecoder::decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction)
 {
-    MIPSInstruction* mi = reinterpret_cast<MIPSInstruction*>(RDBufferView_Data(view));
+    u32 word = Swap(*reinterpret_cast<u32*>(RDBufferView_Data(view)));
+    MIPSInstruction* mi = reinterpret_cast<MIPSInstruction*>(reinterpret_cast<u32*>(&word));
     instruction->size = sizeof(MIPSInstruction);
 
     size_t f = MIPSDecoder::checkFormat(mi);
@@ -158,9 +159,14 @@ void redasm_entry()
     MIPSInitializeFormats();
 
     RD_PLUGIN_CREATE(RDAssemblerPlugin, mips32le, "MIPS32 (Little Endian)");
-    mips32le.decode = &MIPSDecoder::decode;
+    mips32le.decode = &MIPSDecoder::decode<&RD_FromLittleEndian32>;
     mips32le.emulate = &MIPSDecoder::emulate;
     mips32le.regname = &MIPSDecoder::regname;
-
     RDAssembler_Register(&mips32le);
+
+    RD_PLUGIN_CREATE(RDAssemblerPlugin, mips32be, "MIPS32 (Big Endian)");
+    mips32be.decode = &MIPSDecoder::decode<&RD_FromBigEndian32>;
+    mips32be.emulate = &MIPSDecoder::emulate;
+    mips32be.regname = &MIPSDecoder::regname;
+    RDAssembler_Register(&mips32be);
 }

@@ -12,7 +12,7 @@ class MIPSDecoder
 
     public:
         static const char* regname(struct RDAssemblerPlugin*, const RDInstruction*, register_id_t r);
-        static bool decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction);
+        template<u32 (*Swap)(u32)> static bool decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction);
         static void emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler, const RDInstruction* instruction);
 
     private:
