@@ -245,7 +245,7 @@ static bool render(const RDAssemblerPlugin* plugin, RDRenderItemParams* rip)
     return reinterpret_cast<X86Assembler*>(plugin->p_data)->render(rip);
 }
 
-static const char* regname(RDAssemblerPlugin*, register_t r) { return ZydisRegisterGetString(static_cast<ZydisRegister>(r)); }
+static const char* regname(RDAssemblerPlugin*, const RDInstruction*, register_t r) { return ZydisRegisterGetString(static_cast<ZydisRegister>(r)); }
 
 void redasm_entry()
 {
