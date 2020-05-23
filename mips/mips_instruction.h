@@ -21,20 +21,27 @@ enum MIPSInstructionId {
     // I-Type
     MIPSInstruction_Addi, MIPSInstruction_Addiu, MIPSInstruction_Andi,
     MIPSInstruction_Ori, MIPSInstruction_Lui, MIPSInstruction_Beq,
-    MIPSInstruction_Bgtz, MIPSInstruction_Blez, MIPSInstruction_Bne,
+    MIPSInstruction_Bgez, MIPSInstruction_Bgtz, MIPSInstruction_Blez,
+    MIPSInstruction_Bne,
     MIPSInstruction_Lb, MIPSInstruction_Lbu, MIPSInstruction_Lh,
-    MIPSInstruction_Lhu, MIPSInstruction_Lw, MIPSInstruction_Sb,
-    MIPSInstruction_Sh, MIPSInstruction_Sw, MIPSInstruction_Lhi,
-    MIPSInstruction_Llo, MIPSInstruction_Slti, MIPSInstruction_Sltiu,
+    MIPSInstruction_Lhu, MIPSInstruction_Lw,
+    MIPSInstruction_Lwl, MIPSInstruction_Lwr,
+    MIPSInstruction_Sb, MIPSInstruction_Sh, MIPSInstruction_Sw,
+    MIPSInstruction_Lhi, MIPSInstruction_Llo,
+    MIPSInstruction_Slti, MIPSInstruction_Sltiu,
 
     //J-Type
     MIPSInstruction_J, MIPSInstruction_Jal,
-};
 
-enum MIPSEncoding {
-    MIPSEncoding_Unknown,
-    MIPSEncoding_R, MIPSEncoding_I, MIPSEncoding_J,
-    MIPSEncoding_Count
+    //B-Type
+    MIPSInstruction_Break, MIPSInstruction_Syscall,
+
+    //C-Type
+    MIPSInstruction_Mfc0, MIPSInstruction_Mtc0,
+
+    // Macro Instructions
+    MIPSInstruction_Bgezal, MIPSInstruction_Bltz, MIPSInstruction_Bltzal,
+    MIPSInstruction_Nop
 };
 
 #pragma pack(push, 1)
@@ -63,6 +70,20 @@ struct JFormat {
     unsigned op: 6;
 };
 
+struct BFormat {
+    unsigned funct: 6;
+    unsigned code: 20;
+    unsigned op: 6;
+};
+
+struct CFormat {
+    unsigned imm: 11;
+    unsigned rd: 5;
+    unsigned rt: 5;
+    unsigned rs: 5;
+    unsigned op: 6;
+};
+
 union MIPSInstruction {
     u32 word;
     u16 hword[2];
@@ -71,6 +92,8 @@ union MIPSInstruction {
     RFormat r;
     IFormat i;
     JFormat j;
+    BFormat b;
+    CFormat c;
 };
 #pragma pack(pop)
 
