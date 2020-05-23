@@ -86,7 +86,7 @@ bool X86Assembler::render(RDRenderItemParams* rip)
         if(op->displacement > 0)
         {
             if(needsign) RDRendererItem_Push(rip->rendereritem, "+", nullptr, nullptr);
-            RDRenderer_Immediate(rip->renderer, rip);
+            RDRenderer_Immediate(rip);
         }
         else
         {
