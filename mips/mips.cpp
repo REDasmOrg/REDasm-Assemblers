@@ -54,6 +54,8 @@ void MIPSDecoder::emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler
 
         case MIPSInstruction_Ori:
         case MIPSInstruction_Addiu:
+        case MIPSInstruction_Lw:
+        case MIPSInstruction_Sw:
             if(!m_luilist.empty()) MIPSDecoder::checkLui(disassembler, instruction);
             break;
 
@@ -110,11 +112,11 @@ bool MIPSDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
 
     RDRenderer_Prologue(rip);
     RDRenderer_Mnemonic(rip);
-    RDRenderer_Register(rip, rip->instruction->operands[1].reg);
-    RDRendererItem_Push(rip->rendereritem, ", ", nullptr, nullptr);
-    RDRendererItem_Push(rip->rendereritem, RD_ToHexAuto(rip->instruction->operands[2].reg), "immediate_fg", nullptr);
-    RDRendererItem_Push(rip->rendereritem, "(", nullptr, nullptr);
     RDRenderer_Register(rip, rip->instruction->operands[0].reg);
+    RDRendererItem_Push(rip->rendereritem, ", ", nullptr, nullptr);
+    RDRendererItem_Push(rip->rendereritem, RD_ToHexBits(rip->instruction->operands[2].s_value, 16, false), "immediate_fg", nullptr);
+    RDRendererItem_Push(rip->rendereritem, "(", nullptr, nullptr);
+    RDRenderer_Register(rip, rip->instruction->operands[1].reg);
     RDRendererItem_Push(rip->rendereritem, ")", nullptr, nullptr);
     return true;
 }
@@ -127,27 +129,27 @@ bool MIPSDecoder::decodeR(const MIPSInstruction* mi, RDInstruction* instruction)
 
     instruction->u_data = MIPSEncoding_R;
 
-    if(mi->r.shamt)
+    switch(instruction->id)
     {
-        RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rd;
-        RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rt;
-        RDInstruction_PushOperand(instruction, OperandType_Constant)->u_value = mi->r.shamt;
-    }
-    else
-    {
-        switch(instruction->id)
-        {
-            case MIPSInstruction_Jr:
-                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
-                if(mi->r.rs == MIPSRegister_RA) instruction->type = InstructionType_Ret;
-                break;
+        case MIPSInstruction_Sll:
+        case MIPSInstruction_Srl:
+        case MIPSInstruction_Sra:
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rd;
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rt;
+            RDInstruction_PushOperand(instruction, OperandType_Constant)->u_value = mi->r.shamt;
+            if(instruction->id == MIPSInstruction_Sll) MIPSDecoder::checkNop(instruction);
+            break;
 
-            default:
-                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rd;
-                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rt;
-                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
-                break;
-        }
+        case MIPSInstruction_Jr:
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
+            if(mi->r.rs == MIPSRegister_RA) instruction->type = InstructionType_Ret;
+            break;
+
+        default:
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rd;
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rt;
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
+            break;
     }
 
     return true;
@@ -161,11 +163,14 @@ bool MIPSDecoder::decodeI(const MIPSInstruction* mi, RDInstruction* instruction)
 
     instruction->u_data = MIPSEncoding_I;
 
-    if(instruction->id == MIPSInstruction_Lui)
+    switch(instruction->id)
     {
-        RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rt;
-        RDInstruction_PushOperand(instruction, OperandType_Immediate)->u_value = mi->i.u_immediate;
-        return true;
+        case MIPSInstruction_Lui:
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rt;
+            RDInstruction_PushOperand(instruction, OperandType_Immediate)->u_value = mi->i.u_immediate;
+            return true;
+
+        default: break;
     }
 
     RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rt;
@@ -224,6 +229,21 @@ bool MIPSDecoder::decodeC(const MIPSInstruction* mi, RDInstruction* instruction)
     return true;
 }
 
+bool MIPSDecoder::checkNop(RDInstruction* instruction)
+{
+    //if(!IS_TYPE(instruction, MIPSInstruction_Sll)) return false;
+
+    if(instruction->operands[0].reg != MIPSRegister_ZERO) return false;
+    if(instruction->operands[1].reg != MIPSRegister_ZERO) return false;
+
+    RDInstruction_ClearOperands(instruction);
+    RDInstruction_SetMnemonic(instruction, "nop");
+    instruction->id = MIPSInstruction_Nop;
+    instruction->type = InstructionType_Nop;
+    instruction->flags = InstructionType_None;
+    return true;
+}
+
 void MIPSDecoder::applyFormat(const MIPSOpcode* format, RDInstruction* instruction)
 {
     RDInstruction_SetMnemonic(instruction, format->mnemonic);
@@ -249,6 +269,11 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
             break;
 
         case MIPSInstruction_Addiu:
+            address += MIPSDecoder::signExtend(instruction->operands[2].u_value, 16);
+            break;
+
+        case MIPSInstruction_Lw:
+        case MIPSInstruction_Sw:
             address += MIPSDecoder::signExtend(instruction->operands[2].u_value, 16);
             break;
 

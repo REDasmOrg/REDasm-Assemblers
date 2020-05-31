@@ -23,8 +23,9 @@ class MIPSDecoder
         static bool decodeJ(const MIPSInstruction* mi, RDInstruction* instruction);
         static bool decodeB(const MIPSInstruction* mi, RDInstruction* instruction);
         static bool decodeC(const MIPSInstruction* mi, RDInstruction* instruction);
-        static void applyFormat(const MIPSOpcode* format, RDInstruction* instruction);
+        static bool checkNop(RDInstruction* instruction);
         static void checkLui(RDDisassembler* disassembler, const RDInstruction* instruction);
+        static void applyFormat(const MIPSOpcode* format, RDInstruction* instruction);
         static size_t checkFormat(const MIPSInstruction* mi);
         template<typename T> static T signExtend(T t, int bits);
 
