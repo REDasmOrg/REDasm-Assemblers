@@ -23,6 +23,8 @@ const char* MIPSDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, regis
 
 template<u32 (*Swap)(u32)> bool MIPSDecoder::decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction)
 {
+    if(RDBufferView_Size(view) < sizeof(u32)) return false;
+
     u32 word = Swap(*reinterpret_cast<u32*>(RDBufferView_Data(view)));
     MIPSInstruction* mi = reinterpret_cast<MIPSInstruction*>(reinterpret_cast<u32*>(&word));
     instruction->size = sizeof(MIPSInstruction);
@@ -260,6 +262,7 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
 
     if(it == m_luilist.end()) return;
 
+    bool pointer = false;
     address_t address = it->operands[1].u_value << 16;
 
     switch(instruction->id)
@@ -274,6 +277,7 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
 
         case MIPSInstruction_Lw:
         case MIPSInstruction_Sw:
+            pointer = true;
             address += MIPSDecoder::signExtend(instruction->operands[2].u_value, 16);
             break;
 
@@ -282,20 +286,24 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
     }
 
     RDDocument* doc = RDDisassembler_GetDocument(disassembler);
-    type_t symboltype = RDDisassembler_MarkLocation(disassembler, instruction->address, address);
+
+    type_t symboltype = SymbolType_None;
+    if(pointer) symboltype = RDDisassembler_MarkPointer(disassembler, instruction->address, address);
+    else symboltype = RDDisassembler_MarkLocation(disassembler, instruction->address, address);
+
     std::stringstream ss;
 
-    if(symboltype == SymbolType_Data)
+    if(!pointer && (symboltype == SymbolType_Data))
     {
         const char* symbolname = RDDocument_GetSymbolName(doc, address);
         size_t bits = RDDisassembler_Bits(disassembler);
 
-        ss << "-> " << (symbolname ? symbolname : RD_ToHexBits(address, bits, true));
+        ss << "= " << (symbolname ? symbolname : RD_ToHexBits(address, bits, false));
         RDDocument_AddAutoComment(doc, instruction->address, ss.str().c_str());
     }
 
     ss = { };
-    ss << "Paired with " << RD_ToHexAuto(instruction->address);
+    ss << "... " << RD_ToHexAuto(instruction->address);
     RDDocument_AddAutoComment(doc, it->address, ss.str().c_str());
 
     m_luilist.remove_if([&it](const RDInstruction& luiinstruction) {
