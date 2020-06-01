@@ -16,42 +16,13 @@ X86Assembler::X86Assembler(const RDPluginHeader* plugin)
 
 void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* instruction)
 {
-    switch(instruction->id)
+    switch(instruction->type)
     {
-        case ZydisMnemonic::ZYDIS_MNEMONIC_MOV:
-        {
-            const RDOperand& op = instruction->operands[1];
-            if(IS_TYPE(&op, OperandType_Displacement) && (op.scale > 1))
-                RDDisassembler_MarkTable(disassembler, op.displacement, instruction->address, RD_NPOS);
-            break;
-        }
-
-        case ZydisMnemonic::ZYDIS_MNEMONIC_CALL:
+        case InstructionType_Call:
             RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
             break;
 
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JB:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JBE:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JCXZ:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JECXZ:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JKNZD:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JKZD:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JL:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JLE:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JMP:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNB:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNBE:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNL:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNLE:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNO:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNP:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNS:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JNZ:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JO:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JP:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JRCXZ:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JS:
-        case ZydisMnemonic::ZYDIS_MNEMONIC_JZ:
+        case InstructionType_Jump:
             RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
             if(instruction->flags & InstructionFlags_Conditional) break;
             return;
