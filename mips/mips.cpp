@@ -288,8 +288,8 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
     RDDocument* doc = RDDisassembler_GetDocument(disassembler);
 
     type_t symboltype = SymbolType_None;
-    if(pointer) symboltype = RDDisassembler_MarkPointer(disassembler, instruction->address, address);
-    else symboltype = RDDisassembler_MarkLocation(disassembler, instruction->address, address);
+    if(pointer) symboltype = RDDisassembler_MarkPointer(disassembler, address, instruction->address);
+    else symboltype = RDDisassembler_MarkLocation(disassembler, address, instruction->address);
 
     std::stringstream ss;
 
