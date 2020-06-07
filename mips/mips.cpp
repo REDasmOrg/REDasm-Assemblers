@@ -181,7 +181,7 @@ bool MIPSDecoder::decodeI(const MIPSInstruction* mi, RDInstruction* instruction)
     if(IS_TYPE(instruction, InstructionType_Jump))
     {
         RDInstruction_PushOperand(instruction, OperandType_Immediate)->address = instruction->address + sizeof(MIPSInstruction) +
-                                                                                 MIPSDecoder::signExtend(mi->i.s_immediate << 2, 32);
+                                                                                 RD_SignExt(mi->i.s_immediate << 2, 32);
     }
     else
         RDInstruction_PushOperand(instruction, OperandType_Immediate)->u_value = mi->i.u_immediate;
@@ -272,13 +272,13 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
             break;
 
         case MIPSInstruction_Addiu:
-            address += MIPSDecoder::signExtend(instruction->operands[2].u_value, 16);
+            address += RD_SignExt(instruction->operands[2].u_value, 16);
             break;
 
         case MIPSInstruction_Lw:
         case MIPSInstruction_Sw:
             pointer = true;
-            address += MIPSDecoder::signExtend(instruction->operands[2].u_value, 16);
+            address += RD_SignExt(instruction->operands[2].u_value, 16);
             break;
 
         default:

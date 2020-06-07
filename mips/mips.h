@@ -27,17 +27,8 @@ class MIPSDecoder
         static void checkLui(RDDisassembler* disassembler, const RDInstruction* instruction);
         static void applyFormat(const MIPSOpcode* format, RDInstruction* instruction);
         static size_t checkFormat(const MIPSInstruction* mi);
-        template<typename T> static T signExtend(T t, int bits);
 
     private:
         static std::forward_list<RDInstruction> m_luilist;
         static std::array<Callback_MIPSDecode, MIPSEncoding_Count> m_decoders;
 };
-
-template<typename T>
-T MIPSDecoder::signExtend(T t, int bits)
-{
-    T m = 1;
-    m <<= bits - 1;
-    return (t ^ m) - m;
-}
