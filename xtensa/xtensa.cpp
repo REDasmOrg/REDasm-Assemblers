@@ -571,11 +571,13 @@ void redasm_entry()
     RD_PLUGIN_CREATE(RDAssemblerPlugin, xtensale, "Xtensa (Little Endian)");
     xtensale.bits = 32;
     xtensale.decode = &XtensaDecoder<Endianness_Little>::decode;
+    xtensale.render = &XtensaDecoder<Endianness_Little>::render;
     RDAssembler_Register(&xtensale);
 
     RD_PLUGIN_CREATE(RDAssemblerPlugin, xtensabe, "Xtensa (Big Endian)");
     xtensabe.bits = 32;
-    xtensale.decode = &XtensaDecoder<Endianness_Big>::decode;
+    xtensabe.decode = &XtensaDecoder<Endianness_Big>::decode;
+    xtensabe.render = &XtensaDecoder<Endianness_Little>::render;
     RDAssembler_Register(&xtensabe);
 }
 
