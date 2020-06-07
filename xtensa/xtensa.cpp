@@ -5,9 +5,9 @@ template<size_t endianness>
 bool XtensaDecoder<endianness>::decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction)
 {
     XTensaOpcodeBytes xbytes{ };
-    if(!fetch(view, &xbytes)) return false;
+    if(!XtensaDecoder<endianness>::fetch(view, &xbytes)) return false;
 
-    const XtensaInstruction* def = findInstruction(&xbytes);
+    const XtensaInstruction* def = XtensaDecoder<endianness>::findInstruction(&xbytes);
 
     if(!def)
     {
@@ -571,13 +571,15 @@ void redasm_entry()
     RD_PLUGIN_CREATE(RDAssemblerPlugin, xtensale, "Xtensa (Little Endian)");
     xtensale.bits = 32;
     xtensale.decode = &XtensaDecoder<Endianness_Little>::decode;
+    xtensale.emulate = &XtensaDecoder<Endianness_Little>::emulate;
     xtensale.render = &XtensaDecoder<Endianness_Little>::render;
     RDAssembler_Register(&xtensale);
 
     RD_PLUGIN_CREATE(RDAssemblerPlugin, xtensabe, "Xtensa (Big Endian)");
     xtensabe.bits = 32;
     xtensabe.decode = &XtensaDecoder<Endianness_Big>::decode;
-    xtensabe.render = &XtensaDecoder<Endianness_Little>::render;
+    xtensabe.emulate = &XtensaDecoder<Endianness_Big>::emulate;
+    xtensabe.render = &XtensaDecoder<Endianness_Big>::render;
     RDAssembler_Register(&xtensabe);
 }
 
