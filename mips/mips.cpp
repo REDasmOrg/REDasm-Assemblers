@@ -15,7 +15,7 @@ std::array<MIPSDecoder::Callback_MIPSDecode, MIPSEncoding_Count> MIPSDecoder::m_
     &MIPSDecoder::decodeC,
 };
 
-const char* MIPSDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, register_id_t r)
+const char* MIPSDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, rd_register_id r)
 {
     if(r > GPR_REGISTERS.size()) return nullptr;
     return GPR_REGISTERS[r];
@@ -263,7 +263,7 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
     if(it == m_luilist.end()) return;
 
     bool pointer = false;
-    address_t address = it->operands[1].u_value << 16;
+    rd_address address = it->operands[1].u_value << 16;
 
     switch(instruction->id)
     {
@@ -287,7 +287,7 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
 
     RDDocument* doc = RDDisassembler_GetDocument(disassembler);
 
-    type_t symboltype = SymbolType_None;
+    rd_type symboltype = SymbolType_None;
     if(pointer) symboltype = RDDisassembler_MarkPointer(disassembler, address, instruction->address);
     else symboltype = RDDisassembler_MarkLocation(disassembler, address, instruction->address);
 

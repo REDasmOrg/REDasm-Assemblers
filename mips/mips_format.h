@@ -16,9 +16,9 @@ enum MIPSEncoding {
 
 struct MIPSOpcode {
     const char* mnemonic;
-    instruction_id_t id;
-    type_t type;
-    flag_t flags;
+    rd_instruction_id id;
+    rd_type type;
+    rd_flag flags;
     u32 version;
 };
 

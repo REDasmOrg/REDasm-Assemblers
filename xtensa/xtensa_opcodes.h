@@ -93,8 +93,8 @@ struct XtensaInstruction
     const char* mnemonic;
     u32 opcode, mask;
     XtensaEncoding encoding;
-    type_t type;
-    flag_t flags;
+    rd_type type;
+    rd_flag flags;
     bool narrow;
 };
 

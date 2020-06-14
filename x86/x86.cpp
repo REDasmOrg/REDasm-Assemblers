@@ -28,7 +28,7 @@ void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* in
             return;
 
         default:
-            this->checkOperands(disassembler, instruction);
+            RDDisassembler_CheckOperands(disassembler, instruction);
             break;
     }
 
@@ -77,7 +77,7 @@ bool X86Assembler::render(RDRenderItemParams* rip)
             if(op->scale > 1)
             {
                 RDRendererItem_Push(rip->rendereritem, "*", nullptr, nullptr);
-                RDRendererItem_Push(rip->rendereritem, std::to_string(op->scale).c_str(), "immediate_fg", nullptr);
+                RDRenderer_Immediate(rip, op->scale);
             }
 
             needsign = true;
@@ -86,12 +86,12 @@ bool X86Assembler::render(RDRenderItemParams* rip)
         if(op->displacement > 0)
         {
             if(needsign) RDRendererItem_Push(rip->rendereritem, "+", nullptr, nullptr);
-            RDRenderer_Immediate(rip);
+            RDRenderer_Immediate(rip, op->displacement);
         }
         else
         {
             RDRendererItem_Push(rip->rendereritem, "-", nullptr, nullptr);
-            RDRendererItem_Push(rip->rendereritem, std::to_string(std::abs(op->displacement)).c_str(), "immediate_fg", nullptr);
+            RDRenderer_Immediate(rip, std::abs(op->displacement));
         }
 
         RDRendererItem_Push(rip->rendereritem, "]", nullptr, nullptr);
@@ -99,16 +99,6 @@ bool X86Assembler::render(RDRenderItemParams* rip)
     }
 
     return false;
-}
-
-void X86Assembler::checkOperands(RDDisassembler* disassembler, const RDInstruction* instruction) const
-{
-    for(size_t i = 0; i < instruction->operandscount; i++)
-    {
-        const RDOperand* op = &instruction->operands[i];
-        if(IS_TYPE(&instruction->operands[i], OperandType_Void)) continue;
-        RDDisassembler_HandleOperand(disassembler, instruction, op);
-    }
 }
 
 void X86Assembler::categorizeInstruction(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const
@@ -245,7 +235,7 @@ static bool render(const RDAssemblerPlugin* plugin, RDRenderItemParams* rip)
     return reinterpret_cast<X86Assembler*>(plugin->p_data)->render(rip);
 }
 
-static const char* regname(RDAssemblerPlugin*, const RDInstruction*, register_t r) { return ZydisRegisterGetString(static_cast<ZydisRegister>(r)); }
+static const char* regname(RDAssemblerPlugin*, const RDInstruction*, rd_register_id r) { return ZydisRegisterGetString(static_cast<ZydisRegister>(r)); }
 
 void redasm_entry()
 {

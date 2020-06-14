@@ -12,7 +12,6 @@ class X86Assembler
         bool render(RDRenderItemParams* rip);
 
     private:
-        void checkOperands(RDDisassembler* disassembler, const RDInstruction* instruction) const;
         void categorizeInstruction(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
         void writeMnemonic(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
         void writeOperands(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
