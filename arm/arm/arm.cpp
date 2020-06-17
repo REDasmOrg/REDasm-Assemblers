@@ -46,10 +46,11 @@ bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
 
     for(size_t i = 0; i < rip->instruction->operandscount; i++)
     {
-        if(i) RDRendererItem_Push(rip->rendereritem, ", ", nullptr, nullptr);
+        if(i) RDRenderer_Text(rip, ", ");
 
         const RDOperand& op = rip->instruction->operands[i];
-        if(op.u_data & ARMFlags_RangeBegin) RDRendererItem_Push(rip->rendereritem, "{", nullptr, nullptr);
+        if(op.u_data & ARMFlags_ListBegin) RDRenderer_Text(rip, "{");
+        else if(op.u_data & ARMFlags_DispBegin) RDRenderer_Text(rip, "[");
 
         if(IS_TYPE(&op, OperandType_Immediate))
         {
@@ -59,36 +60,64 @@ bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
                 case ARMInstruction_Bl:
                     break;
 
-                default: RDRendererItem_Push(rip->rendereritem, "#", nullptr, nullptr); break;
+                default: RDRenderer_Text(rip, "#"); break;
             }
 
             RDRenderer_Operand(rip, &op);
         }
         else if(IS_TYPE(&op, OperandType_Displacement))
         {
-            RDRendererItem_Push(rip->rendereritem, "[", nullptr, nullptr);
+            RDRenderer_Text(rip, "[");
             RDRenderer_Register(rip, op.reg1);
 
             if(op.reg2 != RD_NPOS)
             {
-                RDRendererItem_Push(rip->rendereritem, ", ", nullptr, nullptr);
+                RDRenderer_Text(rip, ",");
                 RDRenderer_Register(rip, op.reg2);
             }
 
             if(op.displacement)
             {
-                RDRendererItem_Push(rip->rendereritem, ", ", nullptr, nullptr);
-                if(op.displacement < 0) RDRendererItem_Push(rip->rendereritem, "-", nullptr, nullptr);
+                RDRenderer_Text(rip, ", ");
+                if(op.displacement < 0) RDRenderer_Text(rip, "-");
                 RDRenderer_Immediate(rip, std::abs(op.displacement));
             }
 
-            RDRendererItem_Push(rip->rendereritem, "]", nullptr, nullptr);
+            RDRenderer_Text(rip, "]");
+        }
+        else if(IS_TYPE(&op, ARMOperand_2Register))
+        {
+            RDRenderer_Register(rip, op.reg1);
+
+            if(op.reg2 != RD_NPOS)
+            {
+                RDRenderer_Text(rip, ",");
+                RDRenderer_Register(rip, op.reg2);
+            }
+
+            ARMDecoder::renderShift(rip, &op);
+        }
+        else if(IS_TYPE(&op, ARMOperand_Offset12))
+        {
+            RDRenderer_Text(rip, "[");
+            RDRenderer_Register(rip, op.base);
+
+            if(op.reg3 != RD_NPOS)
+            {
+                RDRenderer_Text(rip, ",");
+                RDRenderer_Register(rip, op.reg3);
+            }
+
+            ARMDecoder::renderShift(rip, &op);
+            RDRenderer_Text(rip, "]");
         }
         else
             RDRenderer_Operand(rip, &op);
 
-        if(op.u_data & ARMFlags_WriteBack) RDRendererItem_Push(rip->rendereritem, "!", nullptr, nullptr);
-        if(op.u_data & ARMFlags_RangeEnd) RDRendererItem_Push(rip->rendereritem, "}", nullptr, nullptr);
+        if(op.u_data & ARMFlags_WriteBack) RDRenderer_Text(rip, "!");
+
+        if(op.u_data & ARMFlags_ListEnd) RDRenderer_Text(rip, "}");
+        else if(op.u_data & ARMFlags_ListEnd) RDRenderer_Text(rip, "]");
     }
 
     return true;
@@ -142,6 +171,28 @@ size_t ARMDecoder::classify(const ARMInstruction* ai)
     return ARMFormat_None;
 }
 
+void ARMDecoder::renderShift(RDRenderItemParams* rip, const RDOperand* op)
+{
+    static std::unordered_map<rd_type, const char*> shiftids = {
+        { ARMFlags_LSL, "LSL" },
+        { ARMFlags_LSR, "LSR" },
+        { ARMFlags_ASR, "ASR" },
+        { ARMFlags_RRX, "RRX" },
+    };
+
+    if(!op->u_value) return;
+    RDRenderer_Text(rip, ",");
+
+    if(auto it = shiftids.find(op->u_data); it != shiftids.end())
+    {
+        RDRenderer_Text(rip, shiftids[op->u_data]);
+        RDRenderer_Text(rip, "#");
+        RDRenderer_Immediate(rip, op->u_value);
+    }
+    else
+        RDRenderer_Text(rip, "InvalidShift");
+}
+
 void ARMDecoder::checkShift(RDOperand* op, u8 shift)
 {
     static std::array<rd_flag, 0b100> shifttypes = {
@@ -153,15 +204,15 @@ void ARMDecoder::checkShift(RDOperand* op, u8 shift)
     if(shift & 0b1)
     {
         u8 shiftreg = (shift & 0b11110000) >> 4;
-        op->u_data |= ARMFlags_ShiftReg | shifttype;
-        op->reg2 = shiftreg;
+        op->u_data = shifttype;
+        op->reg2 = shiftreg; // rs
     }
     else
     {
         u8 shiftamt = (shift & 0b11111000) >> 3;
         if(!shiftamt) return;
 
-        op->u_data |= ARMFlags_ShiftImm | shifttype;
+        op->u_data = shifttype;
         op->u_value = shiftamt;
     }
 }
@@ -379,8 +430,8 @@ void ARMDecoder::compileRegList(RDInstruction* instruction, const ARMInstruction
     }
 
     if(c >= instruction->operandscount) return;
-    instruction->operands[c].u_data |= ARMFlags_RangeBegin;
-    RDInstruction_LastOperand(instruction)->u_data |= ARMFlags_RangeEnd;
+    instruction->operands[c].u_data |= ARMFlags_ListBegin;
+    RDInstruction_LastOperand(instruction)->u_data |= ARMFlags_ListEnd;
 }
 
 void ARMDecoder::compile2Register(RDInstruction* instruction, const ARMInstruction* ai, const ARMOpcode* armop)
@@ -391,11 +442,9 @@ void ARMDecoder::compile2Register(RDInstruction* instruction, const ARMInstructi
         return;
     }
 
-    auto* op = RDInstruction_PushOperand(instruction, OperandType_Register);
+    auto* op = RDInstruction_PushOperand(instruction, ARMOperand_2Register);
     op->reg1 = ai->dataprocessing.op2 & 0b1111; // rm
-
-    u8 shift = (ai->dataprocessing.op2 & 0b111111110000) >> 4;
-    ARMDecoder::checkShift(op, shift);
+    ARMDecoder::checkShift(op, (ai->dataprocessing.op2 & 0b111111110000) >> 4);
 }
 
 void ARMDecoder::compile2Immediate(RDInstruction* instruction, const ARMInstruction* ai, const ARMOpcode* armop)
@@ -472,13 +521,10 @@ void ARMDecoder::compileOffset12(RDInstruction* instruction, const ARMInstructio
 
     if(ai->singledatatransfer.i)
     {
-        u8 shift = (ai->singledatatransfer.offset & 0b111111110000) >> 4;
-
-        auto* op = RDInstruction_PushOperand(instruction, OperandType_Displacement);
-        op->reg1 = ai->singledatatransfer.rn;
-
-        ARMDecoder::checkShift(op, shift);
-        rd_log("Unimplemented @ " + rd_tohex(instruction->address));
+        auto* op = RDInstruction_PushOperand(instruction, ARMOperand_Offset12);
+        op->base = ai->singledatatransfer.rn;
+        op->reg3 = ai->singledatatransfer.offset & 0b1111; // rm
+        ARMDecoder::checkShift(op, (ai->singledatatransfer.offset & 0b111111110000) >> 4);
     }
     else if(ai->singledatatransfer.rn == ARMRegister_PC)
     {

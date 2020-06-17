@@ -16,6 +16,7 @@ class ARMDecoder
 
     private:
         static size_t classify(const ARMInstruction* ai);
+        static void renderShift(RDRenderItemParams* rip, const RDOperand* op);
         static void checkShift(RDOperand* op, u8 shift);
         static void checkStop(RDInstruction* instruction);
         static void compile(RDInstruction* instruction, const ARMInstruction* ai, const ARMOpcode* armop);

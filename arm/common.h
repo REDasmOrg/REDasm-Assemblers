@@ -16,12 +16,14 @@ enum ARMFlags: rd_flag {
     ARMFlags_ShiftReg   = (1 << 1),
     ARMFlags_ShiftImm   = (1 << 2),
 
-    ARMFlags_RangeBegin = (1 << 3),
-    ARMFlags_RangeEnd   = (1 << 4),
+    ARMFlags_ListBegin  = (1 << 3),
+    ARMFlags_ListEnd    = (1 << 4),
+    ARMFlags_DispBegin  = (1 << 5),
+    ARMFlags_DispEnd    = (1 << 6),
 
-    ARMFlags_ASR        = (1 << 5),
-    ARMFlags_LSL        = (1 << 6),
-    ARMFlags_LSR        = (1 << 7),
-    ARMFlags_ROR        = (1 << 8),
-    ARMFlags_RRX        = (1 << 9),
+    ARMFlags_ASR        = (1 << 7),
+    ARMFlags_LSL        = (1 << 8),
+    ARMFlags_LSR        = (1 << 9),
+    ARMFlags_ROR        = (1 << 10),
+    ARMFlags_RRX        = (1 << 11),
 };

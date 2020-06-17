@@ -7,9 +7,9 @@
 
 #define ARM_MAX_OPERANDS 5
 
-enum ARMOperands {
+enum ARMOperands: rd_type {
     ARMOperand_None = 0,
-    ARMOperand_RegList,
+    ARMOperand_RegList = OperandType_Custom,
 
     ARMOperand_2Register, ARMOperand_2Immediate,
     ARMOperand_Offset4, ARMOperand_Offset12, ARMOperand_Offset24,
