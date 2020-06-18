@@ -1,6 +1,7 @@
 #include "arm_instruction.h"
 
 std::unordered_map<u32, ARMOpcode> ARMOp_DataProcessing;
+std::unordered_map<u32, ARMOpcode> ARMOp_HalfWordRegister;
 std::unordered_map<u32, ARMOpcode> ARMOp_SingleDataTransfer;
 std::unordered_map<u32, ARMOpcode> ARMOp_Undefined;
 std::unordered_map<u32, ARMOpcode> ARMOp_BlockDataTransfer;
@@ -40,6 +41,9 @@ void InitializeARM()
     ARMOp_DataProcessing[0x03C00000] = { "bic", ARMInstruction_Bic, { ARMOperand_Rd, ARMOperand_Rn, ARMOperand_2Immediate, 0, 0 }, InstructionType_None, InstructionFlags_None, ARMFormat_DataProcessing };
     ARMOp_DataProcessing[0x01E00000] = { "mvn", ARMInstruction_Mvn, { ARMOperand_Rd, ARMOperand_2Register, 0, 0, 0 }, InstructionType_None, InstructionFlags_None, ARMFormat_DataProcessing };
     ARMOp_DataProcessing[0x03E00000] = { "mvn", ARMInstruction_Mvn, { ARMOperand_Rd, ARMOperand_2Immediate, 0, 0, 0 }, InstructionType_None, InstructionFlags_None, ARMFormat_DataProcessing };
+
+    ARMOp_HalfWordRegister[0x00100090] = { "ldr", ARMInstruction_Ldr, { ARMOperand_Rd, ARMOperand_Rn, ARMOperand_Rm, 0, 0}, InstructionType_Load, InstructionFlags_None, ARMFormat_HalfWordRegister };
+    ARMOp_HalfWordRegister[0x00000090] = { "str", ARMInstruction_Str, { ARMOperand_Rd, ARMOperand_Rn, ARMOperand_Rm, 0, 0}, InstructionType_Load, InstructionFlags_None, ARMFormat_HalfWordRegister };
 
     ARMOp_SingleDataTransfer[0x04000000] = { "str", ARMInstruction_Str, { ARMOperand_Rd, ARMOperand_Offset12, 0, 0, 0 }, InstructionType_Store, InstructionFlags_None, ARMFormat_SingleDataTransfer};
     ARMOp_SingleDataTransfer[0x04100000] = { "ldr", ARMInstruction_Ldr, { ARMOperand_Rd, ARMOperand_Offset12, 0, 0, 0 }, InstructionType_Load, InstructionFlags_None, ARMFormat_SingleDataTransfer};

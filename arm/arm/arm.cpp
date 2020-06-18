@@ -5,6 +5,7 @@
 #define ARM_IS_CONDITIONAL(cond) (cond != 0b1110)
 
 #define ARM_DATA_PROCESSING_MASK      0x0FE00000
+#define ARM_HALF_WORD_REGISTER        0x0E400F90
 #define ARM_SINGLE_DATA_TRANSFER_MASK 0x0C100000
 #define ARM_BLOCK_DATA_TRANSFER_MASK  0x0E100000
 #define ARM_BRANCH_MASK               0x0F000000
@@ -49,8 +50,8 @@ bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
         if(i) RDRenderer_Text(rip, ", ");
 
         const RDOperand& op = rip->instruction->operands[i];
-        if(op.u_data & ARMFlags_ListBegin) RDRenderer_Text(rip, "{");
-        else if(op.u_data & ARMFlags_DispBegin) RDRenderer_Text(rip, "[");
+        if(op.u_data & ARMFlags_CurlyBegin) RDRenderer_Text(rip, "{");
+        else if(op.u_data & ARMFlags_SquareBegin) RDRenderer_Text(rip, "[");
 
         if(IS_TYPE(&op, OperandType_Immediate))
         {
@@ -116,8 +117,8 @@ bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
 
         if(op.u_data & ARMFlags_WriteBack) RDRenderer_Text(rip, "!");
 
-        if(op.u_data & ARMFlags_ListEnd) RDRenderer_Text(rip, "}");
-        else if(op.u_data & ARMFlags_ListEnd) RDRenderer_Text(rip, "]");
+        if(op.u_data & ARMFlags_CurlyEnd) RDRenderer_Text(rip, "}");
+        else if(op.u_data & ARMFlags_SquareEnd) RDRenderer_Text(rip, "]");
     }
 
     return true;
@@ -264,15 +265,15 @@ void ARMDecoder::compile(RDInstruction* instruction, const ARMInstruction* ai, c
             case ARMOperand_Rd: ARMDecoder::compileRd(instruction, ai, armop); break;
             case ARMOperand_Rm: ARMDecoder::compileRm(instruction, ai, armop); break;
 
-            case ARMOperand_RdHi: break;
-            case ARMOperand_RdLo: break;
+            case ARMOperand_RdHi: rd_log("RdHi @ " + rd_tohex(instruction->address)); break;
+            case ARMOperand_RdLo: rd_log("RdLo @ " + rd_tohex(instruction->address)); break;
 
-            case ARMOperand_CRn: break;
-            case ARMOperand_CRm: break;
+            case ARMOperand_CRn: rd_log("CRn @ " + rd_tohex(instruction->address)); break;
+            case ARMOperand_CRm: rd_log("CRm @ " + rd_tohex(instruction->address)); break;
 
-            case ARMOperand_CRd: break;
-            case ARMOperand_CPn: break;
-            case ARMOperand_CP: break;
+            case ARMOperand_CRd: rd_log("CRd @ " + rd_tohex(instruction->address)); break;
+            case ARMOperand_CPn: rd_log("CPn @ " + rd_tohex(instruction->address)); break;
+            case ARMOperand_CP: rd_log("CP @ " + rd_tohex(instruction->address)); break;
 
             default:
                 rd_log("Unhandled operand definition: " + std::to_string(opdef));
@@ -319,8 +320,27 @@ bool ARMDecoder::decodeBranchAndExchange(RDInstruction* instruction, const ARMIn
 
 bool ARMDecoder::decodeHalfWordRegister(RDInstruction* instruction, const ARMInstruction* ai)
 {
-    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
-    return false;
+    auto it = ARMOp_HalfWordRegister.find(ai->word & ARM_HALF_WORD_REGISTER);
+    if(it == ARMOp_HalfWordRegister.end()) return false;
+
+    ARMDecoder::compile(instruction, ai, &it->second);
+
+    std::string m = GetArmMnemonic(&it->second, ai->hwordregister.cond);
+    u8 sh = (ai->hwordregister.s << 1) | ai->hwordregister.h;
+
+    if(ai->hwordregister.h) m += "h";
+
+    switch(sh)
+    {
+        case 0b10: m += "sb"; break;
+        case 0b11: m += "sh"; break;
+        default: break;
+    }
+
+    instruction->operands[1].u_data |= ARMFlags_SquareBegin;
+    instruction->operands[2].u_data |= ARMFlags_SquareEnd;
+    RDInstruction_SetMnemonic(instruction, m.c_str());
+    return true;
 }
 
 bool ARMDecoder::decodeHalfWordImmediate(RDInstruction* instruction, const ARMInstruction* ai)
@@ -436,8 +456,8 @@ void ARMDecoder::compileRegList(RDInstruction* instruction, const ARMInstruction
     }
 
     if(c >= instruction->operandscount) return;
-    instruction->operands[c].u_data |= ARMFlags_ListBegin;
-    RDInstruction_LastOperand(instruction)->u_data |= ARMFlags_ListEnd;
+    instruction->operands[c].u_data |= ARMFlags_CurlyBegin;
+    RDInstruction_LastOperand(instruction)->u_data |= ARMFlags_CurlyEnd;
 }
 
 void ARMDecoder::compile2Register(RDInstruction* instruction, const ARMInstruction* ai, const ARMOpcode* armop)
