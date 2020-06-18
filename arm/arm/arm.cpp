@@ -295,31 +295,37 @@ bool ARMDecoder::decodeDataProcessing(RDInstruction* instruction, const ARMInstr
 
 bool ARMDecoder::decodeMultiply(RDInstruction* instruction, const ARMInstruction* ai)
 {
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return false;
 }
 
 bool ARMDecoder::decodeMultiplyLong(RDInstruction* instruction, const ARMInstruction* ai)
 {
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return false;
 }
 
 bool ARMDecoder::decodeSingleDataSwap(RDInstruction* instruction, const ARMInstruction* ai)
 {
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return false;
 }
 
 bool ARMDecoder::decodeBranchAndExchange(RDInstruction* instruction, const ARMInstruction* ai)
 {
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return false;
 }
 
 bool ARMDecoder::decodeHalfWordRegister(RDInstruction* instruction, const ARMInstruction* ai)
 {
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return false;
 }
 
 bool ARMDecoder::decodeHalfWordImmediate(RDInstruction* instruction, const ARMInstruction* ai)
 {
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return false;
 }
 
@@ -457,8 +463,7 @@ void ARMDecoder::compile2Immediate(RDInstruction* instruction, const ARMInstruct
 
     auto* op = RDInstruction_PushOperand(instruction, OperandType_Immediate);
     u8 rotate = (ai->dataprocessing.op2 & 0b111100000000) >> 8;
-    u8 imm = ai->dataprocessing.op2 & 0b11111111;
-    op->u_value = RD_Ror32(imm, rotate);
+    op->u_value = RD_Ror32(ai->dataprocessing.op2 & 0b11111111, rotate * 2);
 }
 
 void ARMDecoder::compileRn(RDInstruction* instruction, const ARMInstruction* ai, const ARMOpcode* armop)
