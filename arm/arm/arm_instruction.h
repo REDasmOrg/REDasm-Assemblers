@@ -54,6 +54,7 @@ enum ARMInstructionId {
 
     ARMInstruction_B,
     ARMInstruction_Bl,
+    ARMInstruction_Bx,
 
     ARMInstruction_Ldm,
     ARMInstruction_Stm,
@@ -300,6 +301,7 @@ static_assert(sizeof(u32) == sizeof(ARMInstruction));
 extern std::unordered_map<u32, ARMOpcode> ARMOp_DataProcessing;
 extern std::unordered_map<u32, ARMOpcode> ARMOp_HalfWordRegister;
 extern std::unordered_map<u32, ARMOpcode> ARMOp_SingleDataTransfer;
+extern std::unordered_map<u32, ARMOpcode> ARMOp_BranchExchange;
 extern std::unordered_map<u32, ARMOpcode> ARMOp_Undefined;
 extern std::unordered_map<u32, ARMOpcode> ARMOp_BlockDataTransfer;
 extern std::unordered_map<u32, ARMOpcode> ARMOp_Branch;

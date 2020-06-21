@@ -3,6 +3,7 @@
 std::unordered_map<u32, ARMOpcode> ARMOp_DataProcessing;
 std::unordered_map<u32, ARMOpcode> ARMOp_HalfWordRegister;
 std::unordered_map<u32, ARMOpcode> ARMOp_SingleDataTransfer;
+std::unordered_map<u32, ARMOpcode> ARMOp_BranchExchange;
 std::unordered_map<u32, ARMOpcode> ARMOp_Undefined;
 std::unordered_map<u32, ARMOpcode> ARMOp_BlockDataTransfer;
 std::unordered_map<u32, ARMOpcode> ARMOp_Branch;
@@ -47,6 +48,8 @@ void InitializeARM()
 
     ARMOp_SingleDataTransfer[0x04000000] = { "str", ARMInstruction_Str, { ARMOperand_Rd, ARMOperand_Offset12, 0, 0, 0 }, InstructionType_Store, InstructionFlags_None, ARMFormat_SingleDataTransfer};
     ARMOp_SingleDataTransfer[0x04100000] = { "ldr", ARMInstruction_Ldr, { ARMOperand_Rd, ARMOperand_Offset12, 0, 0, 0 }, InstructionType_Load, InstructionFlags_None, ARMFormat_SingleDataTransfer};
+
+    ARMOp_BranchExchange[0x12FFF10] = { "bx", ARMInstruction_Bx, { ARMOperand_Rn, 0, 0, 0, 0 }, InstructionType_Call, InstructionFlags_None, ARMFormat_BranchExchange};
 
     ARMOp_Undefined[0x06000010] = { "undefined", ARMInstruction_Undefined, { 0, 0, 0, 0, 0 }, InstructionType_None, InstructionFlags_None, ARMFormat_Undefined };
 

@@ -7,6 +7,7 @@
 #define ARM_DATA_PROCESSING_MASK      0x0FE00000
 #define ARM_HALF_WORD_REGISTER        0x0E400F90
 #define ARM_SINGLE_DATA_TRANSFER_MASK 0x0C100000
+#define ARM_BRANCH_EXCHANGE_MASK      0x012FFF10
 #define ARM_BLOCK_DATA_TRANSFER_MASK  0x0E100000
 #define ARM_BRANCH_MASK               0x0F000000
 
@@ -314,8 +315,13 @@ bool ARMDecoder::decodeSingleDataSwap(RDInstruction* instruction, const ARMInstr
 
 bool ARMDecoder::decodeBranchAndExchange(RDInstruction* instruction, const ARMInstruction* ai)
 {
-    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
-    return false;
+    auto it = ARMOp_BranchExchange.find(ai->word & ARM_BRANCH_EXCHANGE_MASK);
+    if(it == ARMOp_BranchExchange.end()) return false;
+
+    ARMDecoder::compile(instruction, ai, &it->second);
+    std::string m = GetArmMnemonic(&it->second, ai->hwordregister.cond);
+    RDInstruction_SetMnemonic(instruction, m.c_str());
+    return true;
 }
 
 bool ARMDecoder::decodeHalfWordRegister(RDInstruction* instruction, const ARMInstruction* ai)
@@ -340,6 +346,7 @@ bool ARMDecoder::decodeHalfWordRegister(RDInstruction* instruction, const ARMIns
     instruction->operands[1].u_data |= ARMFlags_SquareBegin;
     instruction->operands[2].u_data |= ARMFlags_SquareEnd;
     RDInstruction_SetMnemonic(instruction, m.c_str());
+    rd_log(__PRETTY_FUNCTION__ + (" @ " + rd_tohex(instruction->address)));
     return true;
 }
 
