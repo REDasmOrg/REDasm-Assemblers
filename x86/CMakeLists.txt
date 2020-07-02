@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 project(X86)
 find_package(REDasm REQUIRED)
 
-set(HEADERS x86.h)
-set(SOURCES x86.cpp)
+set(HEADERS x86.h x86_translator.h)
+set(SOURCES x86.cpp x86_translator.cpp)
 
 option(ZYDIS_BUILD_TOOLS "" OFF)
 option(ZYDIS_BUILD_EXAMPLES "" OFF)

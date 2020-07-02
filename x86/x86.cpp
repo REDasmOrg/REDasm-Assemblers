@@ -1,4 +1,5 @@
 #include "x86.h"
+#include "x86_translator.h"
 #include <rdapi/rdapi.h>
 #include <vector>
 
@@ -47,7 +48,6 @@ bool X86Assembler::decode(RDBufferView* view, RDInstruction* instruction)
     instruction->size = zinstr.length;
     this->categorizeInstruction(instruction, &zinstr);
     this->writeMnemonic(instruction, &zinstr);
-
     this->writeOperands(instruction, &zinstr);
     return true;
 }
@@ -247,6 +247,7 @@ void redasm_entry()
     x86_32.decode = &decode;
     x86_32.emulate = &emulate;
     x86_32.render = &render;
+    x86_32.rdil = &X86Translator::rdil;
     x86_32.regname = &regname;
 
     RD_PLUGIN_CREATE(RDAssemblerPlugin, x86_64, "x86_64");
@@ -256,6 +257,7 @@ void redasm_entry()
     x86_64.decode = &decode;
     x86_64.emulate = &emulate;
     x86_64.render = &render;
+    x86_64.rdil = &X86Translator::rdil;
     x86_64.regname = &regname;
 
     RDAssembler_Register(&x86_32);
