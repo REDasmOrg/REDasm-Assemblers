@@ -25,7 +25,7 @@ void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* in
 
         case InstructionType_Jump:
             RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
-            if(instruction->flags & InstructionFlags_Conditional) break;
+            if(HAS_FLAG(instruction, InstructionFlags_Conditional)) break;
             return;
 
         default:
@@ -33,7 +33,7 @@ void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* in
             break;
     }
 
-    if(!HAS_FLAG(instruction,InstructionFlags_Stop))
+    if(!HAS_FLAG(instruction, InstructionFlags_Stop))
         RDDisassembler_EnqueueNext(disassembler, instruction);
 }
 

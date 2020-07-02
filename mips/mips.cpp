@@ -115,11 +115,11 @@ bool MIPSDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
     RDRenderer_Prologue(rip);
     RDRenderer_Mnemonic(rip);
     RDRenderer_Register(rip, rip->instruction->operands[0].reg);
-    RDRendererItem_Push(rip->rendereritem, ", ", nullptr, nullptr);
+    RDRenderer_Text(rip, ", ");
     RDRendererItem_Push(rip->rendereritem, RD_ToHexBits(rip->instruction->operands[2].s_value, 16, false), "immediate_fg", nullptr);
-    RDRendererItem_Push(rip->rendereritem, "(", nullptr, nullptr);
+    RDRenderer_Text(rip, "(");
     RDRenderer_Register(rip, rip->instruction->operands[1].reg);
-    RDRendererItem_Push(rip->rendereritem, ")", nullptr, nullptr);
+    RDRenderer_Text(rip, ")");
     return true;
 }
 
