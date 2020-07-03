@@ -9,7 +9,7 @@ class ARMDecoder
         typedef bool (*Callback_ARMDecode)(const ARMInstruction*, RDInstruction*);
 
     public:
-        static const char* regname(struct RDAssemblerPlugin*, const RDInstruction*, rd_register_id r);
+        static const char* regname(struct RDAssemblerPlugin*, const RDInstruction*, const RDOperand*, rd_register_id r);
         template<u32 (*Swap)(u32)> static bool decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction);
         static void emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler, const RDInstruction* instruction);
         static bool render(const RDAssemblerPlugin*, RDRenderItemParams* rip);

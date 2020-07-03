@@ -6,7 +6,7 @@ std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_J{ };
 std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_B{ };
 std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_C{ };
 
-void initializeMIPS_I()
+void MIPSInitializeFormats()
 {
     MIPSOpcodes_R[0b100000] = { "add", MIPSInstruction_Add, InstructionType_Add, InstructionFlags_None, MIPSVersion_I };
     MIPSOpcodes_R[0b100001] = { "addu", MIPSInstruction_Addu, InstructionType_Add, InstructionFlags_None, MIPSVersion_I };
@@ -68,9 +68,4 @@ void initializeMIPS_I()
     MIPSOpcodes_B[0b001101] = { "break", MIPSInstruction_Break, InstructionType_None, InstructionFlags_None, MIPSVersion_I };
 
     MIPSOpcodes_C[0b010000] = { "mfc0", MIPSInstruction_Mfc0, InstructionType_Load, InstructionFlags_None, MIPSVersion_I };
-}
-
-void MIPSInitializeFormats()
-{
-    initializeMIPS_I();
 }

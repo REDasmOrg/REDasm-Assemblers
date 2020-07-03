@@ -13,7 +13,7 @@
 
 //#define ARM_DATA_UNDEFINED_MASK  0x0FE00000
 
-const char* ARMDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, rd_register_id r)
+const char* ARMDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, const RDOperand*, rd_register_id r)
 {
     if(r < ArmRegisters.size()) return ArmRegisters[r];
     return nullptr;
@@ -50,11 +50,11 @@ bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
     {
         if(i) RDRenderer_Text(rip, ", ");
 
-        const RDOperand& op = rip->instruction->operands[i];
-        if(op.u_data & ARMFlags_CurlyBegin) RDRenderer_Text(rip, "{");
-        else if(op.u_data & ARMFlags_SquareBegin) RDRenderer_Text(rip, "[");
+        const RDOperand* op = &rip->instruction->operands[i];
+        if(op->u_data & ARMFlags_CurlyBegin) RDRenderer_Text(rip, "{");
+        else if(op->u_data & ARMFlags_SquareBegin) RDRenderer_Text(rip, "[");
 
-        if(IS_TYPE(&op, OperandType_Immediate))
+        if(IS_TYPE(op, OperandType_Immediate))
         {
             switch(rip->instruction->id)
             {
@@ -65,61 +65,61 @@ bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
                 default: RDRenderer_Text(rip, "#"); break;
             }
 
-            RDRenderer_Operand(rip, &op);
+            RDRenderer_Operand(rip, op);
         }
-        else if(IS_TYPE(&op, OperandType_Displacement))
+        else if(IS_TYPE(op, OperandType_Displacement))
         {
             RDRenderer_Text(rip, "[");
-            RDRenderer_Register(rip, op.reg1);
+            RDRenderer_Register(rip, op, op->reg1);
 
-            if(op.reg2 != RD_NPOS)
+            if(op->reg2 != RD_NPOS)
             {
                 RDRenderer_Text(rip, ",");
-                RDRenderer_Register(rip, op.reg2);
+                RDRenderer_Register(rip, op, op->reg2);
             }
 
-            if(op.displacement)
+            if(op->displacement)
             {
                 RDRenderer_Text(rip, ", ");
-                if(op.displacement < 0) RDRenderer_Text(rip, "-");
-                RDRenderer_Immediate(rip, std::abs(op.displacement));
+                if(op->displacement < 0) RDRenderer_Text(rip, "-");
+                RDRenderer_Immediate(rip, std::abs(op->displacement));
             }
 
             RDRenderer_Text(rip, "]");
         }
-        else if(IS_TYPE(&op, ARMOperand_2Register))
+        else if(IS_TYPE(op, ARMOperand_2Register))
         {
-            RDRenderer_Register(rip, op.reg1);
+            RDRenderer_Register(rip, op, op->reg1);
 
-            if(op.reg2 != RD_NPOS)
+            if(op->reg2 != RD_NPOS)
             {
                 RDRenderer_Text(rip, ",");
-                RDRenderer_Register(rip, op.reg2);
+                RDRenderer_Register(rip, op, op->reg2);
             }
 
-            ARMDecoder::renderShift(rip, &op);
+            ARMDecoder::renderShift(rip, op);
         }
-        else if(IS_TYPE(&op, ARMOperand_Offset12))
+        else if(IS_TYPE(op, ARMOperand_Offset12))
         {
             RDRenderer_Text(rip, "[");
-            RDRenderer_Register(rip, op.base);
+            RDRenderer_Register(rip, op, op->base);
 
-            if(op.reg3 != RD_NPOS)
+            if(op->reg3 != RD_NPOS)
             {
                 RDRenderer_Text(rip, ",");
-                RDRenderer_Register(rip, op.reg3);
+                RDRenderer_Register(rip, op, op->reg3);
             }
 
-            ARMDecoder::renderShift(rip, &op);
+            ARMDecoder::renderShift(rip, op);
             RDRenderer_Text(rip, "]");
         }
         else
-            RDRenderer_Operand(rip, &op);
+            RDRenderer_Operand(rip, op);
 
-        if(op.u_data & ARMFlags_WriteBack) RDRenderer_Text(rip, "!");
+        if(op->u_data & ARMFlags_WriteBack) RDRenderer_Text(rip, "!");
 
-        if(op.u_data & ARMFlags_CurlyEnd) RDRenderer_Text(rip, "}");
-        else if(op.u_data & ARMFlags_SquareEnd) RDRenderer_Text(rip, "]");
+        if(op->u_data & ARMFlags_CurlyEnd) RDRenderer_Text(rip, "}");
+        else if(op->u_data & ARMFlags_SquareEnd) RDRenderer_Text(rip, "]");
     }
 
     return true;

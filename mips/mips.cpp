@@ -15,8 +15,14 @@ std::array<MIPSDecoder::Callback_MIPSDecode, MIPSEncoding_Count> MIPSDecoder::m_
     &MIPSDecoder::decodeC,
 };
 
-const char* MIPSDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, rd_register_id r)
+const char* MIPSDecoder::regname(RDAssemblerPlugin*, const RDInstruction*, const RDOperand* op, rd_register_id r)
 {
+    if(op->u_data & MIPSOperand_Cop0)
+    {
+        if(r > COP0_REGISTERS.size()) return nullptr;
+        return COP0_REGISTERS[r];
+    }
+
     if(r > GPR_REGISTERS.size()) return nullptr;
     return GPR_REGISTERS[r];
 }
@@ -114,11 +120,11 @@ bool MIPSDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
 
     RDRenderer_Prologue(rip);
     RDRenderer_Mnemonic(rip);
-    RDRenderer_Register(rip, rip->instruction->operands[0].reg);
+    RDRenderer_Register(rip, &rip->instruction->operands[0], rip->instruction->operands[0].reg);
     RDRenderer_Text(rip, ", ");
     RDRendererItem_Push(rip->rendereritem, RD_ToHexBits(rip->instruction->operands[2].s_value, 16, false), "immediate_fg", nullptr);
     RDRenderer_Text(rip, "(");
-    RDRenderer_Register(rip, rip->instruction->operands[1].reg);
+    RDRenderer_Register(rip, &rip->instruction->operands[1], rip->instruction->operands[1].reg);
     RDRenderer_Text(rip, ")");
     return true;
 }
@@ -181,7 +187,7 @@ bool MIPSDecoder::decodeI(const MIPSInstruction* mi, RDInstruction* instruction)
     if(IS_TYPE(instruction, InstructionType_Jump))
     {
         RDInstruction_PushOperand(instruction, OperandType_Immediate)->address = instruction->address + sizeof(MIPSInstruction) +
-                                                                                 RD_SignExt(mi->i.s_immediate << 2, 32);
+                                                                                 static_cast<s32>(RD_SignExt(mi->i.s_immediate << 2, 32));
     }
     else
         RDInstruction_PushOperand(instruction, OperandType_Immediate)->u_value = mi->i.u_immediate;
@@ -227,6 +233,12 @@ bool MIPSDecoder::decodeC(const MIPSInstruction* mi, RDInstruction* instruction)
     }
     else
         MIPSDecoder::applyFormat(&format, instruction);
+
+    RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->c.rt;
+
+    auto* op = RDInstruction_PushOperand(instruction, OperandType_Register);
+    op->reg = mi->c.rd;
+    op->u_data = MIPSOperand_Cop0;
 
     return true;
 }
