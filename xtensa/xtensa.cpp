@@ -81,19 +81,19 @@ void XtensaDecoder<endianness>::emulate(const RDAssemblerPlugin*, RDDisassembler
     {
         case XtensaEncoding_CALL:
         case XtensaEncoding_CALL_sh:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].address);
+            RDDisassembler_EnqueueAddress(disassembler, instruction->operands[0].address, instruction);
             break;
 
         case XtensaEncoding_RI16:
         case XtensaEncoding_BRI12:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[1].address);
+            RDDisassembler_EnqueueAddress(disassembler, instruction->operands[1].address, instruction);
             break;
 
         case XtensaEncoding_RRI8_b:
         case XtensaEncoding_RRI8_bb:
         case XtensaEncoding_BRI8_imm:
         case XtensaEncoding_BRI8_immu:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[2].address);
+            RDDisassembler_EnqueueAddress(disassembler, instruction->operands[2].address, instruction);
             break;
 
         default: break;
@@ -102,7 +102,7 @@ void XtensaDecoder<endianness>::emulate(const RDAssemblerPlugin*, RDDisassembler
     if(IS_TYPE(instruction, InstructionType_Jump) && !HAS_FLAG(instruction, InstructionFlags_Conditional)) return;
     if(HAS_FLAG(instruction, InstructionFlags_Stop)) return;
 
-    RDDisassembler_EnqueueNext(disassembler, instruction);
+    RDDisassembler_Next(disassembler, instruction);
 }
 
 template<size_t endianness>

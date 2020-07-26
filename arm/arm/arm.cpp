@@ -25,7 +25,7 @@ void ARMDecoder::emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler,
     {
         case ARMInstruction_B:
         case ARMInstruction_Bl:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].address);
+            RDDisassembler_EnqueueAddress(disassembler, instruction->operands[0].address, instruction);
             break;
 
         default:
@@ -36,7 +36,7 @@ void ARMDecoder::emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler,
     if(HAS_FLAG(instruction, InstructionFlags_Stop) || (IS_TYPE(instruction, InstructionType_Jump) && !HAS_FLAG(instruction, InstructionFlags_Conditional)))
         return;
 
-    RDDisassembler_EnqueueNext(disassembler, instruction);
+    RDDisassembler_Next(disassembler, instruction);
 }
 
 bool ARMDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
