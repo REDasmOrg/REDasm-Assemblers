@@ -20,13 +20,25 @@ void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* in
     switch(instruction->type)
     {
         case InstructionType_Call:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
+            RDDisassembler_Branch(disassembler, instruction->operands[0].u_value, instruction);
             break;
 
         case InstructionType_Jump:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].u_value);
-            if(HAS_FLAG(instruction, InstructionFlags_Conditional)) break;
+        {
+            const RDOperand* op = &instruction->operands[0];
+
+            if(IS_TYPE(op, OperandType_Displacement)) {
+                //RDDisassembler_EnqueueTable(disassembler, instruction, op->u_value);
+            }
+            else {
+                RDDisassembler_Branch(disassembler, op->u_value, instruction);
+
+                if(HAS_FLAG(instruction, InstructionFlags_Conditional))
+                    RDDisassembler_Continue(disassembler, RDInstruction_NextAddress(instruction), instruction);
+            }
+
             return;
+        }
 
         default:
             RDDisassembler_CheckOperands(disassembler, instruction);
@@ -34,7 +46,7 @@ void X86Assembler::emulate(RDDisassembler* disassembler, const RDInstruction* in
     }
 
     if(!HAS_FLAG(instruction, InstructionFlags_Stop))
-        RDDisassembler_EnqueueNext(disassembler, instruction);
+        RDDisassembler_Next(disassembler, instruction);
 }
 
 bool X86Assembler::decode(RDBufferView* view, RDInstruction* instruction)
@@ -109,6 +121,7 @@ void X86Assembler::categorizeInstruction(RDInstruction* instruction, const Zydis
         case ZYDIS_CATEGORY_POP:       instruction->type = InstructionType_Pop;  break;
         case ZYDIS_CATEGORY_CALL:      instruction->type = InstructionType_Call; break;
         case ZYDIS_CATEGORY_UNCOND_BR: instruction->type = InstructionType_Jump; break;
+        case ZYDIS_CATEGORY_NOP:       instruction->type = InstructionType_Nop; break;
 
         case ZYDIS_CATEGORY_RET:
             instruction->type = InstructionType_Ret;
@@ -184,7 +197,11 @@ void X86Assembler::writeOperands(RDInstruction* instruction, const ZydisDecodedI
 
             case ZYDIS_OPERAND_TYPE_MEMORY:
                 if(ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(zinstr, &zop, instruction->address, &calcaddress))) {
-                    op = RDInstruction_PushOperand(instruction, OperandType_Memory);
+                    if((instruction->id == ZYDIS_MNEMONIC_LEA) && (instruction->operandscount == 1))
+                        op = RDInstruction_PushOperand(instruction, OperandType_Immediate);
+                    else
+                        op = RDInstruction_PushOperand(instruction, OperandType_Memory);
+
                     op->u_value = calcaddress;
                 }
                 else {

@@ -17,6 +17,13 @@ void X86Translator::rdil(const RDAssemblerPlugin* plugin, const RDInstruction* i
             RDIL_SetRegister(*rdil, 1, ZYDIS_REGISTER_ESP);
             break;
 
+        case ZYDIS_MNEMONIC_XOR:
+            RDIL_EmitXOR(*rdil);
+            RDIL_SetOperand(*rdil, 0, &instruction->operands[0]);
+            RDIL_SetOperand(*rdil, 1, &instruction->operands[0]);
+            RDIL_SetOperand(*rdil, 2, &instruction->operands[1]);
+            break;
+
         case ZYDIS_MNEMONIC_MOV:
             RDIL_EmitCOPY(*rdil);
             RDIL_SetOperand(*rdil, 0, &instruction->operands[0]);
