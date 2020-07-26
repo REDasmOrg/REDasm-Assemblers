@@ -5,6 +5,7 @@
 #include <climits>
 
 std::forward_list<RDInstruction> MIPSDecoder::m_luilist;
+std::unordered_map<rd_address, rd_address> MIPSDecoder::m_delayslots;
 
 std::array<MIPSDecoder::Callback_MIPSDecode, MIPSEncoding_Count> MIPSDecoder::m_decoders = {
     [](const MIPSInstruction*, RDInstruction*) { return false; },
@@ -45,15 +46,15 @@ void MIPSDecoder::emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler
     {
         case MIPSInstruction_J:
         case MIPSInstruction_Jal:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[0].address);
-            break;
-
+        case MIPSInstruction_Jalr:
+        case MIPSInstruction_Jr:
+        case MIPSInstruction_B:
         case MIPSInstruction_Beq:
         case MIPSInstruction_Bne:
         case MIPSInstruction_Bgez:
         case MIPSInstruction_Bgtz:
         case MIPSInstruction_Blez:
-            RDDisassembler_EnqueueAddress(disassembler, instruction, instruction->operands[2].address);
+            m_delayslots[RDInstruction_NextAddress(instruction)] = instruction->address; // Process branch later...
             break;
 
         case MIPSInstruction_Lui:
@@ -67,36 +68,26 @@ void MIPSDecoder::emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler
             if(!m_luilist.empty()) MIPSDecoder::checkLui(disassembler, instruction);
             break;
 
+        case MIPSInstruction_Break:
+            return;
+
         default: break;
     }
 
-    RDDocument* document = RDDisassembler_GetDocument(disassembler);
-    RDInstruction* previnstruction = nullptr;
-    bool isdelayslot = false;
+    auto it = m_delayslots.find(instruction->address);
 
-    if(RDDocument_PrevInstruction(document, instruction, &previnstruction))
+    if(it != m_delayslots.end())
     {
-        switch(previnstruction->type)
-        {
-            case InstructionType_Jump:
-            case InstructionType_Call:
-            case InstructionType_Ret:
-                if(!HAS_FLAG(previnstruction, InstructionFlags_Conditional)) isdelayslot = true;
-                break;
+        RDDocument* document = RDDisassembler_GetDocument(disassembler);
+        InstructionLock branchinstruction(document, it->second);
+        if(!branchinstruction) return;
 
-            default: break;
-        }
-
-        RDDocument_UnlockInstruction(document, previnstruction);
+        MIPSDecoder::processDelaySlot(disassembler, *branchinstruction, instruction);
+        if(branchinstruction->id == MIPSInstruction_Jr) m_luilist.clear();
+        if(IS_TYPE(branchinstruction, InstructionType_Jump) || IS_TYPE(branchinstruction, InstructionType_Ret)) return;
     }
 
-    if(isdelayslot && (previnstruction && IS_TYPE(previnstruction, InstructionType_Jump) && !HAS_FLAG(previnstruction, InstructionFlags_Conditional)))
-    {
-        m_luilist.clear();
-        return;
-    }
-
-    RDDisassembler_EnqueueNext(disassembler, instruction);
+    RDDisassembler_Next(disassembler, instruction);
 }
 
 bool MIPSDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
@@ -129,6 +120,45 @@ bool MIPSDecoder::render(const RDAssemblerPlugin*, RDRenderItemParams* rip)
     return true;
 }
 
+void MIPSDecoder::rdil(const RDAssemblerPlugin*, const RDInstruction* instruction, RDInstruction** rdil)
+{
+    switch(instruction->id)
+    {
+        case MIPSInstruction_Nop:
+            RDIL_EmitNOP(*rdil);
+            break;
+
+        case MIPSInstruction_Lui:
+            RDIL_EmitCOPY(*rdil);
+            RDIL_SetOperand(*rdil, 0, &instruction->operands[0]);
+            RDIL_SetValue(*rdil, 1, instruction->operands[1].u_value << 16);
+            break;
+
+        case MIPSInstruction_Ori:
+            RDIL_EmitOR(*rdil);
+            RDIL_SetOperand(*rdil, 0, &instruction->operands[0]);
+            RDIL_SetOperand(*rdil, 1, &instruction->operands[1]);
+            RDIL_SetOperand(*rdil, 2, &instruction->operands[2]);
+            break;
+
+        case MIPSInstruction_Addu:
+        case MIPSInstruction_Addiu:
+            RDIL_EmitADD(*rdil);
+            RDIL_SetOperand(*rdil, 0, &instruction->operands[0]);
+            RDIL_SetOperand(*rdil, 1, &instruction->operands[1]);
+            RDIL_SetOperand(*rdil, 2, &instruction->operands[2]);
+            break;
+
+        case MIPSInstruction_J:
+            RDIL_EmitJMP(*rdil);
+            RDIL_SetOperand(*rdil, 0, &instruction->operands[0]);
+            break;
+
+        default:
+            break;
+    }
+}
+
 bool MIPSDecoder::decodeR(const MIPSInstruction* mi, RDInstruction* instruction)
 {
     auto& format = MIPSOpcodes_R[mi->r.funct];
@@ -148,6 +178,14 @@ bool MIPSDecoder::decodeR(const MIPSInstruction* mi, RDInstruction* instruction)
             if(instruction->id == MIPSInstruction_Sll) MIPSDecoder::checkNop(instruction);
             break;
 
+        case MIPSInstruction_Jalr:
+            if(mi->r.rd != MIPSRegister_RA) {
+                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rd;
+                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
+            } else
+                RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
+            break;
+
         case MIPSInstruction_Jr:
             RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
             if(mi->r.rs == MIPSRegister_RA) instruction->type = InstructionType_Ret;
@@ -155,8 +193,8 @@ bool MIPSDecoder::decodeR(const MIPSInstruction* mi, RDInstruction* instruction)
 
         default:
             RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rd;
-            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rt;
             RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rs;
+            RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->r.rt;
             break;
     }
 
@@ -181,8 +219,17 @@ bool MIPSDecoder::decodeI(const MIPSInstruction* mi, RDInstruction* instruction)
         default: break;
     }
 
-    RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rt;
-    RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rs;
+    if((instruction->id == MIPSInstruction_Beq) && (mi->i.rt == mi->i.rs)) // BEQ -> B
+    {
+        instruction->id = MIPSInstruction_B;
+        instruction->flags &= ~InstructionFlags_Conditional;
+        RDInstruction_SetMnemonic(instruction, "b");
+    }
+    else
+    {
+        RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rt;
+        RDInstruction_PushOperand(instruction, OperandType_Register)->reg = mi->i.rs;
+    }
 
     if(IS_TYPE(instruction, InstructionType_Jump))
     {
@@ -266,6 +313,33 @@ void MIPSDecoder::applyFormat(const MIPSOpcode* format, RDInstruction* instructi
     instruction->flags = format->flags;
 }
 
+void MIPSDecoder::processDelaySlot(RDDisassembler* disassembler, const RDInstruction* branchinstruction, const RDInstruction* delayslotinstruction)
+{
+    switch(branchinstruction->id)
+    {
+        case MIPSInstruction_B:
+        case MIPSInstruction_J:
+            RDDisassembler_Branch(disassembler, branchinstruction->operands[0].address, branchinstruction);
+            break;
+
+        case MIPSInstruction_Jal:
+            RDDisassembler_Branch(disassembler, branchinstruction->operands[0].address, branchinstruction);
+            RDDisassembler_Continue(disassembler, RDInstruction_NextAddress(delayslotinstruction), branchinstruction);
+            break;
+
+        case MIPSInstruction_Beq:
+        case MIPSInstruction_Bne:
+        case MIPSInstruction_Bgez:
+        case MIPSInstruction_Bgtz:
+        case MIPSInstruction_Blez:
+            RDDisassembler_Branch(disassembler, branchinstruction->operands[2].address, branchinstruction);
+            RDDisassembler_Continue(disassembler, RDInstruction_NextAddress(delayslotinstruction), branchinstruction);
+            break;
+
+        default: break;
+    }
+}
+
 void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* instruction)
 {
     auto it = std::find_if(m_luilist.begin(), m_luilist.end(), [instruction](const RDInstruction& luiinstruction) {
@@ -296,6 +370,12 @@ void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* in
         default:
             return;
     }
+
+    //const RDILCPU* cpu = RDDisassembler_GetILCPU(disassembler);
+    //u64 val = 0;
+
+    //if(RDILCPU_Read(cpu, &instruction->operands[0], &val))
+        //rd_log(rd_tohex(instruction->address) + ": " + rd_tohex(val));
 
     RDDocument* doc = RDDisassembler_GetDocument(disassembler);
 
@@ -348,6 +428,7 @@ void redasm_entry()
     mips32le.emulate = &MIPSDecoder::emulate;
     mips32le.render = &MIPSDecoder::render;
     mips32le.regname = &MIPSDecoder::regname;
+    mips32le.rdil = &MIPSDecoder::rdil;
     mips32le.bits = 32;
     RDAssembler_Register(&mips32le);
 
@@ -356,6 +437,7 @@ void redasm_entry()
     mips32be.emulate = &MIPSDecoder::emulate;
     mips32be.regname = &MIPSDecoder::regname;
     mips32be.render = &MIPSDecoder::render;
+    mips32be.rdil = &MIPSDecoder::rdil;
     mips32be.bits = 32;
     RDAssembler_Register(&mips32be);
 }

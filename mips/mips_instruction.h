@@ -40,7 +40,7 @@ enum MIPSInstructionId {
     MIPSInstruction_Mfc0, MIPSInstruction_Mtc0,
 
     // Macro Instructions
-    MIPSInstruction_Bgezal, MIPSInstruction_Bltz, MIPSInstruction_Bltzal,
+    MIPSInstruction_B, MIPSInstruction_Bgezal, MIPSInstruction_Bltz, MIPSInstruction_Bltzal,
     MIPSInstruction_Nop
 };
 
