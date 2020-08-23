@@ -1,21 +1,17 @@
 #pragma once
 
-#include <rdapi/rdapi.h>
-#include <Zydis/Zydis.h>
+#include "zydiscommon.h"
 
-class X86Assembler
+class X86Assembler: public ZydisCommon
 {
     public:
         X86Assembler(const RDPluginHeader* plugin);
-        void emulate(RDDisassembler* disassembler, const RDInstruction* instruction);
-        bool decode(RDBufferView* view, RDInstruction* instruction);
-        bool render(RDRenderItemParams* rip);
+        void lift(const RDAssemblerPlugin* plugin, rd_address address, const RDBufferView* view, RDILFunction* il);
+        void renderInstruction(const RDRenderItemParams* rip);
+        void emulate(RDEmulateResult* result);
 
     private:
-        void categorizeInstruction(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
-        void writeMnemonic(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
-        void writeOperands(RDInstruction* instruction, const ZydisDecodedInstruction* zinstr) const;
-        void writeMemoryOperand(RDOperand* operand, const ZydisDecodedOperand* zop) const;
+        void processRefs(ZydisDecodedInstruction* zinstr, rd_address address, RDEmulateResult* result);
 
     private:
         const RDAssemblerPlugin* m_plugin;

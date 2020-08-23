@@ -14,11 +14,21 @@ enum MIPSEncoding {
     MIPSEncoding_Count
 };
 
+enum MIPSCategory {
+    MIPSCategory_None,
+    MIPSCategory_Load,
+    MIPSCategory_Store,
+    MIPSCategory_Jump,
+    MIPSCategory_JumpCond,
+    MIPSCategory_Call,
+    MIPSCategory_Ret,
+};
+
 struct MIPSOpcode {
     const char* mnemonic;
-    rd_instruction_id id;
-    rd_type type;
-    rd_flag flags;
+    u32 id;
+    rd_type category;
+    rd_type encoding;
     u32 version;
 };
 
