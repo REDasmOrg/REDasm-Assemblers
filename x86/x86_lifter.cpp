@@ -105,6 +105,38 @@ void X86Lifter::lift(const RDAssemblerPlugin* plugin, ZydisDecoder decoder, rd_a
             break;
         }
 
+        case ZYDIS_MNEMONIC_ADD:
+        {
+            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_ADD(il, dst, src));
+            break;
+        }
+
+        case ZYDIS_MNEMONIC_SUB:
+        {
+            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_SUB(il, dst, src));
+            break;
+        }
+
+        case ZYDIS_MNEMONIC_MUL:
+        {
+            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_MUL(il, dst, src));
+            break;
+        }
+
+        case ZYDIS_MNEMONIC_DIV:
+        {
+            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_DIV(il, dst, src));
+            break;
+        }
+
         case ZYDIS_MNEMONIC_JZ:
         case ZYDIS_MNEMONIC_JNZ: X86Lifter::liftJump(&zinstr, address, il); break;
 
