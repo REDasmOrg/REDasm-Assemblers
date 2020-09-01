@@ -107,33 +107,33 @@ void X86Lifter::lift(const RDAssemblerPlugin* plugin, ZydisDecoder decoder, rd_a
 
         case ZYDIS_MNEMONIC_ADD:
         {
-            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
-            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
-            RDILFunction_Append(il, RDILFunction_ADD(il, dst, src));
+            auto* op1 = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* op2 = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_COPY(il, op1, RDILFunction_ADD(il, op1, op2)));
             break;
         }
 
         case ZYDIS_MNEMONIC_SUB:
         {
-            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
-            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
-            RDILFunction_Append(il, RDILFunction_SUB(il, dst, src));
+            auto* op1 = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* op2 = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_COPY(il, op1, RDILFunction_SUB(il, op1, op2)));
             break;
         }
 
         case ZYDIS_MNEMONIC_MUL:
         {
-            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
-            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
-            RDILFunction_Append(il, RDILFunction_MUL(il, dst, src));
+            auto* op1 = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* op2 = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_COPY(il, op1, RDILFunction_MUL(il, op1, op2)));
             break;
         }
 
         case ZYDIS_MNEMONIC_DIV:
         {
-            auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
-            auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
-            RDILFunction_Append(il, RDILFunction_DIV(il, dst, src));
+            auto* op1 = X86Lifter::liftOperand(address, &zinstr, 0, il);
+            auto* op2 = X86Lifter::liftOperand(address, &zinstr, 1, il);
+            RDILFunction_Append(il, RDILFunction_COPY(il, op1, RDILFunction_DIV(il, op1, op2)));
             break;
         }
 
