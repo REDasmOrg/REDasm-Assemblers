@@ -169,8 +169,8 @@ void X86Lifter::liftJump(const ZydisDecodedInstruction* zinstr, rd_address addre
     }
 
     auto addr = X86Lifter::calcAddress(zinstr, 0, address);
-    auto* t = addr ? RDILFunction_ADDR(il, *addr) : RDILFunction_CNST(il, zinstr->operands[0].size, zinstr->operands[0].imm.value.u);
-    auto* f = RDILFunction_ADDR(il, address + zinstr->length);
+    auto* t = RDILFunction_CNST(il, zinstr->operands[0].size, addr ? *addr : zinstr->operands[0].imm.value.u);
+    auto* f = RDILFunction_CNST(il, zinstr->operands[0].size, address + zinstr->length);
     RDILFunction_Append(il, RDILFunction_IF(il, cond, RDILFunction_GOTO(il, t), RDILFunction_GOTO(il, f)));
 }
 
@@ -194,18 +194,7 @@ RDILExpression* X86Lifter::liftOperand(rd_address address, const ZydisDecodedIns
                 if(addr) c = static_cast<u64>(*addr);
             }
 
-            switch(zinstr->meta.category) {
-                case ZYDIS_CATEGORY_CALL:
-                case ZYDIS_CATEGORY_UNCOND_BR:
-                case ZYDIS_CATEGORY_COND_BR:
-                    e = RDILFunction_ADDR(il, c);
-                    break;
-
-                default:
-                    e = RDILFunction_CNST(il, sz, c);
-                    break;
-            }
-
+            e = RDILFunction_CNST(il, sz, c);
             break;
         }
 
@@ -216,11 +205,7 @@ RDILExpression* X86Lifter::liftOperand(rd_address address, const ZydisDecodedIns
             if(op.mem.base != ZYDIS_REGISTER_NONE) base = RDILFunction_REG(il, sz, ZydisRegisterGetString(op.mem.base));
             if(op.mem.index != ZYDIS_REGISTER_NONE) index = RDILFunction_REG(il, sz, ZydisRegisterGetString(op.mem.index));
             if(op.mem.scale > 1) scale = RDILFunction_CNST(il, sz, op.mem.scale);
-
-            if(op.mem.disp.has_displacement) {
-                if(!base && !index) disp = RDILFunction_ADDR(il, op.mem.disp.value);
-                else disp = RDILFunction_CNST(il, sz, op.mem.disp.value);
-            }
+            if(op.mem.disp.has_displacement) disp = RDILFunction_CNST(il, sz, op.mem.disp.value);
 
             RDILExpression* lhs = nullptr;
             auto* indexscale = (scale && index) ? RDILFunction_MUL(il, index, scale) : index;
