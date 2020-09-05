@@ -55,6 +55,18 @@ void X86Assembler::emulate(RDEmulateResult* result)
             break;
         }
 
+        case ZYDIS_CATEGORY_SYSTEM:
+        {
+            if(zinstr.mnemonic == ZYDIS_MNEMONIC_HLT) RDEmulateResult_AddReturn(result); break;
+            break;
+        }
+
+        case ZYDIS_CATEGORY_INTERRUPT:
+        {
+            if(zinstr.mnemonic == ZYDIS_MNEMONIC_INT3) RDEmulateResult_AddReturn(result); break;
+            break;
+        }
+
         case ZYDIS_CATEGORY_RET: RDEmulateResult_AddReturn(result); break;
         default: this->processRefs(&zinstr, address, result); break;
     }
