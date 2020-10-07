@@ -5,7 +5,7 @@
 class X86Assembler: public ZydisCommon
 {
     public:
-        X86Assembler(RDContext* ctx);
+        X86Assembler(RDContext* ctx, size_t bits);
         void lift(rd_address address, const RDBufferView* view, RDILFunction* il);
         void renderInstruction(const RDRenderItemParams* rip);
         void emulate(RDEmulateResult* result);
