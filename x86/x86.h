@@ -5,8 +5,8 @@
 class X86Assembler: public ZydisCommon
 {
     public:
-        X86Assembler(const RDPluginHeader* plugin);
-        void lift(const RDAssemblerPlugin* plugin, rd_address address, const RDBufferView* view, RDILFunction* il);
+        X86Assembler(RDContext* ctx);
+        void lift(rd_address address, const RDBufferView* view, RDILFunction* il);
         void renderInstruction(const RDRenderItemParams* rip);
         void emulate(RDEmulateResult* result);
 
@@ -14,7 +14,7 @@ class X86Assembler: public ZydisCommon
         void processRefs(ZydisDecodedInstruction* zinstr, rd_address address, RDEmulateResult* result);
 
     private:
-        const RDAssemblerPlugin* m_plugin;
+        RDContext* m_context;
         ZydisFormatter m_formatter;
         ZydisDecoder m_decoder;
 };

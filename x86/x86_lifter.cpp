@@ -1,7 +1,7 @@
 #include "x86_lifter.h"
 #include <climits>
 
-void X86Lifter::lift(const RDAssemblerPlugin* plugin, ZydisDecoder decoder, rd_address address, const RDBufferView* view, RDILFunction* il)
+void X86Lifter::lift(RDContext* ctx, ZydisDecoder decoder, rd_address address, const RDBufferView* view, RDILFunction* il)
 {
     ZydisDecodedInstruction zinstr;
 
@@ -70,10 +70,10 @@ void X86Lifter::lift(const RDAssemblerPlugin* plugin, ZydisDecoder decoder, rd_a
             auto size = zinstr.operands[0].imm.value.u, depth = zinstr.operands[1].imm.value.u;
 
             if(!size && !depth) {
-                auto* bpreg = ZydisRegisterGetString(X86Lifter::getBP(plugin));
-                auto* spreg = ZydisRegisterGetString(X86Lifter::getSP(plugin));
-                RDILFunction_Append(il, RDILFunction_PUSH(il, RDILFunction_REG(il, plugin->bits / CHAR_BIT, bpreg)));
-                RDILFunction_Append(il, RDILFunction_COPY(il, RDILFunction_REG(il, plugin->bits / CHAR_BIT, bpreg), RDILFunction_REG(il, plugin->bits / CHAR_BIT, spreg)));
+                auto* bpreg = ZydisRegisterGetString(X86Lifter::getBP(ctx));
+                auto* spreg = ZydisRegisterGetString(X86Lifter::getSP(ctx));
+                RDILFunction_Append(il, RDILFunction_PUSH(il, RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, bpreg)));
+                RDILFunction_Append(il, RDILFunction_COPY(il, RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, bpreg), RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, spreg)));
             }
             else
                 RDILFunction_Append(il, RDILFunction_UNKNOWN(il));
@@ -83,25 +83,25 @@ void X86Lifter::lift(const RDAssemblerPlugin* plugin, ZydisDecoder decoder, rd_a
 
         case ZYDIS_MNEMONIC_LEAVE:
         {
-            auto* sp = RDILFunction_REG(il, plugin->bits / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getSP(plugin)));
-            auto* bp = RDILFunction_REG(il, plugin->bits / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getBP(plugin)));
+            auto* sp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getSP(ctx)));
+            auto* bp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getBP(ctx)));
             RDILFunction_Append(il, RDILFunction_COPY(il, sp, bp));
 
-            bp = RDILFunction_REG(il, plugin->bits / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getBP(plugin)));
+            bp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getBP(ctx)));
             RDILFunction_Append(il, RDILFunction_POP(il, bp));
             break;
         }
 
         case ZYDIS_MNEMONIC_RET:
         {
-            RDILFunction_Append(il, RDILFunction_POP(il, RDILFunction_VAR(il, plugin->bits / CHAR_BIT, "result")));
+            RDILFunction_Append(il, RDILFunction_POP(il, RDILFunction_VAR(il, RDContext_GetBits(ctx) / CHAR_BIT, "result")));
 
             if(zinstr.operand_count) {
-                auto* sp = RDILFunction_REG(il, plugin->bits / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getSP(plugin)));
-                RDILFunction_Append(il, RDILFunction_ADD(il, sp, RDILFunction_CNST(il, plugin->bits / CHAR_BIT, zinstr.operands[0].imm.value.u)));
+                auto* sp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getSP(ctx)));
+                RDILFunction_Append(il, RDILFunction_ADD(il, sp, RDILFunction_CNST(il, RDContext_GetBits(ctx) / CHAR_BIT, zinstr.operands[0].imm.value.u)));
             }
 
-            RDILFunction_Append(il, RDILFunction_RET(il, RDILFunction_VAR(il, plugin->bits / CHAR_BIT, "result")));
+            RDILFunction_Append(il, RDILFunction_RET(il, RDILFunction_VAR(il, RDContext_GetBits(ctx) / CHAR_BIT, "result")));
             break;
         }
 

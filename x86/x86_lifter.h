@@ -6,7 +6,7 @@ class X86Lifter: public ZydisCommon
 {
     public:
         X86Lifter() = delete;
-        static void lift(const RDAssemblerPlugin* plugin, ZydisDecoder decoder, rd_address address, const RDBufferView* view, RDILFunction* il);
+        static void lift(RDContext* ctx, ZydisDecoder decoder, rd_address address, const RDBufferView* view, RDILFunction* il);
 
     private:
         static void liftJump(const ZydisDecodedInstruction* zinstr, rd_address address, RDILFunction* il);

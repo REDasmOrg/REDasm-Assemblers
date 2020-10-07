@@ -30,9 +30,9 @@ std::optional<ZyanU64> ZydisCommon::calcAddress(const ZydisDecodedInstruction* z
     return std::nullopt;
 }
 
-ZydisRegister ZydisCommon::getSP(const RDAssemblerPlugin* plugin)
+ZydisRegister ZydisCommon::getSP(const RDContext* ctx)
 {
-    switch(plugin->bits)
+    switch(RDContext_GetBits(ctx))
     {
         case 32: return ZYDIS_REGISTER_ESP;
         case 64: return ZYDIS_REGISTER_RSP;
@@ -42,9 +42,9 @@ ZydisRegister ZydisCommon::getSP(const RDAssemblerPlugin* plugin)
     return ZYDIS_REGISTER_SP;
 }
 
-ZydisRegister ZydisCommon::getBP(const RDAssemblerPlugin* plugin)
+ZydisRegister ZydisCommon::getBP(const RDContext* ctx)
 {
-    switch(plugin->bits)
+    switch(RDContext_GetBits(ctx))
     {
         case 32: return ZYDIS_REGISTER_EBP;
         case 64: return ZYDIS_REGISTER_RBP;

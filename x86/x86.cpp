@@ -3,20 +3,19 @@
 #include <rdapi/rdapi.h>
 #include <vector>
 
+#define X86_USERDATA "x86_userdata"
 #define BUFFER_SIZE 256
 
-X86Assembler::X86Assembler(const RDPluginHeader* plugin): ZydisCommon()
+X86Assembler::X86Assembler(RDContext* ctx): ZydisCommon(), m_context(ctx)
 {
-    m_plugin = reinterpret_cast<const RDAssemblerPlugin*>(plugin);
-
-    if(m_plugin->bits == 32) ZydisDecoderInit(&m_decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_ADDRESS_WIDTH_32);
+    if(RDContext_GetBits(ctx) == 32) ZydisDecoderInit(&m_decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_ADDRESS_WIDTH_32);
     else ZydisDecoderInit(&m_decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 
     ZydisFormatterInit(&m_formatter, ZYDIS_FORMATTER_STYLE_INTEL);
     ZydisFormatterSetProperty(&m_formatter, ZYDIS_FORMATTER_PROP_HEX_PREFIX, ZYAN_FALSE);
 }
 
-void X86Assembler::lift(const RDAssemblerPlugin* plugin, rd_address address, const RDBufferView* view, RDILFunction* il) { X86Lifter::lift(plugin, m_decoder, address, view, il); }
+void X86Assembler::lift(rd_address address, const RDBufferView* view, RDILFunction* il) { X86Lifter::lift(m_context, m_decoder, address, view, il); }
 
 void X86Assembler::emulate(RDEmulateResult* result)
 {
@@ -57,13 +56,13 @@ void X86Assembler::emulate(RDEmulateResult* result)
 
         case ZYDIS_CATEGORY_SYSTEM:
         {
-            if(zinstr.mnemonic == ZYDIS_MNEMONIC_HLT) RDEmulateResult_AddReturn(result); break;
+            if(zinstr.mnemonic == ZYDIS_MNEMONIC_HLT) RDEmulateResult_AddReturn(result);
             break;
         }
 
         case ZYDIS_CATEGORY_INTERRUPT:
         {
-            if(zinstr.mnemonic == ZYDIS_MNEMONIC_INT3) RDEmulateResult_AddReturn(result); break;
+            if(zinstr.mnemonic == ZYDIS_MNEMONIC_INT3) RDEmulateResult_AddReturn(result);
             break;
         }
 
@@ -124,30 +123,46 @@ void X86Assembler::renderInstruction(const RDRenderItemParams* rip)
     }
 }
 
-static void init(RDPluginHeader* plugin) { plugin->p_data = new X86Assembler(plugin); }
-static void free(RDPluginHeader* plugin) { delete reinterpret_cast<X86Assembler*>(plugin->p_data); }
-static void renderInstruction(const RDAssemblerPlugin* plugin, const RDRenderItemParams* rip) { reinterpret_cast<X86Assembler*>(plugin->p_data)->renderInstruction(rip); }
-static void emulate(const RDAssemblerPlugin* plugin, RDEmulateResult* result) { reinterpret_cast<X86Assembler*>(plugin->p_data)->emulate(result); }
-static void lift(const RDAssemblerPlugin* plugin, rd_address address, const RDBufferView* view, RDILFunction* il) {  reinterpret_cast<X86Assembler*>(plugin->p_data)->lift(plugin, address, view, il); }
-
-void redasm_entry()
+static void renderInstruction(RDContext* ctx, const RDRenderItemParams* rip)
 {
-    RD_PLUGIN_CREATE(RDAssemblerPlugin, x86_32, "x86_32");
+    auto* ptr = reinterpret_cast<X86Assembler*>(RDContext_GetUserData(ctx, X86_USERDATA));
+    ptr->renderInstruction(rip);
+}
+
+static void emulate(RDContext* ctx, RDEmulateResult* result)
+{
+    auto* ptr = reinterpret_cast<X86Assembler*>(RDContext_GetUserData(ctx, X86_USERDATA));
+    ptr->emulate(result);
+}
+
+static void lift(RDContext* ctx, rd_address address, const RDBufferView* view, RDILFunction* il)
+{
+    auto* ptr = reinterpret_cast<X86Assembler*>(RDContext_GetUserData(ctx, X86_USERDATA));
+    ptr->lift(address, view, il);
+}
+
+void rdplugin_init(RDContext* ctx, RDPluginModule* m)
+{
+    RDContext_SetUserData(ctx, X86_USERDATA, reinterpret_cast<uintptr_t>(new X86Assembler(ctx)));
+
+    RD_PLUGIN_ENTRY(RDEntryAssembler, x86_32, "x86_32");
     x86_32.renderinstruction = &renderInstruction;
     x86_32.emulate = &emulate;
     x86_32.lift = &lift;
-    x86_32.init = &init;
-    x86_32.free = &free;
     x86_32.bits = 32;
 
-    RD_PLUGIN_CREATE(RDAssemblerPlugin, x86_64, "x86_64");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, x86_64, "x86_64");
     x86_64.renderinstruction = &renderInstruction;
     x86_64.emulate = &emulate;
     x86_64.lift = &lift;
-    x86_64.init = &init;
-    x86_64.free = &free;
     x86_64.bits = 64;
 
-    RDAssembler_Register(&x86_32);
-    RDAssembler_Register(&x86_64);
+    RDAssembler_Register(m, &x86_32);
+    RDAssembler_Register(m, &x86_64);
+}
+
+void rdplugin_free(RDContext* ctx)
+{
+    uintptr_t ptr = RDContext_GetUserData(ctx, X86_USERDATA);
+    if(ptr) delete reinterpret_cast<X86Assembler*>(ptr);
 }
