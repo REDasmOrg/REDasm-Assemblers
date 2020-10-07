@@ -125,7 +125,7 @@ void X86Assembler::renderInstruction(const RDRenderItemParams* rip)
 }
 
 template<size_t bits>
-X86Assembler* checkAssembler(RDContext* ctx)
+static X86Assembler* checkAssembler(RDContext* ctx)
 {
     if constexpr(bits == 32)
     {
