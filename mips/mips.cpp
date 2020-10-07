@@ -81,7 +81,7 @@ size_t MIPSDecoder::decode(const RDBufferView* view, MIPSDecodedInstruction* dec
 }
 
 template<MIPSDecoder::Swap_Callback Swap>
-void MIPSDecoder::emulate(const RDAssemblerPlugin*, RDEmulateResult* result)
+void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
 {
     MIPSDecodedInstruction decoded;
     const RDBufferView* view = RDEmulateResult_GetView(result);
@@ -147,7 +147,7 @@ void MIPSDecoder::emulate(const RDAssemblerPlugin*, RDEmulateResult* result)
 }
 
 template<MIPSDecoder::Swap_Callback Swap>
-void MIPSDecoder::renderInstruction(const RDAssemblerPlugin*, const RDRenderItemParams* rip)
+void MIPSDecoder::renderInstruction(RDContext* ctx, const RDRenderItemParams* rip)
 {
     MIPSDecodedInstruction decoded;
     if(MIPSDecoder::decode<Swap>(&rip->view, &decoded) == MIPSEncoding_Unknown) return;
@@ -382,7 +382,7 @@ bool MIPSDecoder::checkMTC0(const MIPSDecodedInstruction* decoded)
     // //if(RDILCPU_Read(cpu, &instruction->operands[0], &val))
     //     //rd_log(rd_tohex(instruction->address) + ": " + rd_tohex(val));
 
-    // RDDocument* doc = RDDisassembler_GetDocument(disassembler);
+    // RDDocument* doc = RDContext_GetDocument(disassembler);
 
     // rd_type symboltype = SymbolType_None;
     // if(pointer) symboltype = RDDisassembler_MarkPointer(disassembler, address, instruction->address);
@@ -436,21 +436,21 @@ std::optional<rd_address> MIPSDecoder::calcAddress(const MIPSDecodedInstruction*
     return std::nullopt;
 }
 
-void redasm_entry()
+void rdplugin_init(RDContext*, RDPluginModule* pm)
 {
     MIPSInitializeFormats();
 
-    RD_PLUGIN_CREATE(RDAssemblerPlugin, mips32le, "MIPS32 (Little Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, mips32le, "MIPS32 (Little Endian)");
     mips32le.emulate = &MIPSDecoder::emulate<&RD_FromLittleEndian32>;
     mips32le.renderinstruction = &MIPSDecoder::renderInstruction<&RD_FromLittleEndian32>;
     //mips32le.rdil = &MIPSDecoder::rdil;
     mips32le.bits = 32;
-    RDAssembler_Register(&mips32le);
+    RDAssembler_Register(pm, &mips32le);
 
-    RD_PLUGIN_CREATE(RDAssemblerPlugin, mips32be, "MIPS32 (Big Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, mips32be, "MIPS32 (Big Endian)");
     mips32be.emulate = &MIPSDecoder::emulate<&RD_FromBigEndian32>;
     mips32be.renderinstruction = &MIPSDecoder::renderInstruction<&RD_FromLittleEndian32>;
     //mips32be.rdil = &MIPSDecoder::rdil;
     mips32be.bits = 32;
-    RDAssembler_Register(&mips32be);
+    RDAssembler_Register(pm, &mips32be);
 }

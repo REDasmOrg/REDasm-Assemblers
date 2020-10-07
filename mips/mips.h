@@ -19,8 +19,8 @@ class MIPSDecoder
         typedef void (*Callback_MIPSDecode)(const MIPSDecodedInstruction*, const RDRenderItemParams*);
 
     public:
-        template<Swap_Callback Swap> static void emulate(const RDAssemblerPlugin*, RDEmulateResult* result);
-        template<MIPSDecoder::Swap_Callback Swap> static void renderInstruction(const RDAssemblerPlugin*, const RDRenderItemParams* rip);
+        template<Swap_Callback Swap> static void emulate(RDContext*, RDEmulateResult* result);
+        template<MIPSDecoder::Swap_Callback Swap> static void renderInstruction(RDContext* ctx, const RDRenderItemParams* rip);
 
     private:
         template<Swap_Callback Swap> static size_t decode(const RDBufferView* view, MIPSDecodedInstruction* decoded);

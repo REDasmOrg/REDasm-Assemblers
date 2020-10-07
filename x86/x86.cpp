@@ -4,7 +4,7 @@
 #include <vector>
 
 #define X86_USERDATA "x86_userdata"
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE  256
 
 X86Assembler::X86Assembler(RDContext* ctx): ZydisCommon(), m_context(ctx)
 {
@@ -150,6 +150,7 @@ void rdplugin_init(RDContext* ctx, RDPluginModule* m)
     x86_32.emulate = &emulate;
     x86_32.lift = &lift;
     x86_32.bits = 32;
+    RDAssembler_Register(m, &x86_32);
 
     RD_PLUGIN_ENTRY(RDEntryAssembler, x86_64, "x86_64");
     x86_64.renderinstruction = &renderInstruction;
@@ -157,7 +158,6 @@ void rdplugin_init(RDContext* ctx, RDPluginModule* m)
     x86_64.lift = &lift;
     x86_64.bits = 64;
 
-    RDAssembler_Register(m, &x86_32);
     RDAssembler_Register(m, &x86_64);
 }
 
