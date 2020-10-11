@@ -72,8 +72,8 @@ void X86Lifter::lift(RDContext* ctx, ZydisDecoder decoder, rd_address address, c
             if(!size && !depth) {
                 auto* bpreg = ZydisRegisterGetString(X86Lifter::getBP(ctx));
                 auto* spreg = ZydisRegisterGetString(X86Lifter::getSP(ctx));
-                RDILFunction_Append(il, RDILFunction_PUSH(il, RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, bpreg)));
-                RDILFunction_Append(il, RDILFunction_COPY(il, RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, bpreg), RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, spreg)));
+                RDILFunction_Append(il, RDILFunction_PUSH(il, RDILFunction_REG(il, 0, bpreg)));
+                RDILFunction_Append(il, RDILFunction_COPY(il, RDILFunction_REG(il, 0, bpreg), RDILFunction_REG(il, 0, spreg)));
             }
             else
                 RDILFunction_Append(il, RDILFunction_UNKNOWN(il));
@@ -83,25 +83,25 @@ void X86Lifter::lift(RDContext* ctx, ZydisDecoder decoder, rd_address address, c
 
         case ZYDIS_MNEMONIC_LEAVE:
         {
-            auto* sp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getSP(ctx)));
-            auto* bp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getBP(ctx)));
+            auto* sp = RDILFunction_REG(il, 0, ZydisRegisterGetString(X86Lifter::getSP(ctx)));
+            auto* bp = RDILFunction_REG(il, 0, ZydisRegisterGetString(X86Lifter::getBP(ctx)));
             RDILFunction_Append(il, RDILFunction_COPY(il, sp, bp));
 
-            bp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getBP(ctx)));
+            bp = RDILFunction_REG(il, 0, ZydisRegisterGetString(X86Lifter::getBP(ctx)));
             RDILFunction_Append(il, RDILFunction_POP(il, bp));
             break;
         }
 
         case ZYDIS_MNEMONIC_RET:
         {
-            RDILFunction_Append(il, RDILFunction_POP(il, RDILFunction_VAR(il, RDContext_GetBits(ctx) / CHAR_BIT, "result")));
+            RDILFunction_Append(il, RDILFunction_POP(il, RDILFunction_VAR(il, 0, "result")));
 
             if(zinstr.operand_count) {
-                auto* sp = RDILFunction_REG(il, RDContext_GetBits(ctx) / CHAR_BIT, ZydisRegisterGetString(X86Lifter::getSP(ctx)));
-                RDILFunction_Append(il, RDILFunction_ADD(il, sp, RDILFunction_CNST(il, RDContext_GetBits(ctx) / CHAR_BIT, zinstr.operands[0].imm.value.u)));
+                auto* sp = RDILFunction_REG(il, 0, ZydisRegisterGetString(X86Lifter::getSP(ctx)));
+                RDILFunction_Append(il, RDILFunction_ADD(il, sp, RDILFunction_CNST(il, 0, zinstr.operands[0].imm.value.u)));
             }
 
-            RDILFunction_Append(il, RDILFunction_RET(il, RDILFunction_VAR(il, RDContext_GetBits(ctx) / CHAR_BIT, "result")));
+            RDILFunction_Append(il, RDILFunction_RET(il, RDILFunction_VAR(il, 0, "result")));
             break;
         }
 
@@ -201,11 +201,16 @@ RDILExpression* X86Lifter::liftOperand(rd_address address, const ZydisDecodedIns
         case ZYDIS_OPERAND_TYPE_MEMORY:
         {
             RDILExpression *base = nullptr, *index = nullptr, *scale = nullptr, *disp = nullptr;
+            auto addr = X86Lifter::calcAddress(zinstr, idx, address);
 
-            if(op.mem.base != ZYDIS_REGISTER_NONE) base = RDILFunction_REG(il, sz, ZydisRegisterGetString(op.mem.base));
-            if(op.mem.index != ZYDIS_REGISTER_NONE) index = RDILFunction_REG(il, sz, ZydisRegisterGetString(op.mem.index));
-            if(op.mem.scale > 1) scale = RDILFunction_CNST(il, sz, op.mem.scale);
-            if(op.mem.disp.has_displacement) disp = RDILFunction_CNST(il, sz, op.mem.disp.value);
+            if(!addr) {
+                if(op.mem.base != ZYDIS_REGISTER_NONE) base = RDILFunction_REG(il, sz, ZydisRegisterGetString(op.mem.base));
+                if(op.mem.index != ZYDIS_REGISTER_NONE) index = RDILFunction_REG(il, sz, ZydisRegisterGetString(op.mem.index));
+                if(op.mem.scale > 1) scale = RDILFunction_CNST(il, sz, op.mem.scale);
+                if(op.mem.disp.has_displacement) disp = RDILFunction_CNST(il, sz, op.mem.disp.value);
+            }
+            else
+                disp = RDILFunction_CNST(il, 0, *addr);
 
             RDILExpression* lhs = nullptr;
             auto* indexscale = (scale && index) ? RDILFunction_MUL(il, index, scale) : index;
@@ -223,7 +228,7 @@ RDILExpression* X86Lifter::liftOperand(rd_address address, const ZydisDecodedIns
             else if(lhs) m = lhs;
             else m = RDILFunction_UNKNOWN(il);
 
-            e = RDILFunction_LOAD(il, m);
+            e = RDILFunction_MEM(il, m);
             break;
         }
 
