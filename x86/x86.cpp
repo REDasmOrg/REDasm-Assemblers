@@ -81,15 +81,15 @@ void X86Assembler::processRefs(ZydisDecodedInstruction* zinstr, rd_address addre
     }
 }
 
-void X86Assembler::renderInstruction(const RDRenderItemParams* rip)
+void X86Assembler::renderInstruction(const RDRendererParams* srp)
 {
     ZydisDecodedInstruction zinstr;
-    if(!X86Assembler::decode(m_decoder, &rip->view, &zinstr)) return;
+    if(!X86Assembler::decode(m_decoder, &srp->view, &zinstr)) return;
 
     std::vector<u8> buffer(BUFFER_SIZE);
     ZydisFormatterTokenConst* token = nullptr;
 
-    if(!ZYAN_SUCCESS(ZydisFormatterTokenizeInstruction(&m_formatter, &zinstr, buffer.data(), buffer.size(), rip->address, &token)))
+    if(!ZYAN_SUCCESS(ZydisFormatterTokenizeInstruction(&m_formatter, &zinstr, buffer.data(), buffer.size(), srp->address, &token)))
         return;
 
     ZydisTokenType tokentype;
@@ -104,20 +104,20 @@ void X86Assembler::renderInstruction(const RDRenderItemParams* rip)
             case ZYDIS_TOKEN_ADDRESS_ABS:
             case ZYDIS_TOKEN_ADDRESS_REL:
             case ZYDIS_TOKEN_IMMEDIATE:
-                RDRenderer_Unsigned(rip, std::stoul(tokenvalue, nullptr, 16));
+                RDRenderer_Unsigned(srp->renderer, std::stoul(tokenvalue, nullptr, 16));
                 break;
 
             case ZYDIS_TOKEN_MNEMONIC:
-                if(zinstr.meta.category == ZYDIS_CATEGORY_COND_BR) RDRenderer_Mnemonic(rip, tokenvalue, Theme_JumpCond);
-                else if(zinstr.meta.category == ZYDIS_CATEGORY_UNCOND_BR) RDRenderer_Mnemonic(rip, tokenvalue, Theme_Jump);
-                else if(zinstr.meta.category == ZYDIS_CATEGORY_CALL) RDRenderer_Mnemonic(rip, tokenvalue, Theme_Call);
-                else if(zinstr.meta.category == ZYDIS_CATEGORY_RET) RDRenderer_Mnemonic(rip, tokenvalue, Theme_Ret);
-                else if(zinstr.meta.category == ZYDIS_CATEGORY_NOP) RDRenderer_Mnemonic(rip, tokenvalue, Theme_Nop);
-                else RDRenderer_Mnemonic(rip, tokenvalue, Theme_Default);
+                if(zinstr.meta.category == ZYDIS_CATEGORY_COND_BR) RDRenderer_Mnemonic(srp->renderer, tokenvalue, Theme_JumpCond);
+                else if(zinstr.meta.category == ZYDIS_CATEGORY_UNCOND_BR) RDRenderer_Mnemonic(srp->renderer, tokenvalue, Theme_Jump);
+                else if(zinstr.meta.category == ZYDIS_CATEGORY_CALL) RDRenderer_Mnemonic(srp->renderer, tokenvalue, Theme_Call);
+                else if(zinstr.meta.category == ZYDIS_CATEGORY_RET) RDRenderer_Mnemonic(srp->renderer, tokenvalue, Theme_Ret);
+                else if(zinstr.meta.category == ZYDIS_CATEGORY_NOP) RDRenderer_Mnemonic(srp->renderer, tokenvalue, Theme_Nop);
+                else RDRenderer_Mnemonic(srp->renderer, tokenvalue, Theme_Default);
                 break;
 
-            case ZYDIS_TOKEN_REGISTER: RDRenderer_Register(rip, tokenvalue); break;
-            default: RDRenderer_Text(rip, tokenvalue); break;
+            case ZYDIS_TOKEN_REGISTER: RDRenderer_Register(srp->renderer, tokenvalue); break;
+            default: RDRenderer_Text(srp->renderer, tokenvalue); break;
         }
 
         if(!ZYAN_SUCCESS(ZydisFormatterTokenNext(&token))) token = nullptr;
@@ -153,7 +153,7 @@ static X86Assembler* checkAssembler(RDContext* ctx)
     }
 }
 
-template<size_t bits> static void renderInstruction(RDContext* ctx, const RDRenderItemParams* rip) { checkAssembler<bits>(ctx)->renderInstruction(rip); }
+template<size_t bits> static void renderInstruction(RDContext* ctx, const RDRendererParams* rp) { checkAssembler<bits>(ctx)->renderInstruction(rp); }
 template<size_t bits> static void emulate(RDContext* ctx, RDEmulateResult* result) { checkAssembler<bits>(ctx)->emulate(result); }
 template<size_t bits> static void lift(RDContext* ctx, rd_address address, const RDBufferView* view, RDILFunction* il) { checkAssembler<bits>(ctx)->lift(address, view, il); }
 

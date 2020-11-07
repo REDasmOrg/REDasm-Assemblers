@@ -7,7 +7,7 @@
 //std::forward_list<RDInstruction> MIPSDecoder::m_luilist;
 
 std::array<MIPSDecoder::Callback_MIPSDecode, MIPSEncoding_Count> MIPSDecoder::m_renderers = {
-    [](const MIPSDecodedInstruction*, const RDRenderItemParams*) { },
+    [](const MIPSDecodedInstruction*, const RDRendererParams*) { },
     &MIPSDecoder::renderR,
     &MIPSDecoder::renderI,
     &MIPSDecoder::renderJ,
@@ -147,12 +147,12 @@ void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
 }
 
 template<MIPSDecoder::Swap_Callback Swap>
-void MIPSDecoder::renderInstruction(RDContext* ctx, const RDRenderItemParams* rip)
+void MIPSDecoder::renderInstruction(RDContext* ctx, const RDRendererParams* rp)
 {
     MIPSDecodedInstruction decoded;
-    if(MIPSDecoder::decode<Swap>(&rip->view, &decoded) == MIPSEncoding_Unknown) return;
+    if(MIPSDecoder::decode<Swap>(&rp->view, &decoded) == MIPSEncoding_Unknown) return;
 
-    MIPSDecoder::renderMnemonic(&decoded, rip);
+    MIPSDecoder::renderMnemonic(&decoded, rp);
 
     switch(decoded.opcode->id)
     {
@@ -164,7 +164,7 @@ void MIPSDecoder::renderInstruction(RDContext* ctx, const RDRenderItemParams* ri
         case MIPSInstruction_Sb:
         case MIPSInstruction_Sh:
         case MIPSInstruction_Sw:
-            MIPSDecoder::renderLoadStore(&decoded, rip);
+            MIPSDecoder::renderLoadStore(&decoded, rp);
             return;
 
         default: break;
@@ -172,7 +172,7 @@ void MIPSDecoder::renderInstruction(RDContext* ctx, const RDRenderItemParams* ri
 
     if(decoded.opcode->encoding >= m_renderers.size()) return;
     auto r = m_renderers[decoded.opcode->encoding];
-    r(&decoded, rip);
+    r(&decoded, rp);
 }
 
 const char* MIPSDecoder::cop0reg(u32 r)
@@ -181,7 +181,7 @@ const char* MIPSDecoder::cop0reg(u32 r)
     return COP0_REGISTERS[r];
 }
 
-void MIPSDecoder::renderR(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
     switch(decoded->opcode->id)
     {
@@ -190,11 +190,11 @@ void MIPSDecoder::renderR(const MIPSDecodedInstruction* decoded, const RDRenderI
         case MIPSInstruction_Sra:
         {
             if(!MIPSDecoder::checkNop(decoded)) {
-                RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rd));
-                RDRenderer_Text(rip, ", ");
-                RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rt));
-                RDRenderer_Text(rip, ", ");
-                RDRenderer_Constant(rip, RD_ToHex(decoded->instruction.r.shamt));
+                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rd));
+                RDRenderer_Text(rp->renderer, ", ");
+                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rt));
+                RDRenderer_Text(rp->renderer, ", ");
+                RDRenderer_Constant(rp->renderer, RD_ToHex(decoded->instruction.r.shamt));
             }
 
             break;
@@ -202,95 +202,95 @@ void MIPSDecoder::renderR(const MIPSDecodedInstruction* decoded, const RDRenderI
 
         case MIPSInstruction_Jalr:
             if(decoded->instruction.r.rd != MIPSRegister_RA) {
-                RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rd));
-                RDRenderer_Text(rip, ", ");
-                RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rs));
+                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rd));
+                RDRenderer_Text(rp->renderer, ", ");
+                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rs));
             } else
-                RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rs));
+                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rs));
             break;
 
         case MIPSInstruction_Jr:
-            RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rs));
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rs));
             break;
 
         default:
-            RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rd));
-            RDRenderer_Text(rip, ", ");
-            RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rs));
-            RDRenderer_Text(rip, ", ");
-            RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.r.rt));
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rd));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rs));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rt));
             break;
     }
 }
 
-void MIPSDecoder::renderI(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
     if(decoded->opcode->id == MIPSInstruction_Lui)
     {
-        RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.i.rt));
-        RDRenderer_Text(rip, ", ");
-        RDRenderer_Constant(rip, RD_ToHex(decoded->instruction.i.u_immediate));
+        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rt));
+        RDRenderer_Text(rip->renderer, ", ");
+        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i.u_immediate));
         return;
     }
 
     if(!MIPSDecoder::checkB(decoded))
     {
-        RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.i.rt));
-        RDRenderer_Text(rip, ", ");
-        RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.i.rs));
-        RDRenderer_Text(rip, ", ");
+        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rt));
+        RDRenderer_Text(rip->renderer, ", ");
+        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rs));
+        RDRenderer_Text(rip->renderer, ", ");
     }
 
     if((decoded->opcode->category == MIPSCategory_Jump) || (decoded->opcode->category == MIPSCategory_JumpCond))
     {
         auto addr = MIPSDecoder::calcAddress(decoded, rip->address);
 
-        if(addr) RDRenderer_Unsigned(rip, *addr);
-        else RDRenderer_Text(rip, "???");
+        if(addr) RDRenderer_Unsigned(rip->renderer, *addr);
+        else RDRenderer_Text(rip->renderer, "???");
     }
     else
-        RDRenderer_Constant(rip, RD_ToHex(decoded->instruction.i.u_immediate));
+        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i.u_immediate));
 }
 
-void MIPSDecoder::renderJ(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
     auto addr = MIPSDecoder::calcAddress(decoded, rip->address);
 
-    if(addr) RDRenderer_Unsigned(rip, *addr);
-    else RDRenderer_Text(rip, "???");
+    if(addr) RDRenderer_Unsigned(rip->renderer, *addr);
+    else RDRenderer_Text(rip->renderer, "???");
 }
 
-void MIPSDecoder::renderB(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderB(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
-    RDRenderer_Constant(rip, RD_ToHex(decoded->instruction.b.code));
+    RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.b.code));
 }
 
-void MIPSDecoder::renderC(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
-    RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.c.rt));
-    RDRenderer_Text(rip, ", ");
-    RDRenderer_Register(rip, MIPSDecoder::cop0reg(decoded->instruction.c.rd));
+    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.c.rt));
+    RDRenderer_Text(rip->renderer, ", ");
+    RDRenderer_Register(rip->renderer, MIPSDecoder::cop0reg(decoded->instruction.c.rd));
 }
 
-void MIPSDecoder::renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
-    RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.i.rt));
-    RDRenderer_Text(rip, ", ");
-    RDRenderer_Constant(rip, RD_ToHex(decoded->instruction.i.u_immediate));
-    RDRenderer_Text(rip, "(");
-    RDRenderer_Register(rip, MIPSDecoder::reg(decoded->instruction.i.rs));
-    RDRenderer_Text(rip, ")");
+    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rt));
+    RDRenderer_Text(rip->renderer, ", ");
+    RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i.u_immediate));
+    RDRenderer_Text(rip->renderer, "(");
+    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rs));
+    RDRenderer_Text(rip->renderer, ")");
 }
 
-void MIPSDecoder::renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip)
+void MIPSDecoder::renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
     switch(decoded->opcode->id)
     {
         case MIPSInstruction_Sll:
         {
             if(MIPSDecoder::checkNop(decoded)) {
-                RDRenderer_Mnemonic(rip, "nop", Theme_Nop);
-                RDRenderer_Text(rip, " ");
+                RDRenderer_Mnemonic(rip->renderer, "nop", Theme_Nop);
+                RDRenderer_Text(rip->renderer, " ");
                 return;
             }
 
@@ -300,8 +300,8 @@ void MIPSDecoder::renderMnemonic(const MIPSDecodedInstruction* decoded, const RD
         case MIPSInstruction_Beq:
         {
             if(MIPSDecoder::checkB(decoded)) {
-                RDRenderer_Mnemonic(rip, "b", Theme_Jump);
-                RDRenderer_Text(rip, " ");
+                RDRenderer_Mnemonic(rip->renderer, "b", Theme_Jump);
+                RDRenderer_Text(rip->renderer, " ");
                 return;
             }
 
@@ -311,8 +311,8 @@ void MIPSDecoder::renderMnemonic(const MIPSDecodedInstruction* decoded, const RD
         case MIPSInstruction_Mfc0:
         {
             if(MIPSDecoder::checkMTC0(decoded)) {
-                RDRenderer_Mnemonic(rip, "mtc0", Theme_Default);
-                RDRenderer_Text(rip, " ");
+                RDRenderer_Mnemonic(rip->renderer, "mtc0", Theme_Default);
+                RDRenderer_Text(rip->renderer, " ");
             }
 
             break;
@@ -321,8 +321,8 @@ void MIPSDecoder::renderMnemonic(const MIPSDecodedInstruction* decoded, const RD
         default: break;
     }
 
-    RDRenderer_Mnemonic(rip, decoded->opcode->mnemonic, Theme_Default);
-    RDRenderer_Text(rip, " ");
+    RDRenderer_Mnemonic(rip->renderer, decoded->opcode->mnemonic, Theme_Default);
+    RDRenderer_Text(rip->renderer, " ");
 }
 
 bool MIPSDecoder::checkNop(const MIPSDecodedInstruction* decoded)

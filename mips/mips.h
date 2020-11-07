@@ -16,23 +16,23 @@ class MIPSDecoder
 {
     private:
         typedef u32 (*Swap_Callback)(u32);
-        typedef void (*Callback_MIPSDecode)(const MIPSDecodedInstruction*, const RDRenderItemParams*);
+        typedef void (*Callback_MIPSDecode)(const MIPSDecodedInstruction*, const RDRendererParams*);
 
     public:
         template<Swap_Callback Swap> static void emulate(RDContext*, RDEmulateResult* result);
-        template<MIPSDecoder::Swap_Callback Swap> static void renderInstruction(RDContext* ctx, const RDRenderItemParams* rip);
+        template<MIPSDecoder::Swap_Callback Swap> static void renderInstruction(RDContext* ctx, const RDRendererParams* rp);
 
     private:
         template<Swap_Callback Swap> static size_t decode(const RDBufferView* view, MIPSDecodedInstruction* decoded);
         static const char* cop0reg(u32 r);
         static const char* reg(u32 r);
-        static void renderR(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
-        static void renderI(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
-        static void renderJ(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
-        static void renderB(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
-        static void renderC(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
-        static void renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
-        static void renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRenderItemParams* rip);
+        static void renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderB(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         //static void checkLui(RDDisassembler* disassembler, const RDInstruction* instruction);
         static bool checkNop(const MIPSDecodedInstruction* decoded);
         static bool checkB(const MIPSDecodedInstruction* decoded);
