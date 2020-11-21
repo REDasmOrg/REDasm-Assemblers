@@ -30,6 +30,7 @@ void X86Lifter::lift(RDContext* ctx, ZydisDecoder decoder, rd_address address, c
         }
 
         case ZYDIS_MNEMONIC_MOV:
+        case ZYDIS_MNEMONIC_LEA:
         {
             auto* dst = X86Lifter::liftOperand(address, &zinstr, 0, il);
             auto* src = X86Lifter::liftOperand(address, &zinstr, 1, il);
@@ -228,7 +229,8 @@ RDILExpression* X86Lifter::liftOperand(rd_address address, const ZydisDecodedIns
             else if(lhs) m = lhs;
             else m = RDILFunction_UNKNOWN(il);
 
-            e = RDILFunction_MEM(il, m);
+            if((zinstr->mnemonic == ZYDIS_MNEMONIC_LEA) && idx) e = m;
+            else e = RDILFunction_MEM(il, m);
             break;
         }
 
