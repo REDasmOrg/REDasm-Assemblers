@@ -41,7 +41,7 @@ void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
 
         RDBufferView view;
         if(!RDContext_GetBlockView(thethis->m_context, b, &view)) return true;
-        rd_log("Searching prologues @ " + rd_tohex(b->address));
+        rd_status("Searching prologues @ " + rd_tohex(b->address));
 
         while(u8* p = RDBufferView_FindPatternNext(&view, thethis->m_pattern.c_str())) {
             auto loc = RD_AddressOf(thethis->m_loader, p);
