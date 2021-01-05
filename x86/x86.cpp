@@ -179,7 +179,10 @@ void rdplugin_init(RDContext*, RDPluginModule* m)
     x86_prologue.flags = AnalyzerFlags_Experimental | AnalyzerFlags_Selected;
     x86_prologue.description = "Search for x86/x86_64 function prologues";
     x86_prologue.order = 3000;
-    x86_prologue.isenabled = [](const RDContext*) { return true; };
+
+    x86_prologue.isenabled = [](const RDContext* ctx) {
+        return RDContext_MatchAssembler(ctx, "x86*");
+    };
 
     x86_prologue.execute = [](RDContext* ctx) {
         X86Prologue x86p(ctx);
