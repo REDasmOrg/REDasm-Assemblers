@@ -35,6 +35,7 @@ void X86Assembler::emulate(RDEmulateResult* result)
         {
             auto calcaddress = X86Assembler::calcAddress(&zinstr, 0, address);
             if(calcaddress) RDEmulateResult_AddCall(result, *calcaddress);
+            else RDEmulateResult_AddCallUnresolved(result);
             break;
         }
 
