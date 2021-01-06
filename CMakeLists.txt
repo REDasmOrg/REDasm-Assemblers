@@ -7,6 +7,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(x86)
 add_subdirectory(mips)
+add_subdirectory(arm64)
 #add_subdirectory(arm)
 #add_subdirectory(avr8)
 #add_subdirectory(xtensa)
