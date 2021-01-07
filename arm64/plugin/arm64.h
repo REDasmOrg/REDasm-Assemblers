@@ -10,13 +10,15 @@ class ARM64
     public:
         ARM64() = delete;
         static void free(RDContext* ctx);
+        static bool decode(csh h, rd_address address, const RDBufferView* view);
+        static csh handle(RDContext* ctx);
+        static const cs_insn* instruction();
         template<cs_mode Mode> static csh init(RDContext* ctx);
         template<cs_mode Mode> static void emulate(RDContext* ctx, RDEmulateResult* result);
         template<cs_mode Mode> static void render(RDContext* ctx, const RDRendererParams* rp);
 
     private:
         static std::string instructionText();
-        static bool decode(csh h, rd_address address, const RDBufferView* view);
         static void renderMemory(csh h, const cs_arm64& arm64, const cs_arm64_op& op, const RDRendererParams* rp);
         static void renderMnemonic(csh h, const RDRendererParams* rp);
         static void render(csh h, const RDRendererParams* rp);

@@ -4,7 +4,7 @@ cs_insn* ARM64::m_insn = nullptr;
 
 void ARM64::free(RDContext* ctx)
 {
-    csh h = static_cast<csh>(RDContext_GetUserData(ctx, ARM64_USERDATA));
+    csh h = ARM64::handle(ctx);
     if(!h) return;
 
     cs_free(ARM64::m_insn, 1);
@@ -20,17 +20,26 @@ bool ARM64::decode(csh h, rd_address address, const RDBufferView* view)
     return cs_disasm_iter(h, &pdata, &size, &address, m_insn);
 }
 
+csh ARM64::handle(RDContext* ctx) { return static_cast<csh>(RDContext_GetUserData(ctx, ARM64_USERDATA)); }
+const cs_insn* ARM64::instruction() { return m_insn; }
+
 void ARM64::renderMemory(csh h, const cs_arm64& arm64, const cs_arm64_op& op, const RDRendererParams* rp)
 {
-    //rd_log("MEM @ " + rd_tohex(rp->address) + ", " + m_insn->op_str);
     RDRenderer_Text(rp->renderer, "[");
 
     if(op.mem.base != ARM64_REG_INVALID)
         RDRenderer_Register(rp->renderer, cs_reg_name(h, op.mem.base));
 
-    if(op.mem.disp)
+    if(op.mem.index != ARM64_REG_INVALID)
     {
         if(op.mem.base != ARM64_REG_INVALID) RDRenderer_Text(rp->renderer, ", ");
+        RDRenderer_Register(rp->renderer, cs_reg_name(h, op.mem.index));
+    }
+
+    if(op.mem.disp)
+    {
+        if((op.mem.base != ARM64_REG_INVALID) || (op.mem.index != ARM64_REG_INVALID))
+            RDRenderer_Text(rp->renderer, ", ");
 
         RDRenderer_Text(rp->renderer, "#");
         RDRenderer_Signed(rp->renderer, op.mem.disp);
@@ -135,12 +144,6 @@ void ARM64::emulate(csh h, RDContext* ctx, RDEmulateResult* result)
     {
         RDEmulateResult_AddReturn(result);
         return;
-    }
-
-    if(address == 0xe06480)
-    {
-        int zzz = 0;
-        zzz++;
     }
 
     for(size_t i = 0; i < arm64.op_count; i++)
