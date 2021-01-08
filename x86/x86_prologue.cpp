@@ -3,7 +3,6 @@
 X86Prologue::X86Prologue(RDContext* ctx): m_context(ctx)
 {
     m_document = RDContext_GetDocument(ctx);
-    m_loader = RDContext_GetLoader(ctx);
 }
 
 void X86Prologue::search()
@@ -43,7 +42,7 @@ void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
         if(!RDContext_GetBlockView(thethis->m_context, b, &view)) return true;
 
         while(u8* p = RDBufferView_FindPatternNext(&view, thethis->m_pattern.c_str())) {
-            auto loc = RD_AddressOf(thethis->m_loader, p);
+            auto loc = RD_AddressOf(thethis->m_context, p);
             if(!loc.valid) continue;
             rd_log("Found prologue @ " + rd_tohex(loc.address));
             thethis->m_prologues.insert(loc.address);

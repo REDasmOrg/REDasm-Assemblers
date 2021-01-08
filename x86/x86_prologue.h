@@ -18,6 +18,5 @@ class X86Prologue
         std::string m_pattern;
         RDContext* m_context;
         RDDocument* m_document;
-        RDLoader* m_loader;
 };
 
