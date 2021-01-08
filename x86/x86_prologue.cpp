@@ -44,7 +44,7 @@ void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
         while(u8* p = RDBufferView_FindPatternNext(&view, thethis->m_pattern.c_str())) {
             auto loc = RD_AddressOf(thethis->m_context, p);
             if(!loc.valid) continue;
-            rd_log("Found prologue @ " + rd_tohex(loc.address));
+            rd_status("Found prologue @ " + rd_tohex(loc.address));
             thethis->m_prologues.insert(loc.address);
         }
 
