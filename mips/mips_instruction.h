@@ -54,12 +54,15 @@ struct RFormat {
     unsigned op: 6;
 };
 
-struct IFormat {
-    union {
-        signed s_immediate: 16;
-        unsigned u_immediate: 16;
-    };
+struct IFormatUnsigned {
+    unsigned immediate: 16;
+    unsigned rt: 5;
+    unsigned rs: 5;
+    unsigned op: 6;
+};
 
+struct IFormatSigned {
+    signed immediate: 16;
     unsigned rt: 5;
     unsigned rs: 5;
     unsigned op: 6;
@@ -90,7 +93,8 @@ union MIPSInstruction {
     u8 bytes[4];
 
     RFormat r;
-    IFormat i;
+    IFormatUnsigned i_u;
+    IFormatSigned i_s;
     JFormat j;
     BFormat b;
     CFormat c;

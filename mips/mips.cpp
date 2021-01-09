@@ -41,7 +41,7 @@ size_t MIPSDecoder::decode(const RDBufferView* view, MIPSDecodedInstruction* dec
 
         case MIPSEncoding_I:
         {
-            auto& format = MIPSOpcodes_I[decoded->instruction.i.op];
+            auto& format = MIPSOpcodes_I[decoded->instruction.i_u.op];
             if(!format.mnemonic) return MIPSEncoding_Unknown;
             decoded->opcode = &format;
             break;
@@ -227,17 +227,17 @@ void MIPSDecoder::renderI(const MIPSDecodedInstruction* decoded, const RDRendere
 {
     if(decoded->opcode->id == MIPSInstruction_Lui)
     {
-        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rt));
+        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
         RDRenderer_Text(rip->renderer, ", ");
-        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i.u_immediate));
+        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i_u.immediate));
         return;
     }
 
     if(!MIPSDecoder::checkB(decoded))
     {
-        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rt));
+        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
         RDRenderer_Text(rip->renderer, ", ");
-        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rs));
+        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
         RDRenderer_Text(rip->renderer, ", ");
     }
 
@@ -249,7 +249,7 @@ void MIPSDecoder::renderI(const MIPSDecodedInstruction* decoded, const RDRendere
         else RDRenderer_Text(rip->renderer, "???");
     }
     else
-        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i.u_immediate));
+        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i_u.immediate));
 }
 
 void MIPSDecoder::renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
@@ -274,11 +274,11 @@ void MIPSDecoder::renderC(const MIPSDecodedInstruction* decoded, const RDRendere
 
 void MIPSDecoder::renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
 {
-    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rt));
+    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
     RDRenderer_Text(rip->renderer, ", ");
-    RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i.u_immediate));
+    RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i_u.immediate));
     RDRenderer_Text(rip->renderer, "(");
-    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i.rs));
+    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
     RDRenderer_Text(rip->renderer, ")");
 }
 
@@ -336,7 +336,7 @@ bool MIPSDecoder::checkNop(const MIPSDecodedInstruction* decoded)
 bool MIPSDecoder::checkB(const MIPSDecodedInstruction* decoded)
 {
     if(decoded->opcode->id != MIPSInstruction_Beq) return false;
-    return decoded->instruction.i.rt == decoded->instruction.i.rs;
+    return decoded->instruction.i_u.rt == decoded->instruction.i_u.rs;
 }
 
 bool MIPSDecoder::checkMTC0(const MIPSDecodedInstruction* decoded)
@@ -419,7 +419,7 @@ size_t MIPSDecoder::checkFormat(const MIPSInstruction* mi)
     }
 
     if(mi->c.op == 0b010000) return MIPSEncoding_C;
-    if(((mi->i.op >= 0x04) && (mi->i.op <= 0x2b)) || (mi->i.op == 0x01)) return MIPSEncoding_I;
+    if(((mi->i_u.op >= 0x04) && (mi->i_u.op <= 0x2b)) || (mi->i_u.op == 0x01)) return MIPSEncoding_I;
     if((mi->j.op == 0x02) || (mi->j.op == 0x03)) return MIPSEncoding_J;
     return MIPSEncoding_Unknown;
 }
@@ -429,7 +429,7 @@ std::optional<rd_address> MIPSDecoder::calcAddress(const MIPSDecodedInstruction*
     switch(decoded->opcode->encoding)
     {
         case MIPSEncoding_J: return (address & (0xF << ((sizeof(u32) * CHAR_BIT) - 4))) | (static_cast<u32>(decoded->instruction.j.target) << 2);
-        case MIPSEncoding_I: return address + sizeof(MIPSInstruction) + static_cast<s32>(RD_SignExt(decoded->instruction.i.s_immediate << 2, 32));
+        case MIPSEncoding_I: return address + sizeof(MIPSInstruction) + static_cast<s32>(RD_SignExt(decoded->instruction.i_s.immediate << 2, 32));
         default: break;
     }
 
