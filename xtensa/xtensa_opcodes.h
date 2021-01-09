@@ -95,7 +95,7 @@ struct XtensaInstruction
     XtensaEncoding encoding;
     rd_type type;
     rd_flag flags;
-    bool narrow;
+    u32 size;
 };
 
 extern const XtensaInstruction Xtensa_Definitions[];

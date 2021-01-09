@@ -129,5 +129,5 @@ void AVR8Assembler::decodeOperand(u32 opvalue, Instruction *instruction, const A
 }
 
 REDASM_ASSEMBLER("AVR8", "Dax", "MIT", 1)
-REDASM_LOAD { avr8.plugin = new AVR8Assembler(); return true; }
-REDASM_UNLOAD { avr8.plugin->release(); }
+//REDASM_LOAD { avr8.plugin = new AVR8Assembler(); return true; }
+//REDASM_UNLOAD { avr8.plugin->release(); }

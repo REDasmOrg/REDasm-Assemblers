@@ -2,80 +2,65 @@
 #include "xtensa_registers.h"
 
 template<size_t endianness>
-bool XtensaDecoder<endianness>::decode(const RDAssemblerPlugin*, RDBufferView* view, RDInstruction* instruction)
+const XtensaInstruction* XtensaDecoder<endianness>::decode(const RDBufferView* view)
 {
     XTensaOpcodeBytes xbytes{ };
-    if(!XtensaDecoder<endianness>::fetch(view, &xbytes)) return false;
+    if(!XtensaDecoder<endianness>::fetch(view, &xbytes)) return nullptr;
+    return XtensaDecoder<endianness>::findInstruction(&xbytes);
 
-    const XtensaInstruction* def = XtensaDecoder<endianness>::findInstruction(&xbytes);
+    // switch(def->encoding)
+    // {
+    //     case XtensaEncoding_None:
+    //     case XtensaEncoding_NNone:
+    //         break;
 
-    if(!def)
-    {
-        instruction->size = 3;
-        return false;
-    }
-
-    RDInstruction_SetMnemonic(instruction, def->mnemonic);
-    instruction->id = def->id;
-    instruction->type = def->type;
-    instruction->flags = def->flags;
-    instruction->size = def->narrow ? 2 : 3;
-    instruction->userdata = const_cast<XtensaInstruction*>(def);
-
-    switch(def->encoding)
-    {
-        case XtensaEncoding_None:
-        case XtensaEncoding_NNone:
-            break;
-
-        case XtensaEncoding_RRR:         XtensaDecoder<endianness>::formatRRR(instruction, &xbytes);         break;
-        case XtensaEncoding_RRR_2r:      XtensaDecoder<endianness>::formatRRR_2r(instruction, &xbytes);      break;
-        case XtensaEncoding_RRR_2rr:     XtensaDecoder<endianness>::formatRRR_2rr(instruction, &xbytes);     break;
-        case XtensaEncoding_RRR_2imm:    XtensaDecoder<endianness>::formatRRR_2imm(instruction, &xbytes);    break;
-        case XtensaEncoding_RRR_extui:   XtensaDecoder<endianness>::formatRRR_extui(instruction, &xbytes);   break;
-        case XtensaEncoding_RRR_1imm:    XtensaDecoder<endianness>::formatRRR_1imm(instruction, &xbytes);    break;
-        case XtensaEncoding_RRR_immr:    XtensaDecoder<endianness>::formatRRR_immr(instruction, &xbytes);    break;
-        case XtensaEncoding_RRR_sext:    XtensaDecoder<endianness>::formatRRR_sext(instruction, &xbytes);    break;
-        case XtensaEncoding_RRR_sll:     XtensaDecoder<endianness>::formatRRR_sll(instruction, &xbytes);     break;
-        case XtensaEncoding_RRR_slli:    XtensaDecoder<endianness>::formatRRR_slli(instruction, &xbytes);    break;
-        case XtensaEncoding_RRR_srai:    XtensaDecoder<endianness>::formatRRR_srai(instruction, &xbytes);    break;
-        case XtensaEncoding_RRR_sh:      XtensaDecoder<endianness>::formatRRR_sh(instruction, &xbytes);      break;
-        case XtensaEncoding_RRR_ssa:     XtensaDecoder<endianness>::formatRRR_ssa(instruction, &xbytes);     break;
-        case XtensaEncoding_RRR_ssai:    XtensaDecoder<endianness>::formatRRR_ssai(instruction, &xbytes);    break;
-        case XtensaEncoding_RRI8:        XtensaDecoder<endianness>::formatRRI8(instruction, &xbytes);        break;
-        case XtensaEncoding_RRI8_addmi:  XtensaDecoder<endianness>::formatRRI8_addmi(instruction, &xbytes);  break;
-        case XtensaEncoding_RRI8_b:      XtensaDecoder<endianness>::formatRRI8_b(instruction, &xbytes);      break;
-        case XtensaEncoding_RRI8_bb:     XtensaDecoder<endianness>::formatRRI8_bb(instruction, &xbytes);     break;
-        case XtensaEncoding_RRI8_i12:    XtensaDecoder<endianness>::formatRRI8_i12(instruction, &xbytes);    break;
-        case XtensaEncoding_RRI8_disp:   XtensaDecoder<endianness>::formatRRI8_disp(instruction, &xbytes);   break;
-        case XtensaEncoding_RRI8_disp16: XtensaDecoder<endianness>::formatRRI8_disp16(instruction, &xbytes); break;
-        case XtensaEncoding_RRI8_disp32: XtensaDecoder<endianness>::formatRRI8_disp32(instruction, &xbytes); break;
-        case XtensaEncoding_RI16:        XtensaDecoder<endianness>::formatRI16(instruction, &xbytes);        break;
-        case XtensaEncoding_RSR:         XtensaDecoder<endianness>::formatRSR(instruction, &xbytes);         break;
-        case XtensaEncoding_RSR_spec:    XtensaDecoder<endianness>::formatRSR_spec(instruction, &xbytes);    break;
-        case XtensaEncoding_CALL:        XtensaDecoder<endianness>::formatCALL(instruction, &xbytes);        break;
-        case XtensaEncoding_CALL_sh:     XtensaDecoder<endianness>::formatCALL_sh(instruction, &xbytes);     break;
-        case XtensaEncoding_CALLX:       XtensaDecoder<endianness>::formatCALLX(instruction, &xbytes);       break;
-        case XtensaEncoding_BRI8_imm:    XtensaDecoder<endianness>::formatBRI8_imm(instruction, &xbytes);    break;
-        case XtensaEncoding_BRI8_immu:   XtensaDecoder<endianness>::formatBRI8_immu(instruction, &xbytes);   break;
-        case XtensaEncoding_BRI12:       XtensaDecoder<endianness>::formatBRI12(instruction, &xbytes);       break;
-        case XtensaEncoding_RRRN:        XtensaDecoder<endianness>::formatRRRN(instruction, &xbytes);        break;
-        case XtensaEncoding_RRRN_disp:   XtensaDecoder<endianness>::formatRRRN_disp(instruction, &xbytes);   break;
-        case XtensaEncoding_RRRN_addi:   XtensaDecoder<endianness>::formatRRRN_addi(instruction, &xbytes);   break;
-        case XtensaEncoding_RRRN_2r:     XtensaDecoder<endianness>::formatRRRN_2r(instruction, &xbytes);     break;
-        case XtensaEncoding_RI7:         XtensaDecoder<endianness>::formatRI7(instruction, &xbytes);         break;
-        case XtensaEncoding_RI6:         XtensaDecoder<endianness>::formatRI6(instruction, &xbytes);         break;
-        case XtensaEncoding_RI12S3:      XtensaDecoder<endianness>::formatRI12S3(instruction, &xbytes);      break;
-        default: rd_problem("Invalid format: " + std::to_string(def->encoding));                             break;
-    }
-
-    return true;
+    //     case XtensaEncoding_RRR:         XtensaDecoder<endianness>::formatRRR(instruction, &xbytes);         break;
+    //     case XtensaEncoding_RRR_2r:      XtensaDecoder<endianness>::formatRRR_2r(instruction, &xbytes);      break;
+    //     case XtensaEncoding_RRR_2rr:     XtensaDecoder<endianness>::formatRRR_2rr(instruction, &xbytes);     break;
+    //     case XtensaEncoding_RRR_2imm:    XtensaDecoder<endianness>::formatRRR_2imm(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRR_extui:   XtensaDecoder<endianness>::formatRRR_extui(instruction, &xbytes);   break;
+    //     case XtensaEncoding_RRR_1imm:    XtensaDecoder<endianness>::formatRRR_1imm(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRR_immr:    XtensaDecoder<endianness>::formatRRR_immr(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRR_sext:    XtensaDecoder<endianness>::formatRRR_sext(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRR_sll:     XtensaDecoder<endianness>::formatRRR_sll(instruction, &xbytes);     break;
+    //     case XtensaEncoding_RRR_slli:    XtensaDecoder<endianness>::formatRRR_slli(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRR_srai:    XtensaDecoder<endianness>::formatRRR_srai(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRR_sh:      XtensaDecoder<endianness>::formatRRR_sh(instruction, &xbytes);      break;
+    //     case XtensaEncoding_RRR_ssa:     XtensaDecoder<endianness>::formatRRR_ssa(instruction, &xbytes);     break;
+    //     case XtensaEncoding_RRR_ssai:    XtensaDecoder<endianness>::formatRRR_ssai(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRI8:        XtensaDecoder<endianness>::formatRRI8(instruction, &xbytes);        break;
+    //     case XtensaEncoding_RRI8_addmi:  XtensaDecoder<endianness>::formatRRI8_addmi(instruction, &xbytes);  break;
+    //     case XtensaEncoding_RRI8_b:      XtensaDecoder<endianness>::formatRRI8_b(instruction, &xbytes);      break;
+    //     case XtensaEncoding_RRI8_bb:     XtensaDecoder<endianness>::formatRRI8_bb(instruction, &xbytes);     break;
+    //     case XtensaEncoding_RRI8_i12:    XtensaDecoder<endianness>::formatRRI8_i12(instruction, &xbytes);    break;
+    //     case XtensaEncoding_RRI8_disp:   XtensaDecoder<endianness>::formatRRI8_disp(instruction, &xbytes);   break;
+    //     case XtensaEncoding_RRI8_disp16: XtensaDecoder<endianness>::formatRRI8_disp16(instruction, &xbytes); break;
+    //     case XtensaEncoding_RRI8_disp32: XtensaDecoder<endianness>::formatRRI8_disp32(instruction, &xbytes); break;
+    //     case XtensaEncoding_RI16:        XtensaDecoder<endianness>::formatRI16(instruction, &xbytes);        break;
+    //     case XtensaEncoding_RSR:         XtensaDecoder<endianness>::formatRSR(instruction, &xbytes);         break;
+    //     case XtensaEncoding_RSR_spec:    XtensaDecoder<endianness>::formatRSR_spec(instruction, &xbytes);    break;
+    //     case XtensaEncoding_CALL:        XtensaDecoder<endianness>::formatCALL(instruction, &xbytes);        break;
+    //     case XtensaEncoding_CALL_sh:     XtensaDecoder<endianness>::formatCALL_sh(instruction, &xbytes);     break;
+    //     case XtensaEncoding_CALLX:       XtensaDecoder<endianness>::formatCALLX(instruction, &xbytes);       break;
+    //     case XtensaEncoding_BRI8_imm:    XtensaDecoder<endianness>::formatBRI8_imm(instruction, &xbytes);    break;
+    //     case XtensaEncoding_BRI8_immu:   XtensaDecoder<endianness>::formatBRI8_immu(instruction, &xbytes);   break;
+    //     case XtensaEncoding_BRI12:       XtensaDecoder<endianness>::formatBRI12(instruction, &xbytes);       break;
+    //     case XtensaEncoding_RRRN:        XtensaDecoder<endianness>::formatRRRN(instruction, &xbytes);        break;
+    //     case XtensaEncoding_RRRN_disp:   XtensaDecoder<endianness>::formatRRRN_disp(instruction, &xbytes);   break;
+    //     case XtensaEncoding_RRRN_addi:   XtensaDecoder<endianness>::formatRRRN_addi(instruction, &xbytes);   break;
+    //     case XtensaEncoding_RRRN_2r:     XtensaDecoder<endianness>::formatRRRN_2r(instruction, &xbytes);     break;
+    //     case XtensaEncoding_RI7:         XtensaDecoder<endianness>::formatRI7(instruction, &xbytes);         break;
+    //     case XtensaEncoding_RI6:         XtensaDecoder<endianness>::formatRI6(instruction, &xbytes);         break;
+    //     case XtensaEncoding_RI12S3:      XtensaDecoder<endianness>::formatRI12S3(instruction, &xbytes);      break;
+    //     default: rd_problem("Invalid format: " + std::to_string(def->encoding));                             break;
+    // }
 }
 
 template<size_t endianness>
-void XtensaDecoder<endianness>::emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler, const RDInstruction* instruction)
+void XtensaDecoder<endianness>::emulate(const RDAssemblerPlugin*, RDEmulateResult* result)
 {
-    const auto* xinstr = reinterpret_cast<const XtensaInstruction*>(instruction->userdata);
+    const RDBufferView* view = RDEmulateResult_GetView(result);
+    const XtensaInstruction* xinstr = XtensaDecoder<endianness>::decode(view);
 
     switch(xinstr->encoding)
     {
@@ -141,10 +126,10 @@ const XtensaInstruction *XtensaDecoder<endianness>::findInstruction(const XTensa
 }
 
 template<size_t endianness>
-bool XtensaDecoder<endianness>::fetch(RDBufferView* view, XTensaOpcodeBytes *xbytes)
+bool XtensaDecoder<endianness>::fetch(const RDBufferView* view, XTensaOpcodeBytes *xbytes)
 {
-    if(RDBufferView_Size(view) < 3) return false;
-    u8* data = RDBufferView_Data(view);
+    if(view->size < 3) return false;
+    u8* data = view->data;
 
     if constexpr(endianness == Endianness_Little)
     {

@@ -11,13 +11,13 @@ class XtensaDecoder
 {
     public:
         XtensaDecoder() = delete;
-        static bool decode(const RDAssemblerPlugin*, RDBufferView *view, RDInstruction *instruction);
-        static void emulate(const RDAssemblerPlugin*, RDDisassembler* disassembler, const RDInstruction* instruction);
+        static const XtensaInstruction* decode(const RDBufferView* view);
+        static void emulate(const RDAssemblerPlugin*, RDEmulateResult* result);
         static bool render(const RDAssemblerPlugin*, RDRenderItemParams* rip);
 
     private:
         static const XtensaInstruction* findInstruction(const XTensaOpcodeBytes* xbytes);
-        static bool fetch(RDBufferView* view, XTensaOpcodeBytes *xbytes);
+        static bool fetch(const RDBufferView* view, XTensaOpcodeBytes *xbytes);
 
     private:
         static void formatRRR(RDInstruction* instruction, const XTensaOpcodeBytes* xbytes);
