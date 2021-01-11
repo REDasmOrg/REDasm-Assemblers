@@ -15,15 +15,14 @@ struct MIPSDecodedInstruction {
 class MIPSDecoder
 {
     private:
-        typedef u32 (*Swap_Callback)(u32);
         typedef void (*Callback_MIPSDecode)(const MIPSDecodedInstruction*, const RDRendererParams*);
 
     public:
-        template<Swap_Callback Swap> static void emulate(RDContext*, RDEmulateResult* result);
-        template<MIPSDecoder::Swap_Callback Swap> static void renderInstruction(RDContext* ctx, const RDRendererParams* rp);
+        template<FromLittleEndian32_Callback Swap> static void emulate(RDContext*, RDEmulateResult* result);
+        template<FromLittleEndian32_Callback Swap> static void renderInstruction(RDContext*, const RDRendererParams* rp);
 
     private:
-        template<Swap_Callback Swap> static size_t decode(const RDBufferView* view, MIPSDecodedInstruction* decoded);
+        template<FromLittleEndian32_Callback Swap> static size_t decode(const RDBufferView* view, MIPSDecodedInstruction* decoded);
         static const char* cop0reg(u32 r);
         static const char* reg(u32 r);
         static void renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
