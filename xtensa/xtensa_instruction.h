@@ -1,27 +1,10 @@
 #pragma once
 
 #include <rdapi/rdapi.h>
+#include <xtensa-isa.h>
+#include <string>
 
-enum XtensaEncoding {
-    XtensaEncoding_None, XtensaEncoding_NNone,
-
-    XtensaEncoding_RRR, XtensaEncoding_RRR_2r, XtensaEncoding_RRR_2rr, XtensaEncoding_RRR_2imm, XtensaEncoding_RRR_extui, XtensaEncoding_RRR_1imm,
-    XtensaEncoding_RRR_immr, XtensaEncoding_RRR_sext, XtensaEncoding_RRR_sll, XtensaEncoding_RRR_slli, XtensaEncoding_RRR_srai, XtensaEncoding_RRR_sh,
-    XtensaEncoding_RRR_ssa, XtensaEncoding_RRR_ssai,
-
-    XtensaEncoding_RRI8, XtensaEncoding_RRI8_addmi, XtensaEncoding_RRI8_b, XtensaEncoding_RRI8_bb, XtensaEncoding_RRI8_i12, XtensaEncoding_RRI8_disp,
-    XtensaEncoding_RRI8_disp16, XtensaEncoding_RRI8_disp32,
-
-    XtensaEncoding_RI16,
-    XtensaEncoding_RSR, XtensaEncoding_RSR_spec,
-    XtensaEncoding_CALL, XtensaEncoding_CALL_sh,
-    XtensaEncoding_CALLX,
-    XtensaEncoding_BRI8_imm, XtensaEncoding_BRI8_immu,
-    XtensaEncoding_BRI12,
-    XtensaEncoding_RRRN, XtensaEncoding_RRRN_disp, XtensaEncoding_RRRN_addi, XtensaEncoding_RRRN_2r,
-    XtensaEncoding_RI6, XtensaEncoding_RI7,
-    XtensaEncoding_RI12S3,
-};
+#define XTENSA_MAX_OPERANDS 3
 
 enum XtensaInstructionId {
     XtensaInstruction_None,
@@ -78,25 +61,29 @@ enum XtensaInstructionId {
     XtensaInstruction_S32i_n,
 };
 
-union XTensaOpcodeBytes
-{
-    u32 opcode;
+enum XtensaOperandType {
+    XtensaOperandType_Void,
+    XtensaOperandType_Constant,
+    XtensaOperandType_Immediate,
+    XtensaOperandType_Register,
+};
 
-    struct {
-        u8 b1, b2, b3, unused;
+struct XtensaOperand {
+    rd_type type;
+    std::string reg;
+
+    union {
+        u32 u_value;
+        s32 s_value;
     };
 };
 
 struct XtensaInstruction
 {
-    size_t id;
+    rd_address address;
+    xtensa_opcode id;
     const char* mnemonic;
-    u32 opcode, mask;
-    XtensaEncoding encoding;
-    rd_type type;
-    rd_flag flags;
-    u32 size;
+    int opcount;
+    size_t size;
+    XtensaOperand operands[XTENSA_MAX_OPERANDS];
 };
-
-extern const XtensaInstruction Xtensa_Definitions[];
-extern const size_t Xtensa_DefinitionsCount;

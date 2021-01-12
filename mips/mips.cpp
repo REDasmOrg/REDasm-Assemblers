@@ -21,7 +21,7 @@ const char* MIPSDecoder::reg(u32 r)
     return GPR_REGISTERS[r];
 }
 
-template<FromLittleEndian32_Callback Swap>
+template<Swap32_Callback Swap>
 size_t MIPSDecoder::decode(const RDBufferView* view, MIPSDecodedInstruction* decoded)
 {
     if(view->size < sizeof(u32)) return MIPSEncoding_Unknown;
@@ -80,7 +80,7 @@ size_t MIPSDecoder::decode(const RDBufferView* view, MIPSDecodedInstruction* dec
     return f;
 }
 
-template<FromLittleEndian32_Callback Swap>
+template<Swap32_Callback Swap>
 void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
 {
     MIPSDecodedInstruction decoded;
@@ -146,7 +146,7 @@ void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
     }
 }
 
-template<FromLittleEndian32_Callback Swap>
+template<Swap32_Callback Swap>
 void MIPSDecoder::renderInstruction(RDContext*, const RDRendererParams* rp)
 {
     MIPSDecodedInstruction decoded;

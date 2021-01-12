@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(Xtensa)
 find_package(REDasm REQUIRED)
 
-file(GLOB_RECURSE HEADERS *.h*)
-file(GLOB_RECURSE SOURCES *.cpp)
+file(GLOB HEADERS *.h*)
+file(GLOB SOURCES *.cpp)
 
+add_subdirectory(xtensagnu)
 redasm_plugin(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} PRIVATE XtensaGNU)
