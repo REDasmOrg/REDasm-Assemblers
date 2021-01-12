@@ -142,10 +142,14 @@ void Xtensa<Swap>::emulateBRANCH(RDContext*, RDEmulateResult* result, const Xten
         return;
     }
 
-    if(xinstr->operands[xinstr->opcount - 1].type == XtensaOperandType_Immediate)
-        RDEmulateResult_AddBranch(result, xinstr->operands[xinstr->opcount - 1].u_value);
-    else
-        RDEmulateResult_AddBranchUnresolved(result);
+    auto& op = xinstr->operands[xinstr->opcount - 1];
+
+    switch(op.type)
+    {
+        case XtensaOperandType_Immediate: RDEmulateResult_AddBranch(result, op.u_value); break;
+        case XtensaOperandType_Register: RDEmulateResult_AddBranchIndirect(result); break;
+        default: RDEmulateResult_AddBranchUnresolved(result); break;
+    }
 
     RDEmulateResult_AddBranchFalse(result, xinstr->address + xinstr->size);
 }
@@ -153,10 +157,14 @@ void Xtensa<Swap>::emulateBRANCH(RDContext*, RDEmulateResult* result, const Xten
 template<Swap32_Callback Swap>
 void Xtensa<Swap>::emulateCALL(RDContext*, RDEmulateResult* result, const XtensaInstruction* xinstr)
 {
-    if(xinstr->operands[0].type == XtensaOperandType_Immediate)
-        RDEmulateResult_AddCall(result, xinstr->operands[0].u_value);
-    else
-        RDEmulateResult_AddCallUnresolved(result);
+    auto& op = xinstr->operands[0];
+
+    switch(op.type)
+    {
+        case XtensaOperandType_Immediate: RDEmulateResult_AddCall(result, op.u_value);
+        case XtensaOperandType_Register: RDEmulateResult_AddCallIndirect(result); break;
+        default: RDEmulateResult_AddCallUnresolved(result); break;
+    }
 }
 
 template<Swap32_Callback Swap>
