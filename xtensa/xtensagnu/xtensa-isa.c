@@ -18,6 +18,12 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
+#ifdef _MSC_VER
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
@@ -29,14 +35,14 @@ static char xtisa_error_msg[1024];
 
 
 xtensa_isa_status
-xtensa_isa_errno (xtensa_isa isa __attribute__ ((unused)))
+xtensa_isa_errno (xtensa_isa isa)
 {
   return xtisa_errno;
 }
 
 
 char *
-xtensa_isa_error_msg (xtensa_isa isa __attribute__ ((unused)))
+xtensa_isa_error_msg (xtensa_isa isa)
 {
   return xtisa_error_msg;
 }
@@ -46,9 +52,9 @@ xtensa_isa_error_msg (xtensa_isa isa __attribute__ ((unused)))
   do { \
     if ((MEM) == 0) \
       { \
-	xtisa_errno = xtensa_isa_out_of_memory; \
-	strcpy (xtisa_error_msg, "out of memory"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_out_of_memory; \
+    strcpy (xtisa_error_msg, "out of memory"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -56,16 +62,16 @@ xtensa_isa_error_msg (xtensa_isa isa __attribute__ ((unused)))
   do { \
     if ((MEM) == 0) \
       { \
-	xtisa_errno = xtensa_isa_out_of_memory; \
-	strcpy (xtisa_error_msg, "out of memory"); \
-	if (ERRNO_P) *(ERRNO_P) = xtisa_errno; \
-	if (ERROR_MSG_P) *(ERROR_MSG_P) = xtisa_error_msg; \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_out_of_memory; \
+    strcpy (xtisa_error_msg, "out of memory"); \
+    if (ERRNO_P) *(ERRNO_P) = xtisa_errno; \
+    if (ERROR_MSG_P) *(ERROR_MSG_P) = xtisa_error_msg; \
+    return (ERRVAL); \
       } \
   } while (0)
 
 
-
+
 /* Instruction buffers.  */
 
 int
@@ -87,8 +93,8 @@ xtensa_insnbuf_alloc (xtensa_isa isa)
 
 
 void
-xtensa_insnbuf_free (xtensa_isa isa __attribute__ ((unused)),
-		     xtensa_insnbuf buf)
+xtensa_insnbuf_free (xtensa_isa isa,
+             xtensa_insnbuf buf)
 {
   free (buf);
 }
@@ -123,9 +129,9 @@ byte_to_bit_index (int byte_index)
 
 int
 xtensa_insnbuf_to_chars (xtensa_isa isa,
-			 const xtensa_insnbuf insn,
-			 unsigned char *cp,
-			 int num_chars)
+             const xtensa_insnbuf insn,
+             unsigned char *cp,
+             int num_chars)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   int insn_size = xtensa_isa_maxlength (isa);
@@ -183,9 +189,9 @@ xtensa_insnbuf_to_chars (xtensa_isa isa,
 
 void
 xtensa_insnbuf_from_chars (xtensa_isa isa,
-			   xtensa_insnbuf insn,
-			   const unsigned char *cp,
-			   int num_chars)
+               xtensa_insnbuf insn,
+               const unsigned char *cp,
+               int num_chars)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   int max_size, insn_size, fence_post, start, increment, i;
@@ -197,7 +203,7 @@ xtensa_insnbuf_from_chars (xtensa_isa isa,
   if (insn_size == XTENSA_UNDEFINED)
     {
       /* This should never happen when the byte stream contains a
-	 valid instruction.  Just read the maximum number of bytes....  */
+     valid instruction.  Just read the maximum number of bytes....  */
       insn_size = max_size;
     }
 
@@ -228,7 +234,7 @@ xtensa_insnbuf_from_chars (xtensa_isa isa,
 }
 
 
-
+
 /* ISA information.  */
 
 extern xtensa_isa_internal xtensa_modules;
@@ -249,7 +255,7 @@ xtensa_isa_init (xtensa_isa_status *errno_p, char **error_msg_p)
       isa->opname_lookup_table[n].u.opcode = n;
     }
   qsort (isa->opname_lookup_table, isa->num_opcodes,
-	 sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
+     sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
 
   /* Set up the state name lookup table.  */
   isa->state_lookup_table =
@@ -261,7 +267,7 @@ xtensa_isa_init (xtensa_isa_status *errno_p, char **error_msg_p)
       isa->state_lookup_table[n].u.state = n;
     }
   qsort (isa->state_lookup_table, isa->num_states,
-	 sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
+     sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
 
   /* Set up the sysreg name lookup table.  */
   isa->sysreg_lookup_table =
@@ -273,19 +279,19 @@ xtensa_isa_init (xtensa_isa_status *errno_p, char **error_msg_p)
       isa->sysreg_lookup_table[n].u.sysreg = n;
     }
   qsort (isa->sysreg_lookup_table, isa->num_sysregs,
-	 sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
+     sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
 
   /* Set up the user & system sysreg number tables.  */
   for (is_user = 0; is_user < 2; is_user++)
     {
       isa->sysreg_table[is_user] =
     malloc ((isa->max_sysreg_num[is_user] + 1)
-		    * sizeof (xtensa_sysreg));
+            * sizeof (xtensa_sysreg));
       CHECK_ALLOC_FOR_INIT (isa->sysreg_table[is_user], NULL,
-			    errno_p, error_msg_p);
+                errno_p, error_msg_p);
 
       for (n = 0; n <= isa->max_sysreg_num[is_user]; n++)
-	isa->sysreg_table[is_user][n] = XTENSA_UNDEFINED;
+    isa->sysreg_table[is_user][n] = XTENSA_UNDEFINED;
     }
   for (n = 0; n < isa->num_sysregs; n++)
     {
@@ -293,37 +299,37 @@ xtensa_isa_init (xtensa_isa_status *errno_p, char **error_msg_p)
       is_user = sreg->is_user;
 
       if (sreg->number >= 0)
-	isa->sysreg_table[is_user][sreg->number] = n;
+    isa->sysreg_table[is_user][sreg->number] = n;
     }
 
   /* Set up the interface lookup table.  */
   isa->interface_lookup_table =
     malloc (isa->num_interfaces * sizeof (xtensa_lookup_entry));
   CHECK_ALLOC_FOR_INIT (isa->interface_lookup_table, NULL, errno_p,
-			error_msg_p);
+            error_msg_p);
   for (n = 0; n < isa->num_interfaces; n++)
     {
       isa->interface_lookup_table[n].key = isa->interfaces[n].name;
       isa->interface_lookup_table[n].u.intf = n;
     }
   qsort (isa->interface_lookup_table, isa->num_interfaces,
-	 sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
+     sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
 
   /* Set up the funcUnit lookup table.  */
   isa->funcUnit_lookup_table =
     malloc (isa->num_funcUnits * sizeof (xtensa_lookup_entry));
   CHECK_ALLOC_FOR_INIT (isa->funcUnit_lookup_table, NULL, errno_p,
-			error_msg_p);
+            error_msg_p);
   for (n = 0; n < isa->num_funcUnits; n++)
     {
       isa->funcUnit_lookup_table[n].key = isa->funcUnits[n].name;
       isa->funcUnit_lookup_table[n].u.fun = n;
     }
   qsort (isa->funcUnit_lookup_table, isa->num_funcUnits,
-	 sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
+     sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
 
   isa->insnbuf_size = ((isa->insn_size + sizeof (xtensa_insnbuf_word) - 1) /
-		       sizeof (xtensa_insnbuf_word));
+               sizeof (xtensa_insnbuf_word));
 
   return (xtensa_isa) isa;
 }
@@ -407,12 +413,12 @@ xtensa_isa_num_pipe_stages (xtensa_isa isa)
     {
       num_uses = xtensa_opcode_num_funcUnit_uses (isa, opcode);
       for (i = 0; i < num_uses; i++)
-	{
-	  use = xtensa_opcode_funcUnit_use (isa, opcode, i);
-	  stage = use->stage;
-	  if (stage > max_stage)
-	    max_stage = stage;
-	}
+    {
+      use = xtensa_opcode_funcUnit_use (isa, opcode, i);
+      stage = use->stage;
+      if (stage > max_stage)
+        max_stage = stage;
+    }
     }
 
   return max_stage + 1;
@@ -475,7 +481,7 @@ xtensa_isa_num_funcUnits (xtensa_isa isa)
 }
 
 
-
+
 /* Instruction formats.  */
 
 
@@ -483,9 +489,9 @@ xtensa_isa_num_funcUnits (xtensa_isa isa)
   do { \
     if ((FMT) < 0 || (FMT) >= (INTISA)->num_formats) \
       { \
-	xtisa_errno = xtensa_isa_bad_format; \
-	strcpy (xtisa_error_msg, "invalid format specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_format; \
+    strcpy (xtisa_error_msg, "invalid format specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -494,9 +500,9 @@ xtensa_isa_num_funcUnits (xtensa_isa isa)
   do { \
     if ((SLOT) < 0 || (SLOT) >= (INTISA)->formats[FMT].num_slots) \
       { \
-	xtisa_errno = xtensa_isa_bad_slot; \
-	strcpy (xtisa_error_msg, "invalid slot specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_slot; \
+    strcpy (xtisa_error_msg, "invalid slot specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -526,7 +532,7 @@ xtensa_format_lookup (xtensa_isa isa, const char *fmtname)
   for (fmt = 0; fmt < intisa->num_formats; fmt++)
     {
       if (strcasecmp (fmtname, intisa->formats[fmt].name) == 0)
-	return fmt;
+    return fmt;
     }
 
   xtisa_errno = xtensa_isa_bad_format;
@@ -595,7 +601,7 @@ xtensa_format_slot_nop_opcode (xtensa_isa isa, xtensa_format fmt, int slot)
 
 int
 xtensa_format_get_slot (xtensa_isa isa, xtensa_format fmt, int slot,
-			const xtensa_insnbuf insn, xtensa_insnbuf slotbuf)
+            const xtensa_insnbuf insn, xtensa_insnbuf slotbuf)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   int slot_id;
@@ -611,7 +617,7 @@ xtensa_format_get_slot (xtensa_isa isa, xtensa_format fmt, int slot,
 
 int
 xtensa_format_set_slot (xtensa_isa isa, xtensa_format fmt, int slot,
-			xtensa_insnbuf insn, const xtensa_insnbuf slotbuf)
+            xtensa_insnbuf insn, const xtensa_insnbuf slotbuf)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   int slot_id;
@@ -625,7 +631,7 @@ xtensa_format_set_slot (xtensa_isa isa, xtensa_format fmt, int slot,
 }
 
 
-
+
 /* Opcode information.  */
 
 
@@ -633,9 +639,9 @@ xtensa_format_set_slot (xtensa_isa isa, xtensa_format fmt, int slot,
   do { \
     if ((OPC) < 0 || (OPC) >= (INTISA)->num_opcodes) \
       { \
-	xtisa_errno = xtensa_isa_bad_opcode; \
-	strcpy (xtisa_error_msg, "invalid opcode specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_opcode; \
+    strcpy (xtisa_error_msg, "invalid opcode specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -657,8 +663,8 @@ xtensa_opcode_lookup (xtensa_isa isa, const char *opname)
     {
       entry.key = opname;
       result = bsearch (&entry, intisa->opname_lookup_table,
-			intisa->num_opcodes, sizeof (xtensa_lookup_entry),
-			xtensa_isa_name_compare);
+            intisa->num_opcodes, sizeof (xtensa_lookup_entry),
+            xtensa_isa_name_compare);
     }
 
   if (!result)
@@ -674,7 +680,7 @@ xtensa_opcode_lookup (xtensa_isa isa, const char *opname)
 
 xtensa_opcode
 xtensa_opcode_decode (xtensa_isa isa, xtensa_format fmt, int slot,
-		      const xtensa_insnbuf slotbuf)
+              const xtensa_insnbuf slotbuf)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   int slot_id;
@@ -697,7 +703,7 @@ xtensa_opcode_decode (xtensa_isa isa, xtensa_format fmt, int slot,
 
 int
 xtensa_opcode_encode (xtensa_isa isa, xtensa_format fmt, int slot,
-		      xtensa_insnbuf slotbuf, xtensa_opcode opc)
+              xtensa_insnbuf slotbuf, xtensa_opcode opc)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   int slot_id;
@@ -713,8 +719,8 @@ xtensa_opcode_encode (xtensa_isa isa, xtensa_format fmt, int slot,
     {
       xtisa_errno = xtensa_isa_wrong_slot;
       sprintf (xtisa_error_msg,
-	       "opcode \"%s\" is not allowed in slot %d of format \"%s\"",
-	       intisa->opcodes[opc].name, slot, intisa->formats[fmt].name);
+           "opcode \"%s\" is not allowed in slot %d of format \"%s\"",
+           intisa->opcodes[opc].name, slot, intisa->formats[fmt].name);
       return -1;
     }
   (*encode_fn) (slotbuf);
@@ -829,15 +835,15 @@ xtensa_opcode_funcUnit_use (xtensa_isa isa, xtensa_opcode opc, int u)
     {
       xtisa_errno = xtensa_isa_bad_funcUnit;
       sprintf (xtisa_error_msg, "invalid functional unit use number (%d); "
-	       "opcode \"%s\" has %d", u, intisa->opcodes[opc].name,
-	       intisa->opcodes[opc].num_funcUnit_uses);
+           "opcode \"%s\" has %d", u, intisa->opcodes[opc].name,
+           intisa->opcodes[opc].num_funcUnit_uses);
       return NULL;
     }
   return &intisa->opcodes[opc].funcUnit_uses[u];
 }
 
 
-
+
 /* Operand information.  */
 
 
@@ -845,11 +851,11 @@ xtensa_opcode_funcUnit_use (xtensa_isa isa, xtensa_opcode opc, int u)
   do { \
     if ((OPND) < 0 || (OPND) >= (ICLASS)->num_operands) \
       { \
-	xtisa_errno = xtensa_isa_bad_operand; \
-	sprintf (xtisa_error_msg, "invalid operand number (%d); " \
-		 "opcode \"%s\" has %d operands", (OPND), \
-		 (INTISA)->opcodes[(OPC)].name, (ICLASS)->num_operands); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_operand; \
+    sprintf (xtisa_error_msg, "invalid operand number (%d); " \
+         "opcode \"%s\" has %d operands", (OPND), \
+         (INTISA)->opcodes[(OPC)].name, (ICLASS)->num_operands); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -931,8 +937,8 @@ xtensa_operand_inout (xtensa_isa isa, xtensa_opcode opc, int opnd)
 
 int
 xtensa_operand_get_field (xtensa_isa isa, xtensa_opcode opc, int opnd,
-			  xtensa_format fmt, int slot,
-			  const xtensa_insnbuf slotbuf, uint32 *valp)
+              xtensa_format fmt, int slot,
+              const xtensa_insnbuf slotbuf, uint32 *valp)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_operand_internal *intop;
@@ -957,8 +963,8 @@ xtensa_operand_get_field (xtensa_isa isa, xtensa_opcode opc, int opnd,
     {
       xtisa_errno = xtensa_isa_wrong_slot;
       sprintf (xtisa_error_msg,
-	       "operand \"%s\" does not exist in slot %d of format \"%s\"",
-	       intop->name, slot, intisa->formats[fmt].name);
+           "operand \"%s\" does not exist in slot %d of format \"%s\"",
+           intop->name, slot, intisa->formats[fmt].name);
       return -1;
     }
   *valp = (*get_fn) (slotbuf);
@@ -968,8 +974,8 @@ xtensa_operand_get_field (xtensa_isa isa, xtensa_opcode opc, int opnd,
 
 int
 xtensa_operand_set_field (xtensa_isa isa, xtensa_opcode opc, int opnd,
-			  xtensa_format fmt, int slot,
-			  xtensa_insnbuf slotbuf, uint32 val)
+              xtensa_format fmt, int slot,
+              xtensa_insnbuf slotbuf, uint32 val)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_operand_internal *intop;
@@ -994,8 +1000,8 @@ xtensa_operand_set_field (xtensa_isa isa, xtensa_opcode opc, int opnd,
     {
       xtisa_errno = xtensa_isa_wrong_slot;
       sprintf (xtisa_error_msg,
-	       "operand \"%s\" does not exist in slot %d of format \"%s\"",
-	       intop->name, slot, intisa->formats[fmt].name);
+           "operand \"%s\" does not exist in slot %d of format \"%s\"",
+           intop->name, slot, intisa->formats[fmt].name);
       return -1;
     }
   (*set_fn) (slotbuf, val);
@@ -1005,7 +1011,7 @@ xtensa_operand_set_field (xtensa_isa isa, xtensa_opcode opc, int opnd,
 
 int
 xtensa_operand_encode (xtensa_isa isa, xtensa_opcode opc, int opnd,
-		       uint32 *valp)
+               uint32 *valp)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_operand_internal *intop;
@@ -1018,40 +1024,40 @@ xtensa_operand_encode (xtensa_isa isa, xtensa_opcode opc, int opnd,
   if (!intop->encode)
     {
       /* This is a default operand for a field.  How can we tell if the
-	 value fits in the field?  Write the value into the field,
-	 read it back, and then make sure we get the same value.  */
+     value fits in the field?  Write the value into the field,
+     read it back, and then make sure we get the same value.  */
       static xtensa_insnbuf tmpbuf = 0;
       int slot_id;
 
       if (!tmpbuf)
-	{
-	  tmpbuf = xtensa_insnbuf_alloc (isa);
-	  CHECK_ALLOC (tmpbuf, -1);
-	}
+    {
+      tmpbuf = xtensa_insnbuf_alloc (isa);
+      CHECK_ALLOC (tmpbuf, -1);
+    }
 
       /* A default operand is always associated with a field,
-	 but check just to be sure....  */
+     but check just to be sure....  */
       if (intop->field_id == XTENSA_UNDEFINED)
-	{
-	  xtisa_errno = xtensa_isa_internal_error;
-	  strcpy (xtisa_error_msg, "operand has no field");
-	  return -1;
-	}
+    {
+      xtisa_errno = xtensa_isa_internal_error;
+      strcpy (xtisa_error_msg, "operand has no field");
+      return -1;
+    }
 
       /* Find some slot that includes the field.  */
       for (slot_id = 0; slot_id < intisa->num_slots; slot_id++)
-	{
-	  xtensa_get_field_fn get_fn =
-	    intisa->slots[slot_id].get_field_fns[intop->field_id];
-	  xtensa_set_field_fn set_fn =
-	    intisa->slots[slot_id].set_field_fns[intop->field_id];
+    {
+      xtensa_get_field_fn get_fn =
+        intisa->slots[slot_id].get_field_fns[intop->field_id];
+      xtensa_set_field_fn set_fn =
+        intisa->slots[slot_id].set_field_fns[intop->field_id];
 
-	  if (get_fn && set_fn)
-	    {
-	      (*set_fn) (tmpbuf, *valp);
-	      return ((*get_fn) (tmpbuf) != *valp);
-	    }
-	}
+      if (get_fn && set_fn)
+        {
+          (*set_fn) (tmpbuf, *valp);
+          return ((*get_fn) (tmpbuf) != *valp);
+        }
+    }
 
       /* Couldn't find any slot containing the field....  */
       xtisa_errno = xtensa_isa_no_field;
@@ -1079,7 +1085,7 @@ xtensa_operand_encode (xtensa_isa isa, xtensa_opcode opc, int opnd,
 
 int
 xtensa_operand_decode (xtensa_isa isa, xtensa_opcode opc, int opnd,
-		       uint32 *valp)
+               uint32 *valp)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_operand_internal *intop;
@@ -1174,7 +1180,7 @@ xtensa_operand_is_PCrelative (xtensa_isa isa, xtensa_opcode opc, int opnd)
 
 int
 xtensa_operand_do_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
-			 uint32 *valp, uint32 pc)
+             uint32 *valp, uint32 pc)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_operand_internal *intop;
@@ -1196,7 +1202,7 @@ xtensa_operand_do_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
     {
       xtisa_errno = xtensa_isa_bad_value;
       sprintf (xtisa_error_msg,
-	       "do_reloc failed for value 0x%08x at PC 0x%08x", *valp, pc);
+           "do_reloc failed for value 0x%08x at PC 0x%08x", *valp, pc);
       return -1;
     }
 
@@ -1206,7 +1212,7 @@ xtensa_operand_do_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
 
 int
 xtensa_operand_undo_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
-			   uint32 *valp, uint32 pc)
+               uint32 *valp, uint32 pc)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_operand_internal *intop;
@@ -1228,7 +1234,7 @@ xtensa_operand_undo_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
     {
       xtisa_errno = xtensa_isa_bad_value;
       sprintf (xtisa_error_msg,
-	       "undo_reloc failed for value 0x%08x at PC 0x%08x", *valp, pc);
+           "undo_reloc failed for value 0x%08x at PC 0x%08x", *valp, pc);
       return -1;
     }
 
@@ -1236,7 +1242,7 @@ xtensa_operand_undo_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
 }
 
 
-
+
 /* State Operands.  */
 
 
@@ -1244,11 +1250,11 @@ xtensa_operand_undo_reloc (xtensa_isa isa, xtensa_opcode opc, int opnd,
   do { \
     if ((STOP) < 0 || (STOP) >= (ICLASS)->num_stateOperands) \
       { \
-	xtisa_errno = xtensa_isa_bad_operand; \
-	sprintf (xtisa_error_msg, "invalid state operand number (%d); " \
-		 "opcode \"%s\" has %d state operands", (STOP), \
-		 (INTISA)->opcodes[(OPC)].name, (ICLASS)->num_stateOperands); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_operand; \
+    sprintf (xtisa_error_msg, "invalid state operand number (%d); " \
+         "opcode \"%s\" has %d state operands", (STOP), \
+         (INTISA)->opcodes[(OPC)].name, (ICLASS)->num_stateOperands); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -1283,7 +1289,7 @@ xtensa_stateOperand_inout (xtensa_isa isa, xtensa_opcode opc, int stOp)
 }
 
 
-
+
 /* Interface Operands.  */
 
 
@@ -1291,19 +1297,19 @@ xtensa_stateOperand_inout (xtensa_isa isa, xtensa_opcode opc, int stOp)
   do { \
     if ((IFOP) < 0 || (IFOP) >= (ICLASS)->num_interfaceOperands) \
       { \
-	xtisa_errno = xtensa_isa_bad_operand; \
-	sprintf (xtisa_error_msg, "invalid interface operand number (%d); " \
-		 "opcode \"%s\" has %d interface operands", (IFOP), \
-		 (INTISA)->opcodes[(OPC)].name, \
-		 (ICLASS)->num_interfaceOperands); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_operand; \
+    sprintf (xtisa_error_msg, "invalid interface operand number (%d); " \
+         "opcode \"%s\" has %d interface operands", (IFOP), \
+         (INTISA)->opcodes[(OPC)].name, \
+         (ICLASS)->num_interfaceOperands); \
+    return (ERRVAL); \
       } \
   } while (0)
 
 
 xtensa_interface
 xtensa_interfaceOperand_interface (xtensa_isa isa, xtensa_opcode opc,
-				   int ifOp)
+                   int ifOp)
 {
   xtensa_isa_internal *intisa = (xtensa_isa_internal *) isa;
   xtensa_iclass_internal *iclass;
@@ -1317,7 +1323,7 @@ xtensa_interfaceOperand_interface (xtensa_isa isa, xtensa_opcode opc,
 }
 
 
-
+
 /* Register Files.  */
 
 
@@ -1325,9 +1331,9 @@ xtensa_interfaceOperand_interface (xtensa_isa isa, xtensa_opcode opc,
   do { \
     if ((RF) < 0 || (RF) >= (INTISA)->num_regfiles) \
       { \
-	xtisa_errno = xtensa_isa_bad_regfile; \
-	strcpy (xtisa_error_msg, "invalid regfile specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_regfile; \
+    strcpy (xtisa_error_msg, "invalid regfile specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -1349,7 +1355,7 @@ xtensa_regfile_lookup (xtensa_isa isa, const char *name)
   for (n = 0; n < intisa->num_regfiles; n++)
     {
       if (!strcmp(intisa->regfiles[n].name, name))
-	return n;
+    return n;
     }
 
   xtisa_errno = xtensa_isa_bad_regfile;
@@ -1375,16 +1381,16 @@ xtensa_regfile_lookup_shortname (xtensa_isa isa, const char *shortname)
   for (n = 0; n < intisa->num_regfiles; n++)
     {
       /* Ignore regfile views since they always have the same shortnames
-	 as their parents.  */
+     as their parents.  */
       if (intisa->regfiles[n].parent != n)
-	continue;
+    continue;
       if (!strcmp(intisa->regfiles[n].shortname, shortname))
-	return n;
+    return n;
     }
 
   xtisa_errno = xtensa_isa_bad_regfile;
   sprintf (xtisa_error_msg, "regfile shortname \"%s\" not recognized",
-	   shortname);
+       shortname);
   return XTENSA_UNDEFINED;
 }
 
@@ -1434,7 +1440,7 @@ xtensa_regfile_num_entries (xtensa_isa isa, xtensa_regfile rf)
 }
 
 
-
+
 /* Processor States.  */
 
 
@@ -1442,9 +1448,9 @@ xtensa_regfile_num_entries (xtensa_isa isa, xtensa_regfile rf)
   do { \
     if ((ST) < 0 || (ST) >= (INTISA)->num_states) \
       { \
-	xtisa_errno = xtensa_isa_bad_state; \
-	strcpy (xtisa_error_msg, "invalid state specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_state; \
+    strcpy (xtisa_error_msg, "invalid state specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -1466,7 +1472,7 @@ xtensa_state_lookup (xtensa_isa isa, const char *name)
     {
       entry.key = name;
       result = bsearch (&entry, intisa->state_lookup_table, intisa->num_states,
-			sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
+            sizeof (xtensa_lookup_entry), xtensa_isa_name_compare);
     }
 
   if (!result)
@@ -1520,7 +1526,7 @@ xtensa_state_is_shared_or (xtensa_isa isa, xtensa_state st)
 }
 
 
-
+
 /* Sysregs.  */
 
 
@@ -1528,9 +1534,9 @@ xtensa_state_is_shared_or (xtensa_isa isa, xtensa_state st)
   do { \
     if ((SYSREG) < 0 || (SYSREG) >= (INTISA)->num_sysregs) \
       { \
-	xtisa_errno = xtensa_isa_bad_sysreg; \
-	strcpy (xtisa_error_msg, "invalid sysreg specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_sysreg; \
+    strcpy (xtisa_error_msg, "invalid sysreg specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -1572,8 +1578,8 @@ xtensa_sysreg_lookup_name (xtensa_isa isa, const char *name)
     {
       entry.key = name;
       result = bsearch (&entry, intisa->sysreg_lookup_table,
-			intisa->num_sysregs, sizeof (xtensa_lookup_entry),
-			xtensa_isa_name_compare);
+            intisa->num_sysregs, sizeof (xtensa_lookup_entry),
+            xtensa_isa_name_compare);
     }
 
   if (!result)
@@ -1616,7 +1622,7 @@ xtensa_sysreg_is_user (xtensa_isa isa, xtensa_sysreg sysreg)
 }
 
 
-
+
 /* Interfaces.  */
 
 
@@ -1624,9 +1630,9 @@ xtensa_sysreg_is_user (xtensa_isa isa, xtensa_sysreg sysreg)
   do { \
     if ((INTF) < 0 || (INTF) >= (INTISA)->num_interfaces) \
       { \
-	xtisa_errno = xtensa_isa_bad_interface; \
-	strcpy (xtisa_error_msg, "invalid interface specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_interface; \
+    strcpy (xtisa_error_msg, "invalid interface specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -1648,8 +1654,8 @@ xtensa_interface_lookup (xtensa_isa isa, const char *ifname)
     {
       entry.key = ifname;
       result = bsearch (&entry, intisa->interface_lookup_table,
-			intisa->num_interfaces, sizeof (xtensa_lookup_entry),
-			xtensa_isa_name_compare);
+            intisa->num_interfaces, sizeof (xtensa_lookup_entry),
+            xtensa_isa_name_compare);
     }
 
   if (!result)
@@ -1710,7 +1716,7 @@ xtensa_interface_class_id (xtensa_isa isa, xtensa_interface intf)
 }
 
 
-
+
 /* Functional Units.  */
 
 
@@ -1718,9 +1724,9 @@ xtensa_interface_class_id (xtensa_isa isa, xtensa_interface intf)
   do { \
     if ((FUN) < 0 || (FUN) >= (INTISA)->num_funcUnits) \
       { \
-	xtisa_errno = xtensa_isa_bad_funcUnit; \
-	strcpy (xtisa_error_msg, "invalid functional unit specifier"); \
-	return (ERRVAL); \
+    xtisa_errno = xtensa_isa_bad_funcUnit; \
+    strcpy (xtisa_error_msg, "invalid functional unit specifier"); \
+    return (ERRVAL); \
       } \
   } while (0)
 
@@ -1742,15 +1748,15 @@ xtensa_funcUnit_lookup (xtensa_isa isa, const char *fname)
     {
       entry.key = fname;
       result = bsearch (&entry, intisa->funcUnit_lookup_table,
-			intisa->num_funcUnits, sizeof (xtensa_lookup_entry),
-			xtensa_isa_name_compare);
+            intisa->num_funcUnits, sizeof (xtensa_lookup_entry),
+            xtensa_isa_name_compare);
     }
 
   if (!result)
     {
       xtisa_errno = xtensa_isa_bad_funcUnit;
       sprintf (xtisa_error_msg,
-	       "functional unit \"%s\" not recognized", fname);
+           "functional unit \"%s\" not recognized", fname);
       return XTENSA_UNDEFINED;
     }
 
@@ -1774,4 +1780,3 @@ xtensa_funcUnit_num_copies (xtensa_isa isa, xtensa_funcUnit fun)
   CHECK_FUNCUNIT (intisa, fun, XTENSA_UNDEFINED);
   return intisa->funcUnits[fun].num_copies;
 }
-
