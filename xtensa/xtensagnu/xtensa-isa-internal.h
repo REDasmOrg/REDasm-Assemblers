@@ -21,6 +21,8 @@
 #ifndef XTENSA_ISA_INTERNAL_H
 #define XTENSA_ISA_INTERNAL_H
 
+#include "xtensa-isa.h"
+
 /* Flags.  */
 
 #define XTENSA_OPERAND_IS_REGISTER	0x00000001
