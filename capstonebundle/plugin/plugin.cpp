@@ -69,42 +69,42 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
 {
     initUserData();
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, arm64le, "ARM64 Assembler (Little Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, arm64le, "ARM64 (Little Endian)");
     arm64le.emulate = &emulate<CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN>;
     arm64le.renderinstruction = &render<CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN>;
     arm64le.lift = &lift<CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN>;
     arm64le.bits = 64;
     RDAssembler_Register(pm, &arm64le);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, arm64be, "ARM64 Assembler (Big Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, arm64be, "ARM64 (Big Endian)");
     arm64be.emulate = &emulate<CS_ARCH_ARM64, CS_MODE_BIG_ENDIAN>;
     arm64be.renderinstruction = &render<CS_ARCH_ARM64, CS_MODE_BIG_ENDIAN>;
     arm64be.lift = &lift<CS_ARCH_ARM64, CS_MODE_BIG_ENDIAN>;
     arm64be.bits = 64;
     RDAssembler_Register(pm, &arm64be);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, armle, "ARM Assembler (Little Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, armle, "ARM (Little Endian)");
     armle.emulate = &emulate<CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN>;
     armle.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN>;
     armle.lift = &lift<CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN>;
     armle.bits = 32;
     RDAssembler_Register(pm, &armle);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, armbe, "ARM Assembler (Big Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, armbe, "ARM (Big Endian)");
     armbe.emulate = &emulate<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
     armbe.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
     armbe.lift = &lift<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
     armbe.bits = 32;
     RDAssembler_Register(pm, &armbe);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, thumble, "ARM/THUMB Assembler (Little Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, thumble, "ARM/THUMB (Little Endian)");
     thumble.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
     thumble.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
     thumble.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
     thumble.bits = 16;
     RDAssembler_Register(pm, &thumble);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, thumbbe, "ARM/THUMB Assembler (Big Endian)");
+    RD_PLUGIN_ENTRY(RDEntryAssembler, thumbbe, "ARM/THUMB (Big Endian)");
     thumbbe.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
     thumbbe.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
     thumbbe.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
