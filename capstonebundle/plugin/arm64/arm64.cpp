@@ -1,39 +1,19 @@
 #include "arm64.h"
+#include "arm64_lifter.h"
 
-cs_insn* ARM64::m_insn = nullptr;
+ARM64::ARM64(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM64, mode) { m_lifter.reset(new ARM64Lifter(ctx)); }
 
-void ARM64::free(RDContext* ctx)
-{
-    csh h = ARM64::handle(ctx);
-    if(!h) return;
-
-    cs_free(ARM64::m_insn, 1);
-    cs_close(&h);
-}
-
-std::string ARM64::instructionText() { return std::string(m_insn->mnemonic) + " " + std::string(m_insn->op_str); }
-
-bool ARM64::decode(csh h, rd_address address, const RDBufferView* view)
-{
-    const auto* pdata = reinterpret_cast<const uint8_t*>(view->data);
-    size_t size = view->size;
-    return cs_disasm_iter(h, &pdata, &size, &address, m_insn);
-}
-
-csh ARM64::handle(RDContext* ctx) { return static_cast<csh>(RDContext_GetUserData(ctx, ARM64_USERDATA)); }
-const cs_insn* ARM64::instruction() { return m_insn; }
-
-void ARM64::renderMemory(csh h, const cs_arm64& arm64, const cs_arm64_op& op, const RDRendererParams* rp)
+void ARM64::renderMemory(const cs_arm64& arm64, const cs_arm64_op& op, const RDRendererParams* rp) const
 {
     RDRenderer_Text(rp->renderer, "[");
 
     if(op.mem.base != ARM64_REG_INVALID)
-        RDRenderer_Register(rp->renderer, cs_reg_name(h, op.mem.base));
+        this->renderRegister(rp, op.mem.base);
 
     if(op.mem.index != ARM64_REG_INVALID)
     {
         if(op.mem.base != ARM64_REG_INVALID) RDRenderer_Text(rp->renderer, ", ");
-        RDRenderer_Register(rp->renderer, cs_reg_name(h, op.mem.index));
+        this->renderRegister(rp, op.mem.index);
     }
 
     if(op.mem.disp)
@@ -49,26 +29,26 @@ void ARM64::renderMemory(csh h, const cs_arm64& arm64, const cs_arm64_op& op, co
     if(arm64.writeback) RDRenderer_Text(rp->renderer, "!");
 }
 
-void ARM64::renderMnemonic(csh h, const RDRendererParams* rp)
+void ARM64::renderMnemonic(const RDRendererParams* rp)
 {
     rd_type theme = Theme_Default;
 
-    if(cs_insn_group(h, m_insn, CS_GRP_JUMP))
+    if(cs_insn_group(m_handle, m_insn, CS_GRP_JUMP))
     {
         if(m_insn->detail->arm64.cc == ARM64_CC_INVALID) theme = Theme_Jump;
         else theme = Theme_JumpCond;
     }
-    else if(cs_insn_group(h, m_insn, CS_GRP_CALL)) theme = Theme_Call;
-    else if(cs_insn_group(h, m_insn, CS_GRP_RET)) theme = Theme_Ret;
+    else if(cs_insn_group(m_handle, m_insn, CS_GRP_CALL)) theme = Theme_Call;
+    else if(cs_insn_group(m_handle, m_insn, CS_GRP_RET)) theme = Theme_Ret;
 
     RDRenderer_Mnemonic(rp->renderer, m_insn->mnemonic, theme);
     RDRenderer_Text(rp->renderer, " ");
 }
 
-void ARM64::render(csh h, const RDRendererParams* rp)
+void ARM64::render(const RDRendererParams* rp)
 {
-    if(!ARM64::decode(h, rp->address, &rp->view)) return;
-    ARM64::renderMnemonic(h, rp);
+    if(!this->decode(rp->address, &rp->view)) return;
+    this->renderMnemonic(rp);
 
     const auto& arm64 = m_insn->detail->arm64;
 
@@ -80,9 +60,9 @@ void ARM64::render(csh h, const RDRendererParams* rp)
 
         switch(op.type)
         {
-            case ARM64_OP_REG: RDRenderer_Register(rp->renderer, cs_reg_name(h, op.reg)); break;
+            case ARM64_OP_REG: this->renderRegister(rp, op.reg); break;
             case ARM64_OP_IMM: RDRenderer_Unsigned(rp->renderer, op.imm); break;
-            case ARM64_OP_MEM: ARM64::renderMemory(h, arm64, op, rp); break;
+            case ARM64_OP_MEM: this->renderMemory(arm64, op, rp); break;
 
             case ARM64_OP_FP:
             case ARM64_OP_CIMM:
@@ -99,15 +79,15 @@ void ARM64::render(csh h, const RDRendererParams* rp)
     }
 }
 
-void ARM64::emulate(csh h, RDContext* ctx, RDEmulateResult* result)
+void ARM64::emulate(RDEmulateResult* result)
 {
     rd_address address = RDEmulateResult_GetAddress(result);
-    if(!ARM64::decode(h, address, RDEmulateResult_GetView(result))) return;
+    if(!this->decode(address, RDEmulateResult_GetView(result))) return;
     RDEmulateResult_SetSize(result, m_insn->size);
 
     const auto& arm64 = m_insn->detail->arm64;
 
-    if(cs_insn_group(h, m_insn, CS_GRP_JUMP))
+    if(cs_insn_group(m_handle, m_insn, CS_GRP_JUMP))
     {
         switch(m_insn->id)
         {
@@ -134,13 +114,13 @@ void ARM64::emulate(csh h, RDContext* ctx, RDEmulateResult* result)
             case ARM64_INS_B: RDEmulateResult_AddBranch(result, static_cast<rd_address>(arm64.operands[0].imm)); break;
             case ARM64_INS_BR: RDEmulateResult_AddBranchUnresolved(result); break;
             case ARM64_INS_BLR: RDEmulateResult_AddCallUnresolved(result); break;
-            default: rdcontext_addproblem(ctx, ARM64::instructionText()); break;
+            default: rdcontext_addproblem(m_context, this->instructionText()); break;
         }
 
         return;
     }
 
-    if(cs_insn_group(h, m_insn, CS_GRP_RET))
+    if(cs_insn_group(m_handle, m_insn, CS_GRP_RET))
     {
         RDEmulateResult_AddReturn(result);
         return;
@@ -153,3 +133,6 @@ void ARM64::emulate(csh h, RDContext* ctx, RDEmulateResult* result)
         RDEmulateResult_AddReference(result, op.imm);
     }
 }
+
+ARM64LE::ARM64LE(RDContext* ctx): ARM64(ctx, CS_MODE_LITTLE_ENDIAN) { }
+ARM64BE::ARM64BE(RDContext* ctx): ARM64(ctx, CS_MODE_BIG_ENDIAN) { }
