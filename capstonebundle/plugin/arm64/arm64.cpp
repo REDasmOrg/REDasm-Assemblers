@@ -61,7 +61,7 @@ void ARM64::render(const RDRendererParams* rp)
         switch(op.type)
         {
             case ARM64_OP_REG: this->renderRegister(rp, op.reg); break;
-            case ARM64_OP_IMM: RDRenderer_Unsigned(rp->renderer, op.imm); break;
+            case ARM64_OP_IMM: RDRenderer_Reference(rp->renderer, op.imm); break;
             case ARM64_OP_MEM: this->renderMemory(arm64, op, rp); break;
 
             case ARM64_OP_FP:

@@ -55,13 +55,13 @@ void ARM::render(const RDRendererParams* rp)
         switch(op.type)
         {
             case ARM_OP_MEM: {
-                if(this->isMemPC(op.mem)) RDRenderer_Unsigned(rp->renderer, this->pc(rp->address) + op.mem.disp); // [pc]
+                if(this->isMemPC(op.mem)) RDRenderer_Reference(rp->renderer, this->pc(rp->address) + op.mem.disp); // [pc]
                 else this->renderMemory(arm, op, rp);
                 break;
             }
 
             case ARM_OP_REG: RDRenderer_Register(rp->renderer, this->regName(op.reg)); break;
-            case ARM_OP_IMM: RDRenderer_Unsigned(rp->renderer, op.imm); break;
+            case ARM_OP_IMM: RDRenderer_Reference(rp->renderer, op.imm); break;
 
             case ARM_OP_FP: RDRenderer_Text(rp->renderer, "ARM_OP_FP"); break;
             case ARM_OP_CIMM: RDRenderer_Text(rp->renderer, "ARM_OP_CIMM"); break;

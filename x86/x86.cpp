@@ -106,7 +106,7 @@ void X86Assembler::renderInstruction(const RDRendererParams* srp)
             case ZYDIS_TOKEN_ADDRESS_ABS:
             case ZYDIS_TOKEN_ADDRESS_REL:
             case ZYDIS_TOKEN_IMMEDIATE:
-                RDRenderer_Unsigned(srp->renderer, static_cast<u64>(std::stoull(tokenvalue, nullptr, 16)));
+                RDRenderer_Reference(srp->renderer, static_cast<u64>(std::stoull(tokenvalue, nullptr, 16)));
                 break;
 
             case ZYDIS_TOKEN_MNEMONIC:

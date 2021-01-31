@@ -112,7 +112,7 @@ void Xtensa<Swap>::render(RDContext* ctx, const RDRendererParams* rp)
         switch(op.type)
         {
             case XtensaOperandType_Constant: RDRenderer_Signed(rp->renderer, op.s_value); break;
-            case XtensaOperandType_Immediate: RDRenderer_Unsigned(rp->renderer, op.u_value); break;
+            case XtensaOperandType_Immediate: RDRenderer_Reference(rp->renderer, op.u_value); break;
 
             case XtensaOperandType_Register:
                 if(!op.reg.empty()) RDRenderer_Register(rp->renderer, op.reg.c_str());
