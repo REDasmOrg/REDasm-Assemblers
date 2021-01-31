@@ -1,110 +1,38 @@
 #include "mips.h"
 #include "mips_registers.h"
-#include <algorithm>
-#include <sstream>
-#include <climits>
+#include "mips_decoder.h"
 
-//std::forward_list<RDInstruction> MIPSDecoder::m_luilist;
-
-std::array<MIPSDecoder::Callback_MIPSDecode, MIPSEncoding_Count> MIPSDecoder::m_renderers = {
+std::array<MIPS::Callback_MIPSDecode, MIPSEncoding_Count> MIPS::m_renderers = {
     [](const MIPSDecodedInstruction*, const RDRendererParams*) { },
-    &MIPSDecoder::renderR,
-    &MIPSDecoder::renderI,
-    &MIPSDecoder::renderJ,
-    &MIPSDecoder::renderB,
-    &MIPSDecoder::renderC,
+    &MIPS::renderR,
+    &MIPS::renderI,
+    &MIPS::renderJ,
+    &MIPS::renderB,
+    &MIPS::renderC,
 };
 
-const char* MIPSDecoder::reg(u32 r)
+void MIPS::initialize() { MIPSInitializeFormats(); }
+
+void MIPS::emulate(const MIPSDecodedInstruction* decoded, RDEmulateResult* result)
 {
-    if(r > GPR_REGISTERS.size()) return nullptr;
-    return GPR_REGISTERS[r];
-}
-
-template<Swap32_Callback Swap>
-size_t MIPSDecoder::decode(const RDBufferView* view, MIPSDecodedInstruction* decoded)
-{
-    if(view->size < sizeof(u32)) return MIPSEncoding_Unknown;
-
-    decoded->instruction.word = Swap(*reinterpret_cast<const u32*>(view->data));
-    size_t f = MIPSDecoder::checkFormat(&decoded->instruction);
-
-    switch(f)
-    {
-        case MIPSEncoding_R:
-        {
-            auto& format = MIPSOpcodes_R[decoded->instruction.r.funct];
-            if(!format.mnemonic) return MIPSEncoding_Unknown;
-            decoded->opcode = &format;
-            break;
-        }
-
-        case MIPSEncoding_I:
-        {
-            auto& format = MIPSOpcodes_I[decoded->instruction.i_u.op];
-            if(!format.mnemonic) return MIPSEncoding_Unknown;
-            decoded->opcode = &format;
-            break;
-        }
-
-        case MIPSEncoding_J:
-        {
-            auto& format = MIPSOpcodes_J[decoded->instruction.j.op];
-            if(!format.mnemonic) return MIPSEncoding_Unknown;
-            decoded->opcode = &format;
-            break;
-        }
-
-        case MIPSEncoding_B:
-        {
-            auto& format = MIPSOpcodes_B[decoded->instruction.b.op];
-            if(!format.mnemonic) return MIPSEncoding_Unknown;
-            decoded->opcode = &format;
-            break;
-        }
-
-        case MIPSEncoding_C:
-        {
-            auto& format = MIPSOpcodes_C[decoded->instruction.c.op];
-            if(!format.mnemonic) return MIPSEncoding_Unknown;
-            decoded->opcode = &format;
-            break;
-        }
-
-        default:
-            decoded->instruction = { };
-            decoded->opcode = nullptr;
-            break;
-    }
-
-    return f;
-}
-
-template<Swap32_Callback Swap>
-void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
-{
-    MIPSDecodedInstruction decoded;
-    const RDBufferView* view = RDEmulateResult_GetView(result);
-    size_t e = MIPSDecoder::decode<Swap>(view, &decoded);
-    if(e == MIPSEncoding_Unknown) return;
-
-    RDEmulateResult_SetSize(result, sizeof(MIPSInstruction));
+    RDEmulateResult_SetSize(result, decoded->size);
     rd_address address = RDEmulateResult_GetAddress(result);
 
-    switch(decoded.opcode->id)
+    switch(decoded->opcode->id)
     {
-        case MIPSInstruction_J:
-        {
-            auto baddress = MIPSDecoder::calcAddress(&decoded, address);
+        case MIPSMacro_B:
+        case MIPSInstruction_J: {
+            auto baddress = MIPSDecoder::calcAddress(decoded, address);
             if(baddress) RDEmulateResult_AddBranch(result, *baddress);
+            else RDEmulateResult_AddBranchUnresolved(result);
             RDEmulateResult_SetDelaySlot(result, 1);
             break;
         }
 
-        case MIPSInstruction_Jal:
-        {
-            auto baddress = MIPSDecoder::calcAddress(&decoded, address);
+        case MIPSInstruction_Jal: {
+            auto baddress = MIPSDecoder::calcAddress(decoded, address);
             if(baddress) RDEmulateResult_AddCall(result, *baddress);
+            else RDEmulateResult_AddBranchUnresolved(result);
             RDEmulateResult_SetDelaySlot(result, 1);
             break;
         }
@@ -113,10 +41,10 @@ void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
         case MIPSInstruction_Bne:
         case MIPSInstruction_Bgez:
         case MIPSInstruction_Bgtz:
-        case MIPSInstruction_Blez:
-        {
-            auto baddress = MIPSDecoder::calcAddress(&decoded, address);
+        case MIPSInstruction_Blez: {
+            auto baddress = MIPSDecoder::calcAddress(decoded, address);
             if(baddress) RDEmulateResult_AddBranchTrue(result, *baddress);
+            else RDEmulateResult_AddBranchUnresolved(result);
             RDEmulateResult_AddBranchFalse(result, address + (sizeof(MIPSInstruction) * 2));
             RDEmulateResult_SetDelaySlot(result, 1);
             break;
@@ -128,33 +56,30 @@ void MIPSDecoder::emulate(RDContext*, RDEmulateResult* result)
             RDEmulateResult_SetDelaySlot(result, 1);
             break;
 
-        case MIPSInstruction_Lui:
-            //m_luilist.push_front(*instruction);
+        case MIPSMacro_La:
+            RDEmulateResult_AddReference(result, decoded->macro.regimm.address);
             break;
 
-        case MIPSInstruction_Ori:
-        case MIPSInstruction_Addiu:
-        case MIPSInstruction_Lw:
-        case MIPSInstruction_Sw:
-            //if(!m_luilist.empty()) MIPSDecoder::checkLui(disassembler, instruction);
+        case MIPSMacro_Lw:
+        case MIPSMacro_Sw:
+            RDEmulateResult_AddReferenceSize(result, decoded->macro.regimm.address, sizeof(u32));
             break;
 
-        case MIPSInstruction_Break:
-            return;
+        case MIPSMacro_Lhu:
+        case MIPSMacro_Sh:
+            RDEmulateResult_AddReferenceSize(result, decoded->macro.regimm.address, sizeof(u16));
+            break;
 
+        case MIPSInstruction_Break: RDEmulateResult_AddReturn(result); break;
         default: break;
     }
 }
 
-template<Swap32_Callback Swap>
-void MIPSDecoder::renderInstruction(RDContext*, const RDRendererParams* rp)
+void MIPS::renderInstruction(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
-    MIPSDecodedInstruction decoded;
-    if(MIPSDecoder::decode<Swap>(&rp->view, &decoded) == MIPSEncoding_Unknown) return;
+    MIPS::renderMnemonic(decoded, rp);
 
-    MIPSDecoder::renderMnemonic(&decoded, rp);
-
-    switch(decoded.opcode->id)
+    switch(decoded->opcode->id)
     {
         case MIPSInstruction_Lb:
         case MIPSInstruction_Lbu:
@@ -163,42 +88,57 @@ void MIPSDecoder::renderInstruction(RDContext*, const RDRendererParams* rp)
         case MIPSInstruction_Lwr:
         case MIPSInstruction_Sb:
         case MIPSInstruction_Sh:
-        case MIPSInstruction_Sw:
-            MIPSDecoder::renderLoadStore(&decoded, rp);
-            return;
-
+        case MIPSInstruction_Sw: MIPS::renderLoadStore(decoded, rp); return;
         default: break;
     }
 
-    if(decoded.opcode->encoding >= m_renderers.size()) return;
-    auto r = m_renderers[decoded.opcode->encoding];
-    r(&decoded, rp);
+    if(decoded->opcode->category == MIPSCategory_Macro)
+    {
+        MIPS::renderMacro(decoded, rp);
+        return;
+    }
+
+    if(decoded->opcode->encoding >= m_renderers.size()) return;
+    auto r = m_renderers[decoded->opcode->encoding];
+    r(decoded, rp);
 }
 
-const char* MIPSDecoder::cop0reg(u32 r)
+void MIPS::renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
-    if(r > COP0_REGISTERS.size()) return nullptr;
-    return COP0_REGISTERS[r];
+    switch(decoded->opcode->id)
+    {
+        case MIPSMacro_Nop: RDRenderer_MnemonicWord(rp->renderer, decoded->opcode->mnemonic, Theme_Nop); return;
+        case MIPSMacro_B: RDRenderer_MnemonicWord(rp->renderer, decoded->opcode->mnemonic, Theme_Jump); return;
+        default: break;
+    }
+
+    rd_type theme = Theme_Default;
+
+    switch(decoded->opcode->category)
+    {
+        case MIPSCategory_Jump: theme = Theme_Jump; break;
+        case MIPSCategory_JumpCond: theme = Theme_JumpCond; break;
+        case MIPSCategory_Call: theme = Theme_Call; break;
+        case MIPSCategory_Ret: theme = Theme_Ret; break;
+        default: break;
+    }
+
+    RDRenderer_MnemonicWord(rp->renderer, decoded->opcode->mnemonic, theme);
 }
 
-void MIPSDecoder::renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
+void MIPS::renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
     switch(decoded->opcode->id)
     {
         case MIPSInstruction_Sll:
         case MIPSInstruction_Srl:
         case MIPSInstruction_Sra:
-        {
-            if(!MIPSDecoder::checkNop(decoded)) {
-                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rd));
-                RDRenderer_Text(rp->renderer, ", ");
-                RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rt));
-                RDRenderer_Text(rp->renderer, ", ");
-                RDRenderer_Constant(rp->renderer, RD_ToHex(decoded->instruction.r.shamt));
-            }
-
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rd));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rt));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Unsigned(rp->renderer, decoded->instruction.r.shamt);
             break;
-        }
 
         case MIPSInstruction_Jalr:
             if(decoded->instruction.r.rd != MIPSRegister_RA) {
@@ -223,234 +163,92 @@ void MIPSDecoder::renderR(const MIPSDecodedInstruction* decoded, const RDRendere
     }
 }
 
-void MIPSDecoder::renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
+void MIPS::renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
     if(decoded->opcode->id == MIPSInstruction_Lui)
     {
-        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
-        RDRenderer_Text(rip->renderer, ", ");
-        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i_u.immediate));
+        RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
+        RDRenderer_Text(rp->renderer, ", ");
+        RDRenderer_Unsigned(rp->renderer, decoded->instruction.i_u.immediate);
         return;
-    }
-
-    if(!MIPSDecoder::checkB(decoded))
-    {
-        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
-        RDRenderer_Text(rip->renderer, ", ");
-        RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
-        RDRenderer_Text(rip->renderer, ", ");
     }
 
     if((decoded->opcode->category == MIPSCategory_Jump) || (decoded->opcode->category == MIPSCategory_JumpCond))
     {
-        auto addr = MIPSDecoder::calcAddress(decoded, rip->address);
-
-        if(addr) RDRenderer_Unsigned(rip->renderer, *addr);
-        else RDRenderer_Text(rip->renderer, "???");
+        auto addr = MIPSDecoder::calcAddress(decoded, rp->address);
+        if(addr) RDRenderer_Reference(rp->renderer, *addr);
+        else RDRenderer_Unknown(rp->renderer);
     }
     else
-        RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i_u.immediate));
+    {
+        RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
+        RDRenderer_Text(rp->renderer, ", ");
+        RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
+        RDRenderer_Text(rp->renderer, ", ");
+        RDRenderer_Unsigned(rp->renderer, decoded->instruction.i_u.immediate);
+    }
 }
 
-void MIPSDecoder::renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
+void MIPS::renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
-    auto addr = MIPSDecoder::calcAddress(decoded, rip->address);
+    auto addr = MIPSDecoder::calcAddress(decoded, rp->address);
 
-    if(addr) RDRenderer_Unsigned(rip->renderer, *addr);
-    else RDRenderer_Text(rip->renderer, "???");
+    if(addr) RDRenderer_Reference(rp->renderer, *addr);
+    else RDRenderer_Unknown(rp->renderer);
 }
 
-void MIPSDecoder::renderB(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
+void MIPS::renderB(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp) { RDRenderer_Unsigned(rp->renderer, decoded->instruction.b.code); }
+
+void MIPS::renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
-    RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.b.code));
+    RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.c.rt));
+    RDRenderer_Text(rp->renderer, ", ");
+    RDRenderer_Register(rp->renderer, MIPSDecoder::cop0reg(decoded->instruction.c.rd));
 }
 
-void MIPSDecoder::renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
-{
-    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.c.rt));
-    RDRenderer_Text(rip->renderer, ", ");
-    RDRenderer_Register(rip->renderer, MIPSDecoder::cop0reg(decoded->instruction.c.rd));
-}
-
-void MIPSDecoder::renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
-{
-    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
-    RDRenderer_Text(rip->renderer, ", ");
-    RDRenderer_Constant(rip->renderer, RD_ToHex(decoded->instruction.i_u.immediate));
-    RDRenderer_Text(rip->renderer, "(");
-    RDRenderer_Register(rip->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
-    RDRenderer_Text(rip->renderer, ")");
-}
-
-void MIPSDecoder::renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRendererParams* rip)
+void MIPS::renderMacro(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
     switch(decoded->opcode->id)
     {
-        case MIPSInstruction_Sll:
-        {
-            if(MIPSDecoder::checkNop(decoded)) {
-                RDRenderer_Mnemonic(rip->renderer, "nop", Theme_Nop);
-                RDRenderer_Text(rip->renderer, " ");
-                return;
-            }
-
+        case MIPSMacro_Move:
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rd));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.r.rs));
             break;
-        }
 
-        case MIPSInstruction_Beq:
-        {
-            if(MIPSDecoder::checkB(decoded)) {
-                RDRenderer_Mnemonic(rip->renderer, "b", Theme_Jump);
-                RDRenderer_Text(rip->renderer, " ");
-                return;
-            }
-
+        case MIPSMacro_B:
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
             break;
-        }
 
-        case MIPSInstruction_Mfc0:
-        {
-            if(MIPSDecoder::checkMTC0(decoded)) {
-                RDRenderer_Mnemonic(rip->renderer, "mtc0", Theme_Default);
-                RDRenderer_Text(rip->renderer, " ");
-            }
-
+        case MIPSMacro_Li:
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Unsigned(rp->renderer, decoded->instruction.i_u.immediate);
             break;
-        }
 
-        default: break;
+        case MIPSMacro_La:
+        case MIPSMacro_Lw:
+        case MIPSMacro_Lhu:
+        case MIPSMacro_Sw:
+        case MIPSMacro_Sh:
+            RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->macro.regimm.reg));
+            RDRenderer_Text(rp->renderer, ", ");
+            RDRenderer_Reference(rp->renderer, decoded->macro.regimm.address);
+            break;
+
+        case MIPSMacro_Nop: break;
+        default: rd_log("Unhandled instruction: '" + std::string(decoded->opcode->mnemonic) + "'"); break;
     }
-
-    RDRenderer_Mnemonic(rip->renderer, decoded->opcode->mnemonic, Theme_Default);
-    RDRenderer_Text(rip->renderer, " ");
 }
 
-bool MIPSDecoder::checkNop(const MIPSDecodedInstruction* decoded)
+void MIPS::renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
-    if(decoded->opcode->id != MIPSInstruction_Sll) return false;
-    if(decoded->instruction.r.rd != MIPSRegister_ZERO) return false;
-    if(decoded->instruction.r.rt != MIPSRegister_ZERO) return false;
-    return true;
-}
-
-bool MIPSDecoder::checkB(const MIPSDecodedInstruction* decoded)
-{
-    if(decoded->opcode->id != MIPSInstruction_Beq) return false;
-    return decoded->instruction.i_u.rt == decoded->instruction.i_u.rs;
-}
-
-bool MIPSDecoder::checkMTC0(const MIPSDecodedInstruction* decoded)
-{
-    if(decoded->opcode->id != MIPSInstruction_Mfc0) return false;
-    return decoded->instruction.c.rs == 0b00100;
-}
-
-//void MIPSDecoder::checkLui(RDDisassembler* disassembler, const RDInstruction* instruction)
-//{
-    // auto it = std::find_if(m_luilist.begin(), m_luilist.end(), [instruction](const RDInstruction& luiinstruction) {
-    //     return luiinstruction.operands[0].reg == instruction->operands[1].reg;
-    // });
-
-    // if(it == m_luilist.end()) return;
-
-    // bool pointer = false;
-    // rd_address address = it->operands[1].u_value << 16;
-
-    // switch(instruction->id)
-    // {
-    //     case MIPSInstruction_Ori:
-    //         address |= instruction->operands[2].u_value;
-    //         break;
-
-    //     case MIPSInstruction_Addiu:
-    //         address += RD_SignExt(instruction->operands[2].u_value, 16);
-    //         break;
-
-    //     case MIPSInstruction_Lw:
-    //     case MIPSInstruction_Sw:
-    //         pointer = true;
-    //         address += RD_SignExt(instruction->operands[2].u_value, 16);
-    //         break;
-
-    //     default:
-    //         return;
-    // }
-
-    // //const RDILCPU* cpu = RDDisassembler_GetILCPU(disassembler);
-    // //u64 val = 0;
-
-    // //if(RDILCPU_Read(cpu, &instruction->operands[0], &val))
-    //     //rd_log(rd_tohex(instruction->address) + ": " + rd_tohex(val));
-
-    // RDDocument* doc = RDContext_GetDocument(disassembler);
-
-    // rd_type symboltype = SymbolType_None;
-    // if(pointer) symboltype = RDDisassembler_MarkPointer(disassembler, address, instruction->address);
-    // else symboltype = RDDisassembler_MarkLocation(disassembler, address, instruction->address);
-
-    // std::stringstream ss;
-
-    // if(!pointer && (symboltype == SymbolType_Data))
-    // {
-    //     const char* symbolname = RDDocument_GetSymbolName(doc, address);
-    //     size_t bits = RDDisassembler_Bits(disassembler);
-
-    //     ss << "= " << (symbolname ? symbolname : RD_ToHexBits(address, bits, false));
-    //     RDDocument_AddAutoComment(doc, instruction->address, ss.str().c_str());
-    // }
-
-    // ss = { };
-    // ss << "... " << RD_ToHexAuto(instruction->address);
-    // RDDocument_AddAutoComment(doc, it->address, ss.str().c_str());
-
-    // m_luilist.remove_if([&it](const RDInstruction& luiinstruction) {
-    //     return it->address == luiinstruction.address;
-    // });
-//}
-
-size_t MIPSDecoder::checkFormat(const MIPSInstruction* mi)
-{
-    if(!mi->r.op)
-    {
-        if((mi->b.funct == 0b001100) || (mi->b.funct == 0b001101))
-            return MIPSEncoding_B;
-
-        return MIPSEncoding_R;
-    }
-
-    if(mi->c.op == 0b010000) return MIPSEncoding_C;
-    if(((mi->i_u.op >= 0x04) && (mi->i_u.op <= 0x2b)) || (mi->i_u.op == 0x01)) return MIPSEncoding_I;
-    if((mi->j.op == 0x02) || (mi->j.op == 0x03)) return MIPSEncoding_J;
-    return MIPSEncoding_Unknown;
-}
-
-std::optional<rd_address> MIPSDecoder::calcAddress(const MIPSDecodedInstruction* decoded, rd_address address)
-{
-    switch(decoded->opcode->encoding)
-    {
-        case MIPSEncoding_J: return (address & (0xF << ((sizeof(u32) * CHAR_BIT) - 4))) | (static_cast<u32>(decoded->instruction.j.target) << 2);
-        case MIPSEncoding_I: return address + sizeof(MIPSInstruction) + static_cast<s32>(RD_SignExt(decoded->instruction.i_s.immediate << 2, 32));
-        default: break;
-    }
-
-    return std::nullopt;
-}
-
-void rdplugin_init(RDContext*, RDPluginModule* pm)
-{
-    MIPSInitializeFormats();
-
-    RD_PLUGIN_ENTRY(RDEntryAssembler, mips32le, "MIPS32 (Little Endian)");
-    mips32le.emulate = &MIPSDecoder::emulate<&RD_FromLittleEndian32>;
-    mips32le.renderinstruction = &MIPSDecoder::renderInstruction<&RD_FromLittleEndian32>;
-    //mips32le.rdil = &MIPSDecoder::rdil;
-    mips32le.bits = 32;
-    RDAssembler_Register(pm, &mips32le);
-
-    RD_PLUGIN_ENTRY(RDEntryAssembler, mips32be, "MIPS32 (Big Endian)");
-    mips32be.emulate = &MIPSDecoder::emulate<&RD_FromBigEndian32>;
-    mips32be.renderinstruction = &MIPSDecoder::renderInstruction<&RD_FromLittleEndian32>;
-    //mips32be.rdil = &MIPSDecoder::rdil;
-    mips32be.bits = 32;
-    RDAssembler_Register(pm, &mips32be);
+    RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rt));
+    RDRenderer_Text(rp->renderer, ", ");
+    RDRenderer_Unsigned(rp->renderer, decoded->instruction.i_u.immediate);
+    RDRenderer_Text(rp->renderer, "(");
+    RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.i_u.rs));
+    RDRenderer_Text(rp->renderer, ")");
 }

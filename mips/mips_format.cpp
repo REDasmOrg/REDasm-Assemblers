@@ -1,10 +1,26 @@
 #include "mips_format.h"
 
-std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_I{ };
-std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_R{ };
-std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_J{ };
-std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_B{ };
-std::array<MIPSOpcode, 1 << MIPS_OP_BITS> MIPSOpcodes_C{ };
+#define MIPS_MACRO(name, type, size) { name, { { name, type, MIPSCategory_Macro, MIPSEncoding_None, MIPSVersion_None }, size } }
+
+MIPSOpcodeArray MIPSOpcodes_I{ };
+MIPSOpcodeArray MIPSOpcodes_R{ };
+MIPSOpcodeArray MIPSOpcodes_J{ };
+MIPSOpcodeArray MIPSOpcodes_B{ };
+MIPSOpcodeArray MIPSOpcodes_C{ };
+
+const MIPSMacroMap MIPSOpcodes_Macro = {
+    MIPS_MACRO("la", MIPSMacro_La, sizeof(MIPSInstruction) * 2),
+    MIPS_MACRO("lw", MIPSMacro_Lw, sizeof(MIPSInstruction) * 2),
+    MIPS_MACRO("lhu", MIPSMacro_Lhu, sizeof(MIPSInstruction) * 2),
+    MIPS_MACRO("sw", MIPSMacro_Sw, sizeof(MIPSInstruction) * 2),
+    MIPS_MACRO("sh", MIPSMacro_Sh, sizeof(MIPSInstruction) * 2),
+
+    MIPS_MACRO("li", MIPSMacro_Li, sizeof(MIPSInstruction)),
+    MIPS_MACRO("b", MIPSMacro_B, sizeof(MIPSInstruction)),
+    MIPS_MACRO("nop", MIPSMacro_Nop, sizeof(MIPSInstruction)),
+    MIPS_MACRO("move", MIPSMacro_Move, sizeof(MIPSInstruction)),
+    MIPS_MACRO("mtc0", MIPSMacro_Mtc0, sizeof(MIPSInstruction))
+};
 
 void MIPSInitializeFormats()
 {

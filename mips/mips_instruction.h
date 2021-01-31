@@ -37,11 +37,15 @@ enum MIPSInstructionId {
     MIPSInstruction_Break, MIPSInstruction_Syscall,
 
     //C-Type
-    MIPSInstruction_Mfc0, MIPSInstruction_Mtc0,
+    MIPSInstruction_Mfc0,
 
     // Macro Instructions
-    MIPSInstruction_B, MIPSInstruction_Bgezal, MIPSInstruction_Bltz, MIPSInstruction_Bltzal,
-    MIPSInstruction_Nop
+    MIPSMacro_La, MIPSMacro_Li, MIPSMacro_Move,
+    MIPSMacro_Lhu, MIPSMacro_Lw,
+    MIPSMacro_Sw, MIPSMacro_Sh,
+    MIPSMacro_B,
+    MIPSMacro_Mtc0,
+    MIPSMacro_Nop
 };
 
 #pragma pack(push, 1)
