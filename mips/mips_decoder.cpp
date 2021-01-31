@@ -88,7 +88,7 @@ size_t MIPSDecoder::checkFormat(const MIPSInstruction* mi)
     }
 
     if(mi->c.op == 0b010000) return MIPSEncoding_C;
-    if(((mi->i_u.op >= 0x04) && (mi->i_u.op <= 0x2b)) || (mi->i_u.op == 0x01)) return MIPSEncoding_I;
+    if(((mi->i_u.op >= 0x04) && (mi->i_u.op <= 0x2e)) || (mi->i_u.op == 0x01)) return MIPSEncoding_I;
     if((mi->j.op == 0x02) || (mi->j.op == 0x03)) return MIPSEncoding_J;
     return MIPSEncoding_None;
 }

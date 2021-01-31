@@ -32,11 +32,16 @@ class MIPS
 };
 
 template<Swap32_Callback Swap>
-void MIPS::emulate(RDContext*, RDEmulateResult* result) {
+void MIPS::emulate(RDContext* ctx, RDEmulateResult* result) {
     MIPSDecodedInstruction decoded;
     const RDBufferView* view = RDEmulateResult_GetView(result);
 
-    if(!MIPSDecoder::decode<Swap>(view, &decoded)) return;
+    if(!MIPSDecoder::decode<Swap>(view, &decoded))
+    {
+        rdcontext_addproblem(ctx, "Unknown instruction @ " + rd_tohex(RDEmulateResult_GetAddress(result)));
+        return;
+    }
+
     MIPS::emulate(&decoded, result);
 }
 

@@ -2,13 +2,6 @@
 
 #include <array>
 
-enum MIPSOperandFlags {
-    MIPSOperand_None,
-    MIPSOperand_Cop0,
-    MIPSOperand_Cop1,
-    MIPSOperand_Cop2,
-};
-
 enum MIPSRegisters {
     MIPSRegister_ZERO, MIPSRegister_AT,
     MIPSRegister_V0, MIPSRegister_V1,

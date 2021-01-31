@@ -71,6 +71,8 @@ void MIPSInitializeFormats()
     MIPSOpcodes_I[0b101000] = { "sb", MIPSInstruction_Sb, MIPSCategory_Store, MIPSEncoding_I, MIPSVersion_I };
     MIPSOpcodes_I[0b101001] = { "sh", MIPSInstruction_Sh, MIPSCategory_Store, MIPSEncoding_I, MIPSVersion_I };
     MIPSOpcodes_I[0b101011] = { "sw", MIPSInstruction_Sw, MIPSCategory_Store, MIPSEncoding_I, MIPSVersion_I };
+    MIPSOpcodes_I[0b101010] = { "swl", MIPSInstruction_Swl, MIPSCategory_Store, MIPSEncoding_I, MIPSVersion_I };
+    MIPSOpcodes_I[0b101110] = { "swr", MIPSInstruction_Swr, MIPSCategory_Store, MIPSEncoding_I, MIPSVersion_I };
     MIPSOpcodes_I[0b011001] = { "lhi", MIPSInstruction_Lhi, MIPSCategory_None, MIPSEncoding_I, MIPSVersion_I };
     MIPSOpcodes_I[0b011000] = { "llo", MIPSInstruction_Llo, MIPSCategory_None, MIPSEncoding_I, MIPSVersion_I };
     MIPSOpcodes_I[0b001010] = { "slti", MIPSInstruction_Slti, MIPSCategory_None, MIPSEncoding_I, MIPSVersion_I };

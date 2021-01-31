@@ -27,6 +27,7 @@ enum MIPSInstructionId {
     MIPSInstruction_Lhu, MIPSInstruction_Lw,
     MIPSInstruction_Lwl, MIPSInstruction_Lwr,
     MIPSInstruction_Sb, MIPSInstruction_Sh, MIPSInstruction_Sw,
+    MIPSInstruction_Swl, MIPSInstruction_Swr,
     MIPSInstruction_Lhi, MIPSInstruction_Llo,
     MIPSInstruction_Slti, MIPSInstruction_Sltiu,
 
@@ -87,7 +88,16 @@ struct CFormat {
     unsigned imm: 11;
     unsigned rd: 5;
     unsigned rt: 5;
-    unsigned rs: 5;
+    unsigned code: 5;
+    unsigned op: 6;
+};
+
+struct CSELFormat {
+    unsigned sel: 3;
+    unsigned : 8;
+    unsigned rd: 5;
+    unsigned rt: 5;
+    unsigned code: 5;
     unsigned op: 6;
 };
 
@@ -102,6 +112,7 @@ union MIPSInstruction {
     JFormat j;
     BFormat b;
     CFormat c;
+    CSELFormat csel;
 };
 #pragma pack(pop)
 
