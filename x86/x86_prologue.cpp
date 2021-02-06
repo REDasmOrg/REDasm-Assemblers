@@ -21,7 +21,7 @@ std::string X86Prologue::getPrologue() const
     if(RDContext_MatchAssembler(m_context, "x86_64"))
         return "";
 
-    return "55 8bec 83ec??"; // x86
+    return "55 8bec"; // x86
 }
 
 void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
