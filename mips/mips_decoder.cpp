@@ -54,7 +54,7 @@ bool MIPSDecoder::checkEncoding(MIPSDecodedInstruction* decoded)
 
         case MIPSEncoding_B:
         {
-            auto& format = MIPSOpcodes_B[decoded->instruction.b.op];
+            auto& format = MIPSOpcodes_B[decoded->instruction.b.funct];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
