@@ -28,41 +28,43 @@ bool MIPSDecoder::checkEncoding(MIPSDecodedInstruction* decoded)
 
     switch(f)
     {
-        case MIPSEncoding_R:
-        {
+        case MIPSEncoding_R: {
             auto& format = MIPSOpcodes_R[decoded->instruction.r.funct];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
         }
 
-        case MIPSEncoding_I:
-        {
+        case MIPSEncoding_I: {
             auto& format = MIPSOpcodes_I[decoded->instruction.i_u.op];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
         }
 
-        case MIPSEncoding_J:
-        {
+        case MIPSEncoding_J: {
             auto& format = MIPSOpcodes_J[decoded->instruction.j.op];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
         }
 
-        case MIPSEncoding_B:
-        {
+        case MIPSEncoding_B: {
             auto& format = MIPSOpcodes_B[decoded->instruction.b.funct];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
         }
 
-        case MIPSEncoding_C:
-        {
-            auto& format = MIPSOpcodes_C[decoded->instruction.c.op];
+        case MIPSEncoding_C0: {
+            auto& format = MIPSOpcodes_C0[decoded->instruction.c0sel.code];
+            if(!format.mnemonic) return false;
+            decoded->opcode = &format;
+            break;
+        }
+
+        case MIPSEncoding_C2: {
+            auto& format = MIPSOpcodes_C2[decoded->instruction.c2impl.code];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
@@ -71,7 +73,7 @@ bool MIPSDecoder::checkEncoding(MIPSDecodedInstruction* decoded)
         default:
             decoded->instruction = { };
             decoded->opcode = nullptr;
-            break;
+            return false;
     }
 
     return f != MIPSEncoding_None;
@@ -87,7 +89,9 @@ size_t MIPSDecoder::checkFormat(const MIPSInstruction* mi)
         return MIPSEncoding_R;
     }
 
-    if(mi->c.op == 0b010000) return MIPSEncoding_C;
+    if(mi->unk.op == 0b010000) return MIPSEncoding_C0;
+    //if(mi->unk.op == 0b010001) return MIPSEncoding_C1;
+    if(mi->unk.op == 0b010010) return MIPSEncoding_C2;
     if(((mi->i_u.op >= 0x04) && (mi->i_u.op <= 0x2e)) || (mi->i_u.op == 0x01)) return MIPSEncoding_I;
     if((mi->j.op == 0x02) || (mi->j.op == 0x03)) return MIPSEncoding_J;
     return MIPSEncoding_None;

@@ -6,7 +6,9 @@ MIPSOpcodeArray MIPSOpcodes_I{ };
 MIPSOpcodeArray MIPSOpcodes_R{ };
 MIPSOpcodeArray MIPSOpcodes_J{ };
 MIPSOpcodeArray MIPSOpcodes_B{ };
-MIPSOpcodeArray MIPSOpcodes_C{ };
+MIPSOpcodeArray MIPSOpcodes_C0{ };
+MIPSOpcodeArray MIPSOpcodes_C1{ };
+MIPSOpcodeArray MIPSOpcodes_C2{ };
 
 const MIPSMacroMap MIPSOpcodes_Macro = {
     MIPS_MACRO("la", MIPSMacro_La, sizeof(MIPSInstruction) * 2),
@@ -85,5 +87,8 @@ void MIPSInitializeFormats()
     MIPSOpcodes_B[0b001100] = { "syscall", MIPSInstruction_Syscall, MIPSCategory_None, MIPSEncoding_B, MIPSVersion_I };
     MIPSOpcodes_B[0b001101] = { "break", MIPSInstruction_Break, MIPSCategory_None, MIPSEncoding_B, MIPSVersion_I };
 
-    MIPSOpcodes_C[0b010000] = { "mfc0", MIPSInstruction_Mfc0, MIPSCategory_Load, MIPSEncoding_C, MIPSVersion_I };
+    MIPSOpcodes_C0[0b00000] = { "mfc0", MIPSInstruction_Mfc0, MIPSCategory_Load, MIPSEncoding_C0, MIPSVersion_I };
+    MIPSOpcodes_C0[0b00100] = { "mtc0", MIPSInstruction_Mtc0, MIPSCategory_Load, MIPSEncoding_C0, MIPSVersion_I };
+
+    MIPSOpcodes_C2[0b00110] = { "ctc2", MIPSInstruction_Ctc2, MIPSCategory_None, MIPSEncoding_C2, MIPSVersion_I };
 }

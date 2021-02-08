@@ -37,8 +37,11 @@ enum MIPSInstructionId {
     //B-Type
     MIPSInstruction_Break, MIPSInstruction_Syscall,
 
-    //C-Type
-    MIPSInstruction_Mfc0,
+    //C0-Type
+    MIPSInstruction_Mfc0, MIPSInstruction_Mtc0,
+
+    //C2-Type
+    MIPSInstruction_Ctc2,
 
     // Macro Instructions
     MIPSMacro_La, MIPSMacro_Li, MIPSMacro_Move,
@@ -50,6 +53,12 @@ enum MIPSInstructionId {
 };
 
 #pragma pack(push, 1)
+struct UNKFormat {
+    unsigned : 21;
+    unsigned code: 5;
+    unsigned op: 6;
+};
+
 struct RFormat {
     unsigned funct: 6;
     unsigned shamt: 5;
@@ -84,15 +93,23 @@ struct BFormat {
     unsigned op: 6;
 };
 
-struct CFormat {
+struct C1IMMFormat {
     unsigned imm: 11;
+    unsigned fs: 5;
+    unsigned rt: 5;
+    unsigned code: 5;
+    unsigned op: 6;
+};
+
+struct C2ImplFormat {
+    unsigned impl: 11;
     unsigned rd: 5;
     unsigned rt: 5;
     unsigned code: 5;
     unsigned op: 6;
 };
 
-struct CSELFormat {
+struct C1SELFormat {
     unsigned sel: 3;
     unsigned : 8;
     unsigned rd: 5;
@@ -101,18 +118,28 @@ struct CSELFormat {
     unsigned op: 6;
 };
 
+typedef C1SELFormat C0SELFormat;
+
 union MIPSInstruction {
     u32 word;
     u16 hword[2];
     u8 bytes[4];
+
+    UNKFormat unk;
 
     RFormat r;
     IFormatUnsigned i_u;
     IFormatSigned i_s;
     JFormat j;
     BFormat b;
-    CFormat c;
-    CSELFormat csel;
+
+    // Coprocessors
+    C0SELFormat c0sel;
+
+    C1IMMFormat c1imm;
+    C1SELFormat c1sel;
+
+    C2ImplFormat c2impl;
 };
 #pragma pack(pop)
 

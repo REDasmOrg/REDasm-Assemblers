@@ -13,7 +13,8 @@ enum MIPSVersion {
 enum MIPSEncoding {
     MIPSEncoding_None,
     MIPSEncoding_R, MIPSEncoding_I, MIPSEncoding_J,
-    MIPSEncoding_B, MIPSEncoding_C,
+    MIPSEncoding_B,
+    MIPSEncoding_C0, MIPSEncoding_C1, MIPSEncoding_C2,
     MIPSEncoding_Count
 };
 
@@ -65,6 +66,8 @@ extern MIPSOpcodeArray MIPSOpcodes_R;
 extern MIPSOpcodeArray MIPSOpcodes_I;
 extern MIPSOpcodeArray MIPSOpcodes_J;
 extern MIPSOpcodeArray MIPSOpcodes_B;
-extern MIPSOpcodeArray MIPSOpcodes_C;
+extern MIPSOpcodeArray MIPSOpcodes_C0;
+extern MIPSOpcodeArray MIPSOpcodes_C1;
+extern MIPSOpcodeArray MIPSOpcodes_C2;
 
 void MIPSInitializeFormats();

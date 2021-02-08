@@ -23,7 +23,9 @@ class MIPS
         static void renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderB(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
-        static void renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderC0(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderC1(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderC2(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderMacro(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
 
@@ -36,8 +38,7 @@ void MIPS::emulate(RDContext* ctx, RDEmulateResult* result) {
     MIPSDecodedInstruction decoded;
     const RDBufferView* view = RDEmulateResult_GetView(result);
 
-    if(!MIPSDecoder::decode<Swap>(view, &decoded))
-    {
+    if(!MIPSDecoder::decode<Swap>(view, &decoded)) {
         rdcontext_addproblem(ctx, "Unknown instruction @ " + rd_tohex(RDEmulateResult_GetAddress(result)));
         return;
     }

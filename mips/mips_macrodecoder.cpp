@@ -72,7 +72,7 @@ void MIPSMacroDecoder::checkLi(MIPSDecodedInstruction* decoded)
 
 void MIPSMacroDecoder::checkMtc0(MIPSDecodedInstruction* decoded)
 {
-    if(decoded->instruction.c.code != 0b00100) return;
+    if(decoded->instruction.unk.code != 0b00100) return;
     MIPSMacroDecoder::applyMacro("mtc0", decoded);
 }
 
