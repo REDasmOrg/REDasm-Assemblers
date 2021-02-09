@@ -39,7 +39,7 @@ void MIPS::emulate(RDContext* ctx, RDEmulateResult* result) {
     const RDBufferView* view = RDEmulateResult_GetView(result);
 
     if(!MIPSDecoder::decode<Swap>(view, &decoded)) {
-        RDEmulateResult_SetSize(result, sizeof(MIPSInstruction)); // Just skip the instruction
+        RDEmulateResult_AddInvalid(result, sizeof(MIPSInstruction));
         rdcontext_addproblem(ctx, "Unknown instruction @ " + rd_tohex(RDEmulateResult_GetAddress(result)));
         return;
     }
