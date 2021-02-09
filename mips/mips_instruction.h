@@ -18,6 +18,9 @@ enum MIPSInstructionId {
     MIPSInstruction_Mtlo, MIPSInstruction_Sllv, MIPSInstruction_Srav,
     MIPSInstruction_Srlv, MIPSInstruction_Xori, MIPSInstruction_Jalr,
 
+    // C-Type
+    MIPSInstruction_Teq, MIPSInstruction_Tge,
+
     // I-Type
     MIPSInstruction_Addi, MIPSInstruction_Addiu, MIPSInstruction_Andi,
     MIPSInstruction_Ori, MIPSInstruction_Lui, MIPSInstruction_Beq,
@@ -41,14 +44,18 @@ enum MIPSInstructionId {
     MIPSInstruction_Mfc0, MIPSInstruction_Mtc0,
 
     //C2-Type
-    MIPSInstruction_Ctc2,
+    MIPSInstruction_Mfc2, MIPSInstruction_Mtc2,
+    MIPSInstruction_Cfc2, MIPSInstruction_Ctc2,
+
+    //CLS-Type
+    MIPSInstruction_Lwc1, MIPSInstruction_Swc1,
+    MIPSInstruction_Lwc2, MIPSInstruction_Swc2,
 
     // Macro Instructions
     MIPSMacro_La, MIPSMacro_Li, MIPSMacro_Move,
     MIPSMacro_Lhu, MIPSMacro_Lw,
     MIPSMacro_Sw, MIPSMacro_Sh,
     MIPSMacro_B,
-    MIPSMacro_Mtc0,
     MIPSMacro_Nop
 };
 
@@ -63,6 +70,14 @@ struct RFormat {
     unsigned funct: 6;
     unsigned shamt: 5;
     unsigned rd: 5;
+    unsigned rt: 5;
+    unsigned rs: 5;
+    unsigned op: 6;
+};
+
+struct CFormat {
+    unsigned funct: 6;
+    unsigned code: 10;
     unsigned rt: 5;
     unsigned rs: 5;
     unsigned op: 6;
@@ -119,6 +134,7 @@ struct C1SELFormat {
 };
 
 typedef C1SELFormat C0SELFormat;
+typedef IFormatUnsigned CLSFormat;
 
 union MIPSInstruction {
     u32 word;
@@ -128,12 +144,15 @@ union MIPSInstruction {
     UNKFormat unk;
 
     RFormat r;
+    CFormat c;
     IFormatUnsigned i_u;
     IFormatSigned i_s;
     JFormat j;
     BFormat b;
 
     // Coprocessors
+    CLSFormat cls;
+
     C0SELFormat c0sel;
 
     C1IMMFormat c1imm;

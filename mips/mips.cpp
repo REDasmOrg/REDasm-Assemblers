@@ -4,8 +4,8 @@
 
 std::array<MIPS::Callback_MIPSDecode, MIPSEncoding_Count> MIPS::m_renderers = {
     [](const MIPSDecodedInstruction*, const RDRendererParams*) { },
-    &MIPS::renderR, &MIPS::renderI, &MIPS::renderJ, &MIPS::renderB,
-    &MIPS::renderC0, &MIPS::renderC1, &MIPS::renderC2,
+    &MIPS::renderR, &MIPS::renderC, &MIPS::renderI, &MIPS::renderJ, &MIPS::renderB,
+    &MIPS::renderC0, &MIPS::renderC1, &MIPS::renderC2, &MIPS::renderCLS,
 };
 
 void MIPS::initialize() { MIPSInitializeFormats(); }
@@ -160,6 +160,14 @@ void MIPS::renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams
     }
 }
 
+void MIPS::renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
+{
+    RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.c.rs));
+    RDRenderer_Text(rp->renderer, ", ");
+    RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.c.rt));
+    RDRenderer_Themed(rp->renderer, ("  # " + rd_tohex(decoded->instruction.c.code)).c_str(), Theme_Comment);
+}
+
 void MIPS::renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
 {
     if(decoded->opcode->id == MIPSInstruction_Lui)
@@ -227,15 +235,26 @@ void MIPS::renderC2(const MIPSDecodedInstruction* decoded, const RDRendererParam
 {
     switch(decoded->opcode->id)
     {
+        case MIPSInstruction_Mfc2:
+        case MIPSInstruction_Mtc2:
+        case MIPSInstruction_Cfc2:
         case MIPSInstruction_Ctc2:
             RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.c2impl.rt));
             RDRenderer_Text(rp->renderer, ", ");
-            RDRenderer_Register(rp->renderer, ("$" + std::to_string(decoded->instruction.c2impl.rd)).c_str());
+            RDRenderer_Register(rp->renderer, MIPSDecoder::copNreg(decoded->instruction.c2impl.rd));
             break;
 
         default:
             break;
     }
+}
+
+void MIPS::renderCLS(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)
+{
+    RDRenderer_Register(rp->renderer, MIPSDecoder::copNreg(decoded->instruction.cls.rt));
+    RDRenderer_Text(rp->renderer, ", ");
+    RDRenderer_Signed(rp->renderer, decoded->instruction.cls.immediate);
+    RDRenderer_Register(rp->renderer, MIPSDecoder::reg(decoded->instruction.cls.rs));
 }
 
 void MIPS::renderMacro(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp)

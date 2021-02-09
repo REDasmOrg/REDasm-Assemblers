@@ -22,6 +22,13 @@ const char* MIPSDecoder::cop0reg(u32 r)
     return COP0_REGISTERS[r];
 }
 
+const char* MIPSDecoder::copNreg(u32 r)
+{
+    static std::string copreg;
+    copreg = "$" + std::to_string(r);
+    return copreg.c_str();
+}
+
 bool MIPSDecoder::checkEncoding(MIPSDecodedInstruction* decoded)
 {
     size_t f = MIPSDecoder::checkFormat(&decoded->instruction);
@@ -30,6 +37,13 @@ bool MIPSDecoder::checkEncoding(MIPSDecodedInstruction* decoded)
     {
         case MIPSEncoding_R: {
             auto& format = MIPSOpcodes_R[decoded->instruction.r.funct];
+            if(!format.mnemonic) return false;
+            decoded->opcode = &format;
+            break;
+        }
+
+        case MIPSEncoding_C: {
+            auto& format = MIPSOpcodes_C[decoded->instruction.c.funct];
             if(!format.mnemonic) return false;
             decoded->opcode = &format;
             break;
@@ -70,6 +84,13 @@ bool MIPSDecoder::checkEncoding(MIPSDecodedInstruction* decoded)
             break;
         }
 
+        case MIPSEncoding_CLS: {
+            auto& format = MIPSOpcodes_CLS[decoded->instruction.cls.op];
+            if(!format.mnemonic) return false;
+            decoded->opcode = &format;
+            break;
+        }
+
         default:
             decoded->instruction = { };
             decoded->opcode = nullptr;
@@ -83,17 +104,36 @@ size_t MIPSDecoder::checkFormat(const MIPSInstruction* mi)
 {
     if(!mi->r.op)
     {
-        if((mi->b.funct == 0b001100) || (mi->b.funct == 0b001101))
-            return MIPSEncoding_B;
+        switch(mi->b.funct)
+        {
+            case 0b001100:
+            case 0b001101: return MIPSEncoding_B;
+
+            case 0b110000:
+            case 0b110100: return MIPSEncoding_C;
+            default: break;
+        }
 
         return MIPSEncoding_R;
     }
 
-    if(mi->unk.op == 0b010000) return MIPSEncoding_C0;
-    //if(mi->unk.op == 0b010001) return MIPSEncoding_C1;
-    if(mi->unk.op == 0b010010) return MIPSEncoding_C2;
+    switch(mi->unk.op)
+    {
+        case 0b010000: return MIPSEncoding_C0;
+        //case 0b010001: return MIPSEncoding_C1;
+        case 0b010010: return MIPSEncoding_C2;
+
+        case 0b110001:
+        case 0b111001:
+        case 0b110010:
+        case 0b111010: return MIPSEncoding_CLS;
+
+        default: break;
+    }
+
     if(((mi->i_u.op >= 0x04) && (mi->i_u.op <= 0x2e)) || (mi->i_u.op == 0x01)) return MIPSEncoding_I;
     if((mi->j.op == 0x02) || (mi->j.op == 0x03)) return MIPSEncoding_J;
+
     return MIPSEncoding_None;
 }
 

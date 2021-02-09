@@ -11,6 +11,7 @@ class MIPSDecoder
         static bool decodeOne(const RDBufferView* view, MIPSDecodedInstruction* decoded, Swap32_Callback swapcb);
         static std::optional<rd_address> calcAddress(const MIPSDecodedInstruction* decoded, rd_address address);
         static const char* cop0reg(u32 r);
+        static const char* copNreg(u32 r);
         static const char* reg(u32 r);
 
     private:

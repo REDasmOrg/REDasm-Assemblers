@@ -12,9 +12,9 @@ enum MIPSVersion {
 
 enum MIPSEncoding {
     MIPSEncoding_None,
-    MIPSEncoding_R, MIPSEncoding_I, MIPSEncoding_J,
+    MIPSEncoding_R, MIPSEncoding_C, MIPSEncoding_I, MIPSEncoding_J,
     MIPSEncoding_B,
-    MIPSEncoding_C0, MIPSEncoding_C1, MIPSEncoding_C2,
+    MIPSEncoding_C0, MIPSEncoding_C1, MIPSEncoding_C2, MIPSEncoding_CLS,
     MIPSEncoding_Count
 };
 
@@ -63,11 +63,13 @@ typedef std::unordered_map<std::string, MIPSMacro> MIPSMacroMap;
 
 extern const MIPSMacroMap MIPSOpcodes_Macro;
 extern MIPSOpcodeArray MIPSOpcodes_R;
+extern MIPSOpcodeArray MIPSOpcodes_C;
 extern MIPSOpcodeArray MIPSOpcodes_I;
 extern MIPSOpcodeArray MIPSOpcodes_J;
 extern MIPSOpcodeArray MIPSOpcodes_B;
 extern MIPSOpcodeArray MIPSOpcodes_C0;
 extern MIPSOpcodeArray MIPSOpcodes_C1;
 extern MIPSOpcodeArray MIPSOpcodes_C2;
+extern MIPSOpcodeArray MIPSOpcodes_CLS;
 
 void MIPSInitializeFormats();

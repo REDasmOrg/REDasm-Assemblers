@@ -15,7 +15,6 @@ void MIPSMacroDecoder::checkMacro(MIPSDecodedInstruction* decoded, const RDBuffe
         case MIPSInstruction_Lui: MIPSMacroDecoder::checkLui(decoded, *view, swapcb); break;
         case MIPSInstruction_Sll: MIPSMacroDecoder::checkNop(decoded); break;
         case MIPSInstruction_Beq: MIPSMacroDecoder::checkB(decoded); break;
-        case MIPSInstruction_Mfc0: MIPSMacroDecoder::checkMtc0(decoded); break;
         default: break;
     }
 }
@@ -68,12 +67,6 @@ void MIPSMacroDecoder::checkLi(MIPSDecodedInstruction* decoded)
 {
     if(decoded->instruction.i_u.rs != MIPSRegister_ZERO) return;
     MIPSMacroDecoder::applyMacro("li", decoded);
-}
-
-void MIPSMacroDecoder::checkMtc0(MIPSDecodedInstruction* decoded)
-{
-    if(decoded->instruction.unk.code != 0b00100) return;
-    MIPSMacroDecoder::applyMacro("mtc0", decoded);
 }
 
 void MIPSMacroDecoder::checkMove(MIPSDecodedInstruction* decoded)

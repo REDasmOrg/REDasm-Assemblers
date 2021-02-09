@@ -20,12 +20,14 @@ class MIPS
         static void renderInstruction(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderMnemonic(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderR(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderC(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderI(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderJ(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderB(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderC0(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderC1(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderC2(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
+        static void renderCLS(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderMacro(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
         static void renderLoadStore(const MIPSDecodedInstruction* decoded, const RDRendererParams* rp);
 

@@ -3,12 +3,14 @@
 #define MIPS_MACRO(name, type, size) { name, { { name, type, MIPSCategory_Macro, MIPSEncoding_None, MIPSVersion_None }, size } }
 
 MIPSOpcodeArray MIPSOpcodes_I{ };
+MIPSOpcodeArray MIPSOpcodes_C{ };
 MIPSOpcodeArray MIPSOpcodes_R{ };
 MIPSOpcodeArray MIPSOpcodes_J{ };
 MIPSOpcodeArray MIPSOpcodes_B{ };
 MIPSOpcodeArray MIPSOpcodes_C0{ };
 MIPSOpcodeArray MIPSOpcodes_C1{ };
 MIPSOpcodeArray MIPSOpcodes_C2{ };
+MIPSOpcodeArray MIPSOpcodes_CLS{ };
 
 const MIPSMacroMap MIPSOpcodes_Macro = {
     MIPS_MACRO("la", MIPSMacro_La, sizeof(MIPSInstruction) * 2),
@@ -21,7 +23,6 @@ const MIPSMacroMap MIPSOpcodes_Macro = {
     MIPS_MACRO("b", MIPSMacro_B, sizeof(MIPSInstruction)),
     MIPS_MACRO("nop", MIPSMacro_Nop, sizeof(MIPSInstruction)),
     MIPS_MACRO("move", MIPSMacro_Move, sizeof(MIPSInstruction)),
-    MIPS_MACRO("mtc0", MIPSMacro_Mtc0, sizeof(MIPSInstruction))
 };
 
 void MIPSInitializeFormats()
@@ -52,6 +53,9 @@ void MIPSInitializeFormats()
     MIPSOpcodes_R[0b000111] = { "srav", MIPSInstruction_Srav, MIPSCategory_None, MIPSEncoding_R, MIPSVersion_I };
     MIPSOpcodes_R[0b000110] = { "srlv", MIPSInstruction_Srlv, MIPSCategory_None, MIPSEncoding_R, MIPSVersion_I };
     MIPSOpcodes_R[0b001001] = { "jalr", MIPSInstruction_Jalr, MIPSCategory_Call, MIPSEncoding_R, MIPSVersion_I };
+
+    MIPSOpcodes_C[0b110000] = { "tge", MIPSInstruction_Tge, MIPSCategory_None, MIPSEncoding_C, MIPSVersion_I };
+    MIPSOpcodes_C[0b110100] = { "teq", MIPSInstruction_Teq, MIPSCategory_None, MIPSEncoding_C, MIPSVersion_I };
 
     MIPSOpcodes_I[0b001000] = { "addi", MIPSInstruction_Addi, MIPSCategory_None, MIPSEncoding_I, MIPSVersion_I };
     MIPSOpcodes_I[0b001001] = { "addiu", MIPSInstruction_Addiu, MIPSCategory_None, MIPSEncoding_I, MIPSVersion_I };
@@ -90,5 +94,13 @@ void MIPSInitializeFormats()
     MIPSOpcodes_C0[0b00000] = { "mfc0", MIPSInstruction_Mfc0, MIPSCategory_Load, MIPSEncoding_C0, MIPSVersion_I };
     MIPSOpcodes_C0[0b00100] = { "mtc0", MIPSInstruction_Mtc0, MIPSCategory_Load, MIPSEncoding_C0, MIPSVersion_I };
 
+    MIPSOpcodes_C2[0b00000] = { "mfc2", MIPSInstruction_Mfc2, MIPSCategory_None, MIPSEncoding_C2, MIPSVersion_I };
+    MIPSOpcodes_C2[0b00100] = { "mtc2", MIPSInstruction_Mtc2, MIPSCategory_None, MIPSEncoding_C2, MIPSVersion_I };
+    MIPSOpcodes_C2[0b00010] = { "cfc2", MIPSInstruction_Cfc2, MIPSCategory_None, MIPSEncoding_C2, MIPSVersion_I };
     MIPSOpcodes_C2[0b00110] = { "ctc2", MIPSInstruction_Ctc2, MIPSCategory_None, MIPSEncoding_C2, MIPSVersion_I };
+
+    MIPSOpcodes_CLS[0b110001] = { "lwc1", MIPSInstruction_Lwc1, MIPSCategory_None, MIPSEncoding_CLS, MIPSVersion_I };
+    MIPSOpcodes_CLS[0b111001] = { "swc1", MIPSInstruction_Swc1, MIPSCategory_None, MIPSEncoding_CLS, MIPSVersion_I };
+    MIPSOpcodes_CLS[0b110010] = { "lwc2", MIPSInstruction_Lwc2, MIPSCategory_None, MIPSEncoding_CLS, MIPSVersion_I };
+    MIPSOpcodes_CLS[0b111010] = { "swc2", MIPSInstruction_Lwc2, MIPSCategory_None, MIPSEncoding_CLS, MIPSVersion_I };
 }
