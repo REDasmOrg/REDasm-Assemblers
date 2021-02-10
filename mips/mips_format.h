@@ -41,13 +41,14 @@ struct MIPSOpcode {
 union MIPSMacroOpCode {
     struct {
         unsigned reg: 5;
-
-        union {
-            rd_address address;
-            u64 u_value;
-            s64 s_value;
-        };
+        union { rd_address address; u64 u_value; s64 s_value; };
     } regimm; // opcode reg, imm
+
+    struct {
+        union { rd_address address; u64 u_value; s64 s_value; };
+        unsigned base: 5;
+        unsigned rt: 5;
+    } loadstore; // opcode reg, offset(base)
 };
 
 struct MIPSDecodedInstruction {

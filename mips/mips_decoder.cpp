@@ -159,7 +159,7 @@ std::optional<rd_address> MIPSDecoder::calcAddress(const MIPSDecodedInstruction*
         {
             case MIPSEncoding_J: return (address & (0xF << ((sizeof(u32) * CHAR_BIT) - 4))) | (static_cast<u32>(decoded->instruction.j.target) << 2);
             case MIPSEncoding_I: return address + sizeof(MIPSInstruction) + static_cast<s32>(RD_SignExt(decoded->instruction.i_s.immediate << 2, 32));
-            default: break;
+            default: rd_log("Cannot calculate address of '" + std::string(decoded->opcode->mnemonic) + "'"); break;
         }
     }
 

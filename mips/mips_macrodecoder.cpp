@@ -9,7 +9,8 @@ void MIPSMacroDecoder::checkMacro(MIPSDecodedInstruction* decoded, const RDBuffe
     switch(decoded->opcode->id)
     {
         case MIPSInstruction_Ori:
-        case MIPSInstruction_Addi: MIPSMacroDecoder::checkLi(decoded); break;
+        case MIPSInstruction_Addi:
+        case MIPSInstruction_Addiu: MIPSMacroDecoder::checkLi(decoded); break;
 
         case MIPSInstruction_Addu: MIPSMacroDecoder::checkMove(decoded); break;
         case MIPSInstruction_Lui: MIPSMacroDecoder::checkLui(decoded, *view, swapcb); break;
@@ -93,6 +94,12 @@ bool MIPSMacroDecoder::canSimplifyLui(const MIPSDecodedInstruction* luidecoded, 
     switch(decoded->opcode->encoding)
     {
         case MIPSEncoding_I: return luidecoded->instruction.i_u.rt == decoded->instruction.i_u.rs;
+
+        case MIPSEncoding_R: {
+            if(decoded->instruction.r.rd != decoded->instruction.r.rs) return false;
+            return (luidecoded->instruction.i_u.rt == MIPSRegister_AT) && (decoded->instruction.r.rd == MIPSRegister_AT);
+        }
+
         default: break;
     }
 
