@@ -1,7 +1,7 @@
 #include "mips_lifter.h"
 #include "mips_registers.h"
 
-void MIPSLifter::lift(RDILFunction* il, const MIPSDecodedInstruction* decoded, rd_address address)
+void MIPSLifter::lift(RDILFunction* il, const MIPSDecodedInstruction* decoded, const MIPSDecodedInstruction* nextdecoded, rd_address address)
 {
     switch(decoded->opcode->id)
     {
@@ -17,8 +17,12 @@ void MIPSLifter::lift(RDILFunction* il, const MIPSDecodedInstruction* decoded, r
 
         case MIPSInstruction_Jr: {
             RDILExpression* e = nullptr;
-            if(decoded->instruction.r.rs == MIPSRegister_RA) e = RDILFunction_RET(il, RDILFunction_REG(il, sizeof(u32), MIPSDecoder::reg(decoded->instruction.r.rs)));
-            else e = RDILFunction_GOTO(il, RDILFunction_REG(il, sizeof(u32), MIPSDecoder::reg(decoded->instruction.r.rs)));
+
+            if((decoded->instruction.r.rs == MIPSRegister_RA) && (nextdecoded && (nextdecoded->opcode->id == MIPSMacro_Nop)))
+                e = RDILFunction_RET(il, RDILFunction_REG(il, sizeof(u32), MIPSDecoder::reg(decoded->instruction.r.rs)));
+            else
+                e = RDILFunction_GOTO(il, RDILFunction_REG(il, sizeof(u32), MIPSDecoder::reg(decoded->instruction.r.rs)));
+
             RDILFunction_Append(il, e);
             break;
         }
