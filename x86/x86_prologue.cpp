@@ -27,12 +27,7 @@ std::string X86Prologue::getPrologue() const
 void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
 {
     m_pattern = this->getPrologue();
-
-    if(m_pattern.empty())
-    {
-        rd_log("Skipping prologue analysis...");
-        return;
-    }
+    if(m_pattern.empty()) return;
 
     RDBlockContainer_Each(blocks, [](const RDBlock* b, void* userdata) {
         if(!IS_TYPE(b, BlockType_Unknown)) return true;
