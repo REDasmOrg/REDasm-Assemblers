@@ -5,24 +5,32 @@ bool ZydisCommon::decode(ZydisDecoder decoder, const RDBufferView* view, ZydisDe
     return ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, view->data, static_cast<ZyanUSize>(view->size), zinstr));
 }
 
-std::optional<ZyanU64> ZydisCommon::calcAddress(const ZydisDecodedInstruction* zinstr, size_t opidx, rd_address address)
+std::optional<ZyanU64> ZydisCommon::calcAddress(const ZydisDecodedInstruction* zinstr, size_t opidx, rd_address address, bool* istable)
 {
     ZyanU64 calcaddress = 0;
     auto& zop = zinstr->operands[opidx];
 
     switch(zop.type)
     {
-        case ZYDIS_OPERAND_TYPE_IMMEDIATE:
+        case ZYDIS_OPERAND_TYPE_IMMEDIATE: {
             if(!ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(zinstr, &zop, address, &calcaddress)))
                 return std::make_optional(zop.imm.value.u);
 
             return std::make_optional(calcaddress);
+        }
 
-        case ZYDIS_OPERAND_TYPE_MEMORY:
-            if(ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(zinstr, &zop, address, &calcaddress)))
+        case ZYDIS_OPERAND_TYPE_MEMORY: {
+            if(!ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(zinstr, &zop, address, &calcaddress))) {
+                if((zop.mem.index != ZYDIS_REGISTER_NONE) && zop.mem.disp.has_displacement) {
+                    if(istable) *istable = true;
+                    return std::make_optional(zop.mem.disp.value);
+                }
+            }
+            else
                 return std::make_optional(calcaddress);
 
             break;
+        }
 
         default: break;
     }

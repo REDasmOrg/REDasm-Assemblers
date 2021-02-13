@@ -6,7 +6,7 @@
 
 #define X86_USERDATA    "x86_userdata"
 #define X86_64_USERDATA "x86_64_userdata"
-#define BUFFER_SIZE  256
+#define BUFFER_SIZE     256
 
 X86Assembler::X86Assembler(RDContext* ctx, size_t bits): ZydisCommon(), m_context(ctx)
 {
@@ -31,40 +31,46 @@ void X86Assembler::emulate(RDEmulateResult* result)
 
     switch(zinstr.meta.category)
     {
-        case ZYDIS_CATEGORY_CALL:
-        {
-            auto calcaddress = X86Assembler::calcAddress(&zinstr, 0, address);
-            if(calcaddress) RDEmulateResult_AddCall(result, *calcaddress);
+        case ZYDIS_CATEGORY_CALL: {
+            bool istable = false;
+            auto calcaddress = X86Assembler::calcAddress(&zinstr, 0, address, &istable);
+
+            if(calcaddress) {
+                if(istable) RDEmulateResult_AddCallTable(result, *calcaddress, RD_NVAL);
+                RDEmulateResult_AddCall(result, *calcaddress);
+            }
             else RDEmulateResult_AddCallUnresolved(result);
             break;
         }
 
-        case ZYDIS_CATEGORY_UNCOND_BR:
-        {
-            auto calcaddress = X86Assembler::calcAddress(&zinstr, 0, address);
-            if(calcaddress) RDEmulateResult_AddBranch(result, *calcaddress);
-            else RDEmulateResult_AddBranchIndirect(result);
+        case ZYDIS_CATEGORY_UNCOND_BR: {
+            bool istable = false;
+            auto calcaddress = X86Assembler::calcAddress(&zinstr, 0, address, &istable);
+
+            if(calcaddress) {
+                if(istable) RDEmulateResult_AddBranchTable(result, *calcaddress, RD_NVAL);
+                else RDEmulateResult_AddBranch(result, *calcaddress);
+            }
+
+            else RDEmulateResult_AddBranchUnresolved(result);
             break;
         }
 
-        case ZYDIS_CATEGORY_COND_BR:
-        {
+        case ZYDIS_CATEGORY_COND_BR: {
             auto calcaddress = X86Assembler::calcAddress(&zinstr, 0, address);
             if(calcaddress) RDEmulateResult_AddBranchTrue(result, *calcaddress);
-            else RDEmulateResult_AddBranchIndirect(result);
+            else RDEmulateResult_AddBranchUnresolved(result);
 
             RDEmulateResult_AddBranchFalse(result, address + zinstr.length);
             break;
         }
 
-        case ZYDIS_CATEGORY_SYSTEM:
-        {
+        case ZYDIS_CATEGORY_SYSTEM: {
             if(zinstr.mnemonic == ZYDIS_MNEMONIC_HLT) RDEmulateResult_AddReturn(result);
             break;
         }
 
-        case ZYDIS_CATEGORY_INTERRUPT:
-        {
+        case ZYDIS_CATEGORY_INTERRUPT: {
             if(zinstr.mnemonic == ZYDIS_MNEMONIC_INT3) RDEmulateResult_AddReturn(result);
             break;
         }
@@ -106,7 +112,8 @@ void X86Assembler::renderInstruction(const RDRendererParams* srp)
             case ZYDIS_TOKEN_ADDRESS_ABS:
             case ZYDIS_TOKEN_ADDRESS_REL:
             case ZYDIS_TOKEN_IMMEDIATE:
-                RDRenderer_Reference(srp->renderer, static_cast<u64>(std::stoull(tokenvalue, nullptr, 16)));
+            case ZYDIS_TOKEN_DISPLACEMENT:
+                RDRenderer_Reference(srp->renderer, static_cast<rd_location>(std::stoull(tokenvalue, nullptr, 16)));
                 break;
 
             case ZYDIS_TOKEN_MNEMONIC:
