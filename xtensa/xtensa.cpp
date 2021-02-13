@@ -147,7 +147,7 @@ void Xtensa<Swap>::emulateBRANCH(RDContext*, RDEmulateResult* result, const Xten
     switch(op.type)
     {
         case XtensaOperandType_Immediate: RDEmulateResult_AddBranch(result, op.u_value); break;
-        case XtensaOperandType_Register: RDEmulateResult_AddBranchIndirect(result); break;
+        case XtensaOperandType_Register: RDEmulateResult_AddBranchUnresolved(result); break;
         default: RDEmulateResult_AddBranchUnresolved(result); break;
     }
 
