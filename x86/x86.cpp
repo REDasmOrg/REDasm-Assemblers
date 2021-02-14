@@ -82,6 +82,13 @@ void X86Assembler::emulate(RDEmulateResult* result)
 
 void X86Assembler::processRefs(ZydisDecodedInstruction* zinstr, rd_address address, RDEmulateResult* result)
 {
+    if(zinstr->mnemonic == ZYDIS_MNEMONIC_LEA)
+    {
+        auto calcaddress = X86Assembler::calcAddress(zinstr, 1, address);
+        if(calcaddress) RDEmulateResult_AddTable(result, *calcaddress, RD_NVAL);
+        return;
+    }
+
     for(auto i = 0; i < zinstr->operand_count; i++)
     {
         auto calcaddress = X86Assembler::calcAddress(zinstr, i, address);
