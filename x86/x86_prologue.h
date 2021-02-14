@@ -2,6 +2,7 @@
 
 #include <rdapi/rdapi.h>
 #include <unordered_set>
+#include <vector>
 
 class X86Prologue
 {
@@ -10,12 +11,12 @@ class X86Prologue
         void search();
 
     private:
-        std::string getPrologue() const;
+        std::vector<std::string> getPrologues() const;
         void searchPrologue(const RDBlockContainer* blocks);
 
     private:
-        std::unordered_set<rd_address> m_prologues;
-        std::string m_pattern;
+        std::unordered_set<rd_address> m_doneprologues;
+        std::string m_currprologue;
         RDContext* m_context;
         RDDocument* m_document;
 };
