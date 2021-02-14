@@ -37,7 +37,7 @@ void X86Assembler::emulate(RDEmulateResult* result)
 
             if(calcaddress) {
                 if(istable) RDEmulateResult_AddCallTable(result, *calcaddress, RD_NVAL);
-                RDEmulateResult_AddCall(result, *calcaddress);
+                else RDEmulateResult_AddCall(result, *calcaddress);
             }
             else RDEmulateResult_AddCallUnresolved(result);
             break;
