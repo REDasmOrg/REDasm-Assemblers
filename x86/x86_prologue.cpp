@@ -7,13 +7,17 @@ X86Prologue::X86Prologue(RDContext* ctx): m_context(ctx)
 
 void X86Prologue::search()
 {
-    RDDocument_EachSegment(m_document, [](const RDSegment* s, void* userdata) {
-        if(!HAS_FLAG(s, SegmentFlags_Code) || HAS_FLAG(s, SegmentFlags_Bss)) return true;
-        auto* thethis = reinterpret_cast<X86Prologue*>(userdata);
-        const RDBlockContainer* blocks = RDDocument_GetBlocks(thethis->m_document, s->address);
-        if(blocks) thethis->searchPrologue(blocks);
-        return true;
-    }, this);
+    const rd_address* address = nullptr;
+    size_t c = RDDocument_GetSegments(m_document, &address);
+
+    for(size_t i = 0; i < c; i++)
+    {
+        RDSegment segment;
+        if(!RDDocument_AddressToSegment(m_document, address[i], &segment)) continue;
+
+        if(!HAS_FLAG(&segment, SegmentFlags_Code) || HAS_FLAG(&segment, SegmentFlags_Bss)) continue;
+        this->searchPrologue(segment.address);
+    }
 }
 
 std::vector<std::string> X86Prologue::getPrologues() const
@@ -24,7 +28,7 @@ std::vector<std::string> X86Prologue::getPrologues() const
     return { "55 8bec" }; // x86
 }
 
-void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
+void X86Prologue::searchPrologue(rd_address address)
 {
     m_doneprologues.clear();
     auto prologues = this->getPrologues();
@@ -33,12 +37,12 @@ void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
     {
         m_currprologue = p;
 
-        RDBlockContainer_Each(blocks, [](const RDBlock* b, void* userdata) {
+        RDDocument_EachBlock(m_document, address, [](const RDBlock* b, void* userdata) {
             if(!IS_TYPE(b, BlockType_Unknown)) return true;
             auto* thethis = reinterpret_cast<X86Prologue*>(userdata);
 
             RDBufferView view;
-            if(!RDContext_GetBlockView(thethis->m_context, b, &view)) return true;
+            if(!RDDocument_GetBlockView(thethis->m_document, b->address, &view)) return true;
 
             while(u8* p = RDBufferView_FindPatternNext(&view, thethis->m_currprologue.c_str())) {
                 auto loc = RD_AddressOf(thethis->m_context, p);
@@ -52,5 +56,5 @@ void X86Prologue::searchPrologue(const RDBlockContainer* blocks)
     }
 
     for(rd_address address : m_doneprologues)
-        RDContext_DisassembleFunction(m_context, address, nullptr);
+        RDDocument_CreateFunction(m_document, address, nullptr);
 }

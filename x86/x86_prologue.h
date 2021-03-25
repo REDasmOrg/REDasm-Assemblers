@@ -12,7 +12,7 @@ class X86Prologue
 
     private:
         std::vector<std::string> getPrologues() const;
-        void searchPrologue(const RDBlockContainer* blocks);
+        void searchPrologue(rd_address address);
 
     private:
         std::unordered_set<rd_address> m_doneprologues;
