@@ -1,9 +1,9 @@
-#include "arm.h"
+#include "arm32.h"
 #include <unordered_set>
 
-ARM::ARM(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, mode) { }
+ARM32::ARM32(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, mode) { }
 
-void ARM::emulate(RDEmulateResult* result)
+void ARM32::emulate(RDEmulateResult* result)
 {
     rd_address address = RDEmulateResult_GetAddress(result);
     if(!this->decode(address, RDEmulateResult_GetView(result))) return;
@@ -36,7 +36,7 @@ void ARM::emulate(RDEmulateResult* result)
     this->processOperands(address, result);
 }
 
-void ARM::render(const RDRendererParams* rp)
+void ARM32::render(const RDRendererParams* rp)
 {
     if(!this->decode(rp->address, &rp->view)) return;
 
@@ -78,7 +78,7 @@ void ARM::render(const RDRendererParams* rp)
         RDRenderer_Text(rp->renderer, "}");
 }
 
-rd_address ARM::pc(rd_address address) const
+rd_address ARM32::pc(rd_address address) const
 {
     /*
      * https://stackoverflow.com/questions/24091566/why-does-the-arm-pc-register-point-to-the-instruction-after-the-next-one-to-be-e
@@ -90,7 +90,7 @@ rd_address ARM::pc(rd_address address) const
     return address + 8;
 }
 
-std::pair<size_t, size_t> ARM::checkWrap() const
+std::pair<size_t, size_t> ARM32::checkWrap() const
 {
     switch(m_insn->id)
     {
@@ -104,9 +104,9 @@ std::pair<size_t, size_t> ARM::checkWrap() const
     return {RD_NVAL, RD_NVAL};
 }
 
-bool ARM::isMemPC(const arm_op_mem& mem) const { return (mem.index == ARM_REG_INVALID) && (mem.base == ARM_REG_PC); }
+bool ARM32::isMemPC(const arm_op_mem& mem) const { return (mem.index == ARM_REG_INVALID) && (mem.base == ARM_REG_PC); }
 
-void ARM::checkFlowFrom(RDEmulateResult* result, int startidx) const
+void ARM32::checkFlowFrom(RDEmulateResult* result, int startidx) const
 {
     auto& arm = this->arm();
 
@@ -120,9 +120,9 @@ void ARM::checkFlowFrom(RDEmulateResult* result, int startidx) const
     }
 }
 
-const cs_arm& ARM::arm() const { return m_insn->detail->arm; }
+const cs_arm& ARM32::arm() const { return m_insn->detail->arm; }
 
-rd_type ARM::mnemonicTheme() const
+rd_type ARM32::mnemonicTheme() const
 {
     auto& arm = this->arm();
 
@@ -136,7 +136,7 @@ rd_type ARM::mnemonicTheme() const
     return Theme_Default;
 }
 
-void ARM::checkFlow(RDEmulateResult* result, int opidx) const
+void ARM32::checkFlow(RDEmulateResult* result, int opidx) const
 {
     auto& arm = this->arm();
     if(opidx >= arm.op_count) return;
@@ -146,7 +146,7 @@ void ARM::checkFlow(RDEmulateResult* result, int opidx) const
         RDEmulateResult_AddReturn(result);
 }
 
-void ARM::processOperands(rd_address address, RDEmulateResult* result) const
+void ARM32::processOperands(rd_address address, RDEmulateResult* result) const
 {
     auto& arm = this->arm();
 
@@ -170,7 +170,7 @@ void ARM::processOperands(rd_address address, RDEmulateResult* result) const
     }
 }
 
-void ARM::renderMemory(const cs_arm& arm, const cs_arm_op& op, const RDRendererParams* rp) const
+void ARM32::renderMemory(const cs_arm& arm, const cs_arm_op& op, const RDRendererParams* rp) const
 {
     RDRenderer_Text(rp->renderer, "[");
 
@@ -194,5 +194,5 @@ void ARM::renderMemory(const cs_arm& arm, const cs_arm_op& op, const RDRendererP
     if(arm.writeback) RDRenderer_Text(rp->renderer, "!");
 }
 
-ARMLE::ARMLE(RDContext* ctx): ARM(ctx, CS_MODE_LITTLE_ENDIAN) { }
-ARMBE::ARMBE(RDContext* ctx): ARM(ctx, CS_MODE_BIG_ENDIAN) { }
+ARM32LE::ARM32LE(RDContext* ctx): ARM32(ctx, CS_MODE_LITTLE_ENDIAN) { }
+ARM32BE::ARM32BE(RDContext* ctx): ARM32(ctx, CS_MODE_BIG_ENDIAN) { }

@@ -5,10 +5,10 @@
 
 #include "../capstone.h"
 
-class ARM: public Capstone
+class ARM32: public Capstone
 {
     public:
-        ARM(RDContext* ctx, cs_mode mode);
+        ARM32(RDContext* ctx, cs_mode mode);
 
     public:
         void emulate(RDEmulateResult* result) override;
@@ -28,5 +28,5 @@ class ARM: public Capstone
         const cs_arm& arm() const;
 };
 
-class ARMLE: public ARM { public: ARMLE(RDContext* ctx); };
-class ARMBE: public ARM { public: ARMBE(RDContext* ctx); };
+class ARM32LE: public ARM32 { public: ARM32LE(RDContext* ctx); };
+class ARM32BE: public ARM32 { public: ARM32BE(RDContext* ctx); };
