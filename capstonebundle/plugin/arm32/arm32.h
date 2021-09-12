@@ -1,7 +1,7 @@
 #pragma once
 
-#define ARMLE_USERDATA    "armle_userdata"
-#define ARMBE_USERDATA    "armbe_userdata"
+#define ARM32LE_USERDATA "arm32le_userdata"
+#define ARM32BE_USERDATA "arm32be_userdata"
 
 #include "../capstone.h"
 

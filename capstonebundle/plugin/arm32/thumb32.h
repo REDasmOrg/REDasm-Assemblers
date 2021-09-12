@@ -1,7 +1,7 @@
 #pragma once
 
-#define THUMBLE_USERDATA    "thumble_userdata"
-#define THUMBBE_USERDATA    "thumbbe_userdata"
+#define THUMB32LE_USERDATA "thumb32le_userdata"
+#define THUMB32BE_USERDATA "thumb32be_userdata"
 
 #include "../capstone.h"
 

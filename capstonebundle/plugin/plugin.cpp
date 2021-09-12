@@ -18,10 +18,10 @@ static void initUserData()
 {
     CS_ITEMS[hashArch(CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN)] = { ARM64LE_USERDATA, [](RDContext* ctx) { return new ARM64LE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM64, CS_MODE_BIG_ENDIAN)] = { ARM64BE_USERDATA, [](RDContext* ctx) { return new ARM64BE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { ARMLE_USERDATA, [](RDContext* ctx) { return new ARM32LE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { ARMBE_USERDATA, [](RDContext* ctx) { return new ARM32BE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMBLE_USERDATA, [](RDContext* ctx) { return new Thumb32LE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN)] = { THUMBBE_USERDATA, [](RDContext* ctx) { return new Thumb32BE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { ARM32LE_USERDATA, [](RDContext* ctx) { return new ARM32LE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { ARM32BE_USERDATA, [](RDContext* ctx) { return new ARM32BE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMB32LE_USERDATA, [](RDContext* ctx) { return new Thumb32LE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN)] = { THUMB32BE_USERDATA, [](RDContext* ctx) { return new Thumb32BE(ctx); } };
 }
 
 template<size_t Arch, size_t Mode>
