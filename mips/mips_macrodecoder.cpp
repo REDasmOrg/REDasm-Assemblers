@@ -36,7 +36,7 @@ void MIPSMacroDecoder::checkLui(MIPSDecodedInstruction* luidecoded, RDBufferView
     };
 
     MIPSDecodedInstruction nextdecoded;
-    RDBufferView_Advance(&view, sizeof(MIPSInstruction));
+    RDBufferView_Move(&view, sizeof(MIPSInstruction));
     if(!MIPSDecoder::decodeOne(&view, &nextdecoded, swapcb)) return;
     if(!MIPSMacroDecoder::canSimplifyLui(luidecoded, &nextdecoded)) return;
 
