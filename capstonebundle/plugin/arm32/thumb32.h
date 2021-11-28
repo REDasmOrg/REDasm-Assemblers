@@ -5,15 +5,13 @@
 
 #include "../capstone.h"
 
-class Thumb32: public Capstone
+class Thumb: public Capstone
 {
     public:
-        Thumb32(RDContext* ctx, cs_mode mode);
-
-    public:
+        Thumb(RDContext* ctx, cs_mode mode);
         void emulate(RDEmulateResult* result) override;
         void render(const RDRendererParams* rp) override;
 };
 
-class Thumb32LE: public Thumb32 { public: Thumb32LE(RDContext* ctx); };
-class Thumb32BE: public Thumb32 { public: Thumb32BE(RDContext* ctx); };
+class ThumbLE: public Thumb { public: ThumbLE(RDContext* ctx); };
+class ThumbBE: public Thumb { public: ThumbBE(RDContext* ctx); };

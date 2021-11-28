@@ -7,3 +7,6 @@
 
 #include "arm32/arm32.h"
 #include "arm32/thumb32.h"
+
+#include "arm/common.h"
+#include "arm/arm.h"

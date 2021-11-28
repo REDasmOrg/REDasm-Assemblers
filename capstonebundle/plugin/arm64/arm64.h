@@ -7,10 +7,8 @@
 
 class ARM64: public Capstone
 {
-    protected:
-        ARM64(RDContext* ctx, cs_mode mode);
-
     public:
+        ARM64(RDContext* ctx, cs_mode mode);
         void emulate(RDEmulateResult* result) override;
         void render(const RDRendererParams* rp) override;
 

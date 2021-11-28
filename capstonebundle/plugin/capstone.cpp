@@ -1,6 +1,8 @@
 #include "capstone.h"
 
-Capstone::Capstone(RDContext* ctx, cs_arch arch, cs_mode mode): m_context(ctx)
+Capstone::Capstone(RDContext* ctx): m_context(ctx), m_document(RDContext_GetDocument(ctx)) { }
+
+Capstone::Capstone(RDContext* ctx, cs_arch arch, cs_mode mode): m_context(ctx), m_document(RDContext_GetDocument(ctx))
 {
     auto err = cs_open(arch, mode, &m_handle);
 
@@ -32,4 +34,8 @@ const cs_insn* Capstone::decode(rd_address address, const RDBufferView* view) co
 }
 
 const char* Capstone::regName(unsigned int reg) const { return cs_reg_name(m_handle, reg); }
+rd_endianness Capstone::endianness() const { return (m_mode & CS_MODE_BIG_ENDIAN) ? Endianness_Big : Endianness_Little; }
+cs_arch Capstone::arch() const { return m_arch; }
+cs_mode Capstone::mode() const { return m_mode; }
+RDContext* Capstone::context() const { return m_context; }
 std::string Capstone::instructionText() const { return std::string(m_insn->mnemonic) + " " + std::string(m_insn->op_str);  }

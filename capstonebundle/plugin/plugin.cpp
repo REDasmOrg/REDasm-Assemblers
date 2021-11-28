@@ -16,12 +16,14 @@ static size_t hashArch(size_t arch, size_t mode)
 
 static void initUserData()
 {
+    CS_ITEMS[hashArch(RD_ARCH_METAARM, CS_MODE_LITTLE_ENDIAN)] = { ARMLE_USERDATA, [](RDContext* ctx) { return new ARMLE(ctx); } };
+    CS_ITEMS[hashArch(RD_ARCH_METAARM, CS_MODE_BIG_ENDIAN)] = { ARMBE_USERDATA, [](RDContext* ctx) { return new ARMBE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN)] = { ARM64LE_USERDATA, [](RDContext* ctx) { return new ARM64LE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM64, CS_MODE_BIG_ENDIAN)] = { ARM64BE_USERDATA, [](RDContext* ctx) { return new ARM64BE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { ARM32LE_USERDATA, [](RDContext* ctx) { return new ARM32LE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { ARM32BE_USERDATA, [](RDContext* ctx) { return new ARM32BE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMB32LE_USERDATA, [](RDContext* ctx) { return new Thumb32LE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN)] = { THUMB32BE_USERDATA, [](RDContext* ctx) { return new Thumb32BE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMB32LE_USERDATA, [](RDContext* ctx) { return new ThumbLE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN)] = { THUMB32BE_USERDATA, [](RDContext* ctx) { return new ThumbBE(ctx); } };
 }
 
 template<size_t Arch, size_t Mode>
@@ -69,6 +71,20 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
 {
     initUserData();
 
+    RD_PLUGIN_ENTRY(RDEntryAssembler, armbe, "ARM (Big Endian)");
+    armbe.emulate = &emulate<RD_ARCH_METAARM, CS_MODE_BIG_ENDIAN>;
+    armbe.renderinstruction = &render<RD_ARCH_METAARM, CS_MODE_BIG_ENDIAN>;
+    armbe.lift = &lift<RD_ARCH_METAARM, CS_MODE_BIG_ENDIAN>;
+    armbe.bits = 64;
+    RDAssembler_Register(pm, &armbe);
+
+    RD_PLUGIN_ENTRY(RDEntryAssembler, armle, "ARM (Little Endian)");
+    armle.emulate = &emulate<RD_ARCH_METAARM, CS_MODE_LITTLE_ENDIAN>;
+    armle.renderinstruction = &render<RD_ARCH_METAARM, CS_MODE_LITTLE_ENDIAN>;
+    armle.lift = &lift<RD_ARCH_METAARM, CS_MODE_LITTLE_ENDIAN>;
+    armle.bits = 64;
+    RDAssembler_Register(pm, &armle);
+
     RD_PLUGIN_ENTRY(RDEntryAssembler, arm64le, "ARM64 (Little Endian)");
     arm64le.emulate = &emulate<CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN>;
     arm64le.renderinstruction = &render<CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN>;
@@ -97,19 +113,19 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
     arm32be.bits = 32;
     RDAssembler_Register(pm, &arm32be);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, thumb32le, "ARM32/THUMB (Little Endian)");
-    thumb32le.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    thumb32le.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    thumb32le.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    thumb32le.bits = 16;
-    RDAssembler_Register(pm, &thumb32le);
+    RD_PLUGIN_ENTRY(RDEntryAssembler, thumble, "THUMB (Little Endian)");
+    thumble.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    thumble.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    thumble.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    thumble.bits = 16;
+    RDAssembler_Register(pm, &thumble);
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, thumb32be, "ARM32/THUMB (Big Endian)");
-    thumb32be.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
-    thumb32be.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
-    thumb32be.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
-    thumb32be.bits = 16;
-    RDAssembler_Register(pm, &thumb32be);
+    RD_PLUGIN_ENTRY(RDEntryAssembler, thumbbe, "THUMB (Big Endian)");
+    thumbbe.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
+    thumbbe.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
+    thumbbe.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN>;
+    thumbbe.bits = 16;
+    RDAssembler_Register(pm, &thumbbe);
 }
 
 void rdplugin_free(RDContext* ctx)
