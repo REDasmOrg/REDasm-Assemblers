@@ -10,8 +10,3 @@
 
 #define ARM_IS_THUMB(address) (address & 1)
 #define ARM_PC(address)       (address & ~1)
-
-enum ARMModes {
-    ARMMode_ARM = 0,
-    ARMMode_Thumb
-};

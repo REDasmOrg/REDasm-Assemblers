@@ -14,6 +14,7 @@ class ARM: public Capstone
         ARM(RDContext* ctx, cs_mode mode);
         void emulate(RDEmulateResult* result) override;
         void render(const RDRendererParams* rp) override;
+        void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) override;
         const cs_insn* decode(rd_address address, const RDBufferView* view) const override;
         const char* regName(unsigned int reg) const override;
 

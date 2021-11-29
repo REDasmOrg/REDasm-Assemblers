@@ -1,5 +1,6 @@
 #include "arm32.h"
 #include "common.h"
+#include "lifter.h"
 
 ARM32::ARM32(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, mode) { }
 
@@ -18,6 +19,8 @@ void ARM32::render(const RDRendererParams* rp)
     auto* insn = this->decode(rp->address, &rp->view);
     if(insn) ARM32Common::render(this, rp, insn);
 }
+
+void ARM32::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { ARM32Lifter::lift(capstone, address, view, il); }
 
 ARM32LE::ARM32LE(RDContext* ctx): ARM32(ctx, CS_MODE_LITTLE_ENDIAN) { }
 ARM32BE::ARM32BE(RDContext* ctx): ARM32(ctx, CS_MODE_BIG_ENDIAN) { }

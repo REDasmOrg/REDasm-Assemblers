@@ -20,6 +20,11 @@ void ARM::render(const RDRendererParams* rp)
     if(insn) m_lastarch->render(rp);
 }
 
+void ARM::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il)
+{
+    if(m_lastarch) m_lastarch->lift(capstone, address, view, il);
+}
+
 const cs_insn* ARM::decode(rd_address address, const RDBufferView* view) const
 {
     const cs_insn* insn = this->checkDecode(m_arm64.get(), address, view);

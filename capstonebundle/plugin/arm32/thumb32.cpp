@@ -1,6 +1,7 @@
 #include "thumb32.h"
-#include "../arm/common.h"
+#include "lifter.h"
 #include "common.h"
+#include "../arm/common.h"
 
 Thumb::Thumb(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, static_cast<cs_mode>(CS_MODE_THUMB | mode)) { }
 
@@ -20,6 +21,8 @@ void Thumb::render(const RDRendererParams* rp)
     auto* insn = this->decode(ARM_PC(rp->address), &rp->view);
     if(insn) ARM32Common::render(this, rp, insn);
 }
+
+void Thumb::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { ARM32Lifter::lift(capstone, address, view, il); }
 
 ThumbLE::ThumbLE(RDContext* ctx): Thumb(ctx, CS_MODE_LITTLE_ENDIAN) { }
 ThumbBE::ThumbBE(RDContext* ctx): Thumb(ctx, CS_MODE_BIG_ENDIAN) { }

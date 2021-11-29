@@ -79,6 +79,11 @@ void ARM64::render(const RDRendererParams* rp)
     }
 }
 
+void ARM64::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il)
+{
+
+}
+
 void ARM64::emulate(RDEmulateResult* result)
 {
     rd_address address = RDEmulateResult_GetAddress(result);

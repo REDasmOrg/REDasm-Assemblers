@@ -61,10 +61,7 @@ template<size_t Arch, size_t Mode>
 static void lift(RDContext* ctx, rd_address address, const RDBufferView* view, RDILFunction* il)
 {
     auto* capstone = getCapstone<Arch, Mode>(ctx);
-    if(!capstone) return;
-
-    auto* lifter = capstone->lifter();
-    if(lifter) lifter->lift(capstone, address, view, il);
+    if(capstone) capstone->lift(capstone, address, view, il);
 }
 
 void rdplugin_init(RDContext*, RDPluginModule* pm)

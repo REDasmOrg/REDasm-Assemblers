@@ -11,6 +11,7 @@ class ARM64: public Capstone
         ARM64(RDContext* ctx, cs_mode mode);
         void emulate(RDEmulateResult* result) override;
         void render(const RDRendererParams* rp) override;
+        void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) override;
 
     private:
         void renderMemory(const cs_arm64& arm64, const cs_arm64_op& op, const RDRendererParams* rp) const;

@@ -18,6 +18,7 @@ class Capstone
         virtual ~Capstone();
         virtual void emulate(RDEmulateResult* result) = 0;
         virtual void render(const RDRendererParams* rp) = 0;
+        virtual void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) = 0;
         virtual const cs_insn* decode(rd_address address, const RDBufferView* view) const;
         virtual const char* regName(unsigned int reg) const;
         rd_endianness endianness() const;

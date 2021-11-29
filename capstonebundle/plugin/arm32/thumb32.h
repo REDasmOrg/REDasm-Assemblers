@@ -11,6 +11,7 @@ class Thumb: public Capstone
         Thumb(RDContext* ctx, cs_mode mode);
         void emulate(RDEmulateResult* result) override;
         void render(const RDRendererParams* rp) override;
+        void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) override;
 };
 
 class ThumbLE: public Thumb { public: ThumbLE(RDContext* ctx); };
