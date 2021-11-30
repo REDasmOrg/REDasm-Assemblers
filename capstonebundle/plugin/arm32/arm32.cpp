@@ -1,6 +1,6 @@
 #include "arm32.h"
 #include "common.h"
-#include "lifter.h"
+#include "arm32_lifter.h"
 
 ARM32::ARM32(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, mode) { }
 

@@ -1,5 +1,5 @@
 #include "thumb32.h"
-#include "lifter.h"
+#include "arm32_lifter.h"
 #include "common.h"
 #include "../arm/common.h"
 
