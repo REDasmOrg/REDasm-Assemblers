@@ -22,22 +22,29 @@ void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_
         case ARM_INS_BLX: {
             if(arm.operands[0].type != ARM_OP_IMM) return;
 
+            if(ARM_IS_THUMB(arm.operands[0].imm))
+                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
+            else
+                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
+
             if(arm.cc != ARM_CC_AL) {
 
             }
-            else {
-                if(ARM_IS_THUMB(arm.operands[0].imm))
-                    RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
-                else
-                    RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
+            else RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm));
 
-                RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm));
-            }
-
-            break;
+            return;
         }
 
-        case ARM_INS_BL: RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm)); return;
+        case ARM_INS_BL: {
+            if(capstone->mode() & CS_MODE_THUMB)
+                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
+            else
+                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
+
+            RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm)); return;
+            return;
+        }
+
         case ARM_INS_LDM: ARM32Common::checkFlowFrom(insn, result, 1); return;
 
         case ARM_INS_POP:
@@ -178,10 +185,7 @@ rd_address ARM32Common::pc(const Capstone* capstone, const cs_insn* insn)
      */
 
     rd_address address = insn->address & ~3ull;
-
-    if(capstone->mode() & CS_MODE_THUMB)
-        return address + (sizeof(u16) * 2);
-
+    if(capstone->mode() & CS_MODE_THUMB) return address + (sizeof(u16) * 2);
     return address + (sizeof(u32) * 2);
 }
 
