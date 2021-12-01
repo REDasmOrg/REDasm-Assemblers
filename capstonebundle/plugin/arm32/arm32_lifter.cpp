@@ -24,10 +24,25 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
             break;
         }
 
+        case ARM_INS_ASR: {
+            auto* op0 = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
+            auto* op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il);
+            auto* op2 = ARM32Lifter::liftOperand(capstone, address, insn, 2, il);
+            e = RDILFunction_COPY(il, op0, RDILFunction_ASR(il, op1, op2));
+            break;
+        }
+
         case ARM_INS_LDR: {
             auto* op0 = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
             auto* op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il);
             e = RDILFunction_COPY(il, op0, op1);
+            break;
+        }
+
+        case ARM_INS_STR: {
+            auto* op0 = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
+            auto* op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il);
+            e = RDILFunction_COPY(il, op1, op0);
             break;
         }
 
@@ -63,13 +78,13 @@ RDILExpression* ARM32Lifter::liftOperand(const Capstone* capstone, rd_address ad
             if((op.mem.base != ARM_REG_INVALID) && (op.mem.base != ARM_REG_PC)) base = RDILFunction_REG(il, sz, capstone->regName(op.mem.base));
             if(op.mem.index != ARM_REG_INVALID) index = RDILFunction_REG(il, sz, capstone->regName(op.mem.index));
 
-            if(ARM32Common::isMemPC(op.mem)) disp = RDILFunction_CNST(il, sz, ARM32Common::pc(address) + op.mem.disp);
-            else disp = RDILFunction_CNST(il, sz, op.mem.disp);
+            if(ARM32Common::isMemPC(op.mem)) disp = RDILFunction_CNST(il, sz, ARM32Common::pc(capstone, insn) + op.mem.disp);
+            else if(op.mem.disp) disp = RDILFunction_CNST(il, sz, op.mem.disp);
 
             if(base && index) e = RDILFunction_MUL(il, base, index);
             else if(base) e = base;
 
-            if(disp && e) e = RDILFunction_ADD(il, e, disp);
+            if(disp && e) e = op.mem.disp > 0 ? RDILFunction_ADD(il, e, disp) : RDILFunction_SUB(il, e, disp);
             else if(disp) e = disp;
 
             if(!e) e = RDILFunction_UNKNOWN(il);

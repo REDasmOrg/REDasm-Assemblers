@@ -19,7 +19,7 @@ void Thumb::emulate(RDEmulateResult* result)
 void Thumb::render(const RDRendererParams* rp)
 {
     auto* insn = this->decode(ARM_PC(rp->address), &rp->view);
-    if(insn) ARM32Common::render(this, rp, insn);
+    if(insn) ARM32Common::render(this, insn, rp);
 }
 
 void Thumb::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { ARM32Lifter::lift(capstone, address, view, il); }

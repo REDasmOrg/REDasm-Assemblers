@@ -17,7 +17,7 @@ void ARM32::emulate(RDEmulateResult* result)
 void ARM32::render(const RDRendererParams* rp)
 {
     auto* insn = this->decode(rp->address, &rp->view);
-    if(insn) ARM32Common::render(this, rp, insn);
+    if(insn) ARM32Common::render(this, insn, rp);
 }
 
 void ARM32::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { ARM32Lifter::lift(capstone, address, view, il); }

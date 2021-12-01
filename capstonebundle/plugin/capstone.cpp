@@ -2,7 +2,7 @@
 
 Capstone::Capstone(RDContext* ctx): m_context(ctx), m_document(RDContext_GetDocument(ctx)) { }
 
-Capstone::Capstone(RDContext* ctx, cs_arch arch, cs_mode mode): m_context(ctx), m_document(RDContext_GetDocument(ctx))
+Capstone::Capstone(RDContext* ctx, cs_arch arch, cs_mode mode): m_context(ctx), m_document(RDContext_GetDocument(ctx)), m_arch(arch), m_mode(mode)
 {
     auto err = cs_open(arch, mode, &m_handle);
 

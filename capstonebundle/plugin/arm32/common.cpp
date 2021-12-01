@@ -37,7 +37,7 @@ void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_
             break;
         }
 
-        case ARM_INS_BL: RDEmulateResult_AddCall(result, arm.operands[0].imm); return;
+        case ARM_INS_BL: RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm)); return;
         case ARM_INS_LDM: ARM32Common::checkFlowFrom(insn, result, 1); return;
 
         case ARM_INS_POP:
@@ -52,10 +52,10 @@ void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_
         default: break;
     }
 
-    ARM32Common::processOperands(arm, address, result);
+    ARM32Common::processOperands(capstone, insn, result);
 }
 
-void ARM32Common::render(Capstone* capstone, const RDRendererParams* rp, const cs_insn* insn)
+void ARM32Common::render(Capstone* capstone, const cs_insn* insn, const RDRendererParams* rp)
 {
     const auto& arm = insn->detail->arm;
     auto [startidx, endidx] = ARM32Common::checkWrap(insn);
@@ -72,7 +72,7 @@ void ARM32Common::render(Capstone* capstone, const RDRendererParams* rp, const c
         switch(op.type)
         {
             case ARM_OP_MEM: {
-                if(ARM32Common::isMemPC(op.mem)) RDRenderer_Reference(rp->renderer, ARM32Common::pc(rp->address) + op.mem.disp); // [pc]
+                if(ARM32Common::isMemPC(op.mem)) RDRenderer_Reference(rp->renderer, ARM32Common::pc(capstone, insn) + op.mem.disp); // [pc]
                 else ARM32Common::renderMemory(capstone, arm, op, rp);
                 break;
             }
@@ -128,11 +128,11 @@ void ARM32Common::checkFlowFrom(const cs_insn* insn, RDEmulateResult* result, in
     }
 }
 
-void ARM32Common::processOperands(const cs_arm& arm, rd_address address, RDEmulateResult* result)
+void ARM32Common::processOperands(Capstone* capstone, const cs_insn* insn, RDEmulateResult* result)
 {
-    for(auto i = 0; i < arm.op_count; i++)
+    for(auto i = 0; i < insn->detail->arm.op_count; i++)
     {
-        const auto& op = arm.operands[i];
+        const auto& op = insn->detail->arm.operands[i];
 
         switch(op.type)
         {
@@ -140,7 +140,7 @@ void ARM32Common::processOperands(const cs_arm& arm, rd_address address, RDEmula
 
             case ARM_OP_MEM: {
                 if(ARM32Common::isMemPC(op.mem))
-                    RDEmulateResult_AddReference(result, ARM32Common::pc(address) + op.mem.disp);
+                    RDEmulateResult_AddReference(result, ARM32Common::pc(capstone, insn) + op.mem.disp);
 
                 break;
             }
@@ -160,16 +160,29 @@ bool ARM32Common::isPC(const cs_insn* insn, int opidx)
            insn->detail->arm.operands[opidx].reg == ARM_REG_PC;
 }
 
-rd_address ARM32Common::pc(rd_address address)
+rd_address ARM32Common::pc(const Capstone* capstone, const cs_insn* insn)
 {
     /*
+     * https://community.arm.com/support-forums/f/architectures-and-processors-forum/4030/i-need-an-explication-to-the-armv6-manual
      * https://stackoverflow.com/questions/24091566/why-does-the-arm-pc-register-point-to-the-instruction-after-the-next-one-to-be-e
+     * https://stackoverflow.com/questions/2102921/strange-behaviour-of-ldr-pc-value
      *
-     * In ARM state:
+     * ARM state:
      *  - The value of the PC is the address of the current instruction plus 8 bytes.
+     *  - Bits [1:0] of this value are always zero, because ARM instructions are always word-aligned.
+     *
+     * THUMB state:
+     *  - The value read is the address of the instruction plus 4 bytes.
+     *  - Bit [0] of this value is always zero, because Thumb instructions are always halfword-aligned.
+     *
      */
 
-    return address + 8;
+    rd_address address = insn->address & ~3ull;
+
+    if(capstone->mode() & CS_MODE_THUMB)
+        return address + (sizeof(u16) * 2);
+
+    return address + (sizeof(u32) * 2);
 }
 
 std::pair<size_t, size_t> ARM32Common::checkWrap(const cs_insn* insn)
