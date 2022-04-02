@@ -7,6 +7,7 @@ ARM32::ARM32(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, mode) { }
 void ARM32::emulate(RDEmulateResult* result)
 {
     rd_address address = RDEmulateResult_GetAddress(result);
+
     RDContext_SetAddressAssembler(m_context, address, this->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
     if(!this->decode(address, RDEmulateResult_GetView(result))) return;
 

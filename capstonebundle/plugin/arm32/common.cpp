@@ -147,7 +147,7 @@ void ARM32Common::processOperands(Capstone* capstone, const cs_insn* insn, RDEmu
 
             case ARM_OP_MEM: {
                 if(ARM32Common::isMemPC(op.mem))
-                    RDEmulateResult_AddReference(result, ARM32Common::pc(capstone, insn) + op.mem.disp);
+                    RDEmulateResult_AddData(result, ARM32Common::pc(capstone, insn) + op.mem.disp);
 
                 break;
             }

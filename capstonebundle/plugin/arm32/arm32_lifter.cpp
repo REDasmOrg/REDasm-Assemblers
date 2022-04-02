@@ -13,11 +13,19 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
         return;
     }
 
-    const auto& arm = insn->detail->arm;
+    //const auto& arm = insn->detail->arm;
     RDILExpression* e = nullptr;
 
     switch(insn->id)
     {
+        case ARM_INS_ADD: {
+            RDILExpression* dst = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
+            RDILExpression* op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il);
+            RDILExpression* op2 = ARM32Lifter::liftOperand(capstone, address, insn, 2, il);
+            e = RDILFunction_COPY(il, dst, RDILFunction_ADD(il, op1, op2));
+            break;
+        }
+
         case ARM_INS_BLX: {
             auto* op = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
             e = RDILFunction_CALL(il, op);
