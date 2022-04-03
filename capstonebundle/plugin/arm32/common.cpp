@@ -65,41 +65,30 @@ void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_
 void ARM32Common::render(Capstone* capstone, const cs_insn* insn, const RDRendererParams* rp)
 {
     const auto& arm = insn->detail->arm;
-    auto [startidx, endidx] = ARM32Common::checkWrap(insn);
-
     RDRenderer_MnemonicWord(rp->renderer, insn->mnemonic, ARM32Common::mnemonicTheme(insn));
 
-    for(size_t i = 0; i < arm.op_count; i++)
+    if(insn->id == ARM_INS_ADD && arm.op_count >= 3 && ARM32Common::isPC(insn, 1) && (arm.operands[2].type == ARM_OP_IMM))
     {
-        if(i) RDRenderer_Text(rp->renderer, ", ");
-        if(startidx == i) RDRenderer_Text(rp->renderer, "{");
+        ARM32Common::renderOperand(capstone, insn, arm.operands[0], rp);
+        RDRenderer_Text(rp->renderer, ", ");
+        RDRenderer_Reference(rp->renderer, ARM32Common::pc(capstone, insn) + arm.operands[2].imm);
+    }
+    else
+    {
+        auto [startidx, endidx] = ARM32Common::checkWrap(insn);
 
-        const auto& op = arm.operands[i];
-
-        switch(op.type)
+        for(size_t i = 0; i < arm.op_count; i++)
         {
-            case ARM_OP_MEM: {
-                if(ARM32Common::isMemPC(op.mem)) RDRenderer_Reference(rp->renderer, ARM32Common::pc(capstone, insn) + op.mem.disp); // [pc]
-                else ARM32Common::renderMemory(capstone, arm, op, rp);
-                break;
-            }
+            if(i) RDRenderer_Text(rp->renderer, ", ");
+            if(startidx == i) RDRenderer_Text(rp->renderer, "{");
 
-            case ARM_OP_REG: RDRenderer_Register(rp->renderer, capstone->regName(op.reg)); break;
-            case ARM_OP_IMM: RDRenderer_Reference(rp->renderer, op.imm); break;
-
-            case ARM_OP_FP: RDRenderer_Text(rp->renderer, "ARM_OP_FP"); break;
-            case ARM_OP_CIMM: RDRenderer_Text(rp->renderer, "ARM_OP_CIMM"); break;
-            case ARM_OP_PIMM: RDRenderer_Text(rp->renderer, "ARM_OP_PIMM"); break;
-            case ARM_OP_SETEND: RDRenderer_Text(rp->renderer, "ARM_OP_SETEND"); break;
-            case ARM_OP_SYSREG: RDRenderer_Text(rp->renderer, "ARM_OP_SYSREG"); break;
-            default: break;
+            ARM32Common::renderOperand(capstone, insn, arm.operands[i], rp);
+            if((endidx - 1) == i) RDRenderer_Text(rp->renderer, "}");
         }
 
-        if((endidx - 1) == i) RDRenderer_Text(rp->renderer, "}");
+        if((startidx != RD_NVAL) && (endidx == RD_NVAL))
+            RDRenderer_Text(rp->renderer, "}");
     }
-
-    if((startidx != RD_NVAL) && (endidx == RD_NVAL))
-    RDRenderer_Text(rp->renderer, "}");
 }
 
 void ARM32Common::renderMemory(Capstone* capstone, const cs_arm& arm, const cs_arm_op& op, const RDRendererParams* rp)
@@ -158,6 +147,30 @@ void ARM32Common::processOperands(Capstone* capstone, const cs_insn* insn, RDEmu
 }
 
 bool ARM32Common::isMemPC(const arm_op_mem& mem) { return (mem.index == ARM_REG_INVALID) && (mem.base == ARM_REG_PC);  }
+
+void ARM32Common::renderOperand(Capstone* capstone, const cs_insn* insn, const cs_arm_op& op, const RDRendererParams* rp)
+{
+    const auto& arm = insn->detail->arm;
+
+    switch(op.type)
+    {
+        case ARM_OP_MEM: {
+            if(ARM32Common::isMemPC(op.mem)) RDRenderer_Reference(rp->renderer, ARM32Common::pc(capstone, insn) + op.mem.disp); // [pc]
+            else ARM32Common::renderMemory(capstone, arm, op, rp);
+            break;
+        }
+
+        case ARM_OP_REG: RDRenderer_Register(rp->renderer, capstone->regName(op.reg)); break;
+        case ARM_OP_IMM: RDRenderer_Reference(rp->renderer, op.imm); break;
+
+        case ARM_OP_FP: RDRenderer_Text(rp->renderer, "ARM_OP_FP"); break;
+        case ARM_OP_CIMM: RDRenderer_Text(rp->renderer, "ARM_OP_CIMM"); break;
+        case ARM_OP_PIMM: RDRenderer_Text(rp->renderer, "ARM_OP_PIMM"); break;
+        case ARM_OP_SETEND: RDRenderer_Text(rp->renderer, "ARM_OP_SETEND"); break;
+        case ARM_OP_SYSREG: RDRenderer_Text(rp->renderer, "ARM_OP_SYSREG"); break;
+        default: break;
+    }
+}
 
 bool ARM32Common::isPC(const cs_insn* insn, int opidx)
 {
