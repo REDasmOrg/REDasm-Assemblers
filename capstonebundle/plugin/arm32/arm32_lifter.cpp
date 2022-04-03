@@ -13,12 +13,6 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
         return;
     }
 
-    if(address == 0xE60)
-    {
-        int zzz = 0;
-        zzz++;
-    }
-
     const auto& arm = insn->detail->arm;
     RDILExpression* e = nullptr;
 
