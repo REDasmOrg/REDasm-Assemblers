@@ -13,6 +13,12 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
         return;
     }
 
+    if(address == 0xE60)
+    {
+        int zzz = 0;
+        zzz++;
+    }
+
     const auto& arm = insn->detail->arm;
     RDILExpression* e = nullptr;
 
@@ -20,16 +26,23 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
     {
         case ARM_INS_ADD: {
             RDILExpression* dst = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
-            RDILExpression *op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il), *op2 = nullptr;
+            RDILExpression* op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il);
 
             if(insn->id == ARM_INS_ADD && arm.op_count >= 3 && ARM32Common::isPC(insn, 1) && (arm.operands[2].type == ARM_OP_IMM))
                 e = RDILFunction_COPY(il, dst, RDILFunction_CNST(il, sizeof(u32), ARM32Common::pc(capstone, insn) + arm.operands[2].imm));
-            else
-            {
-                op2 = ARM32Lifter::liftOperand(capstone, address, insn, 2, il);
+            else if(arm.op_count == 2)
+                e = RDILFunction_COPY(il, dst, RDILFunction_ADD(il, dst, op1));
+            else {
+                auto* op2 = ARM32Lifter::liftOperand(capstone, address, insn, 2, il);
                 e = RDILFunction_COPY(il, dst, RDILFunction_ADD(il, op1, op2));
             }
 
+            break;
+        }
+
+        case ARM_INS_B: {
+            auto* op = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
+            e = RDILFunction_GOTO(il, op);
             break;
         }
 
