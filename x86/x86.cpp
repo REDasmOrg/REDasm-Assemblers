@@ -92,7 +92,10 @@ void X86Assembler::processRefs(ZydisDecodedInstruction* zinstr, rd_address addre
     for(auto i = 0; i < zinstr->operand_count; i++)
     {
         auto calcaddress = X86Assembler::calcAddress(zinstr, i, address);
-        if(calcaddress) RDEmulateResult_AddReference(result, *calcaddress);
+        if(!calcaddress) continue;
+
+        if(zinstr->meta.category == ZYDIS_CATEGORY_BINARY) RDEmulateResult_AddData(result, *calcaddress);
+        else RDEmulateResult_AddReference(result, *calcaddress);
     }
 }
 
