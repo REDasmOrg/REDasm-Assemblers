@@ -40,6 +40,7 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
             break;
         }
 
+        case ARM_INS_BX:
         case ARM_INS_BLX: {
             auto* op = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
             e = RDILFunction_CALL(il, op);
@@ -54,6 +55,7 @@ void ARM32Lifter::lift(const Capstone* capstone, rd_address address, const RDBuf
             break;
         }
 
+        case ARM_INS_MSR:
         case ARM_INS_LDR: {
             auto* op0 = ARM32Lifter::liftOperand(capstone, address, insn, 0, il);
             auto* op1 = ARM32Lifter::liftOperand(capstone, address, insn, 1, il);
@@ -91,8 +93,11 @@ RDILExpression* ARM32Lifter::liftOperand(const Capstone* capstone, rd_address ad
 
     switch(op.type)
     {
-        case ARM_OP_REG: e = RDILFunction_REG(il, sz, capstone->regName(op.reg)); break;
         case ARM_OP_IMM: e = RDILFunction_CNST(il, sz, op.imm); break;
+
+        case ARM_OP_REG:
+        case ARM_OP_SYSREG:
+            e = RDILFunction_REG(il, sz, capstone->regName(op.reg)); break;
 
         case ARM_OP_MEM: {
             RDILExpression *base = nullptr, *index = nullptr, *disp = nullptr;

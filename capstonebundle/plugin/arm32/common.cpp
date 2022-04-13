@@ -6,6 +6,12 @@ void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_
     rd_address address = ARM_PC(RDEmulateResult_GetAddress(result));
     const auto& arm = insn->detail->arm;
 
+    if(address == 0x08000110)
+    {
+        int zzz = 0;
+        zzz++;
+    }
+
     switch(insn->id)
     {
         case ARM_INS_B: {
@@ -162,12 +168,11 @@ void ARM32Common::renderOperand(Capstone* capstone, const cs_insn* insn, const c
 
         case ARM_OP_REG: RDRenderer_Register(rp->renderer, capstone->regName(op.reg)); break;
         case ARM_OP_IMM: RDRenderer_Reference(rp->renderer, op.imm); break;
-
         case ARM_OP_FP: RDRenderer_Text(rp->renderer, "ARM_OP_FP"); break;
         case ARM_OP_CIMM: RDRenderer_Text(rp->renderer, "ARM_OP_CIMM"); break;
         case ARM_OP_PIMM: RDRenderer_Text(rp->renderer, "ARM_OP_PIMM"); break;
         case ARM_OP_SETEND: RDRenderer_Text(rp->renderer, "ARM_OP_SETEND"); break;
-        case ARM_OP_SYSREG: RDRenderer_Text(rp->renderer, "ARM_OP_SYSREG"); break;
+        case ARM_OP_SYSREG: RDRenderer_Register(rp->renderer, capstone->regName(op.reg)); break;
         default: break;
     }
 }
