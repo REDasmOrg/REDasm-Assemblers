@@ -15,6 +15,7 @@ class ARM32Common
         static bool isMemPC(const arm_op_mem& mem);
 
     private:
+        static void renderDereference(rd_location location, const RDRendererParams* rp);
         static void renderOperand(Capstone* capstone, const cs_insn* insn, const cs_arm_op& op, const RDRendererParams* rp);
         static void renderMemory(Capstone* capstone, const cs_arm& arm, const cs_arm_op& op, const RDRendererParams* rp);
         static void checkFlowFrom(const cs_insn* insn, RDEmulateResult* result, int startidx);

@@ -8,5 +8,8 @@
 #define ARM32LE_ID "arm32le"
 #define ARM32BE_ID "arm32be"
 
-#define ARM_IS_THUMB(address) (address & 1)
-#define ARM_PC(address)       (address & ~1)
+template<typename T>
+inline T arm_is_thumb(T address) { return address & 1; }
+
+template<typename T>
+inline T arm_address(T address) { return address & ~1ull; }

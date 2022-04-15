@@ -3,14 +3,8 @@
 
 void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_insn* insn)
 {
-    rd_address address = ARM_PC(RDEmulateResult_GetAddress(result));
+    rd_address address = arm_address(RDEmulateResult_GetAddress(result));
     const auto& arm = insn->detail->arm;
-
-    if(address == 0x08000110)
-    {
-        int zzz = 0;
-        zzz++;
-    }
 
     switch(insn->id)
     {
@@ -28,26 +22,26 @@ void ARM32Common::emulate(Capstone* capstone, RDEmulateResult* result, const cs_
         case ARM_INS_BLX: {
             if(arm.operands[0].type != ARM_OP_IMM) return;
 
-            if(ARM_IS_THUMB(arm.operands[0].imm))
-                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
+            if(arm_is_thumb(arm.operands[0].imm))
+                RDContext_SetAddressAssembler(capstone->context(), arm_address(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
             else
-                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
+                RDContext_SetAddressAssembler(capstone->context(), arm_address(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
 
             if(arm.cc != ARM_CC_AL) {
 
             }
-            else RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm));
+            else RDEmulateResult_AddCall(result, arm_address(arm.operands[0].imm));
 
             return;
         }
 
         case ARM_INS_BL: {
             if(capstone->mode() & CS_MODE_THUMB)
-                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
+                RDContext_SetAddressAssembler(capstone->context(), arm_address(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? THUMBBE_ID : THUMBLE_ID);
             else
-                RDContext_SetAddressAssembler(capstone->context(), ARM_PC(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
+                RDContext_SetAddressAssembler(capstone->context(), arm_address(arm.operands[0].imm), capstone->endianness() == Endianness_Big ? ARM32BE_ID : ARM32LE_ID);
 
-            RDEmulateResult_AddCall(result, ARM_PC(arm.operands[0].imm)); return;
+            RDEmulateResult_AddCall(result, arm_address(arm.operands[0].imm)); return;
             return;
         }
 
@@ -154,6 +148,24 @@ void ARM32Common::processOperands(Capstone* capstone, const cs_insn* insn, RDEmu
 
 bool ARM32Common::isMemPC(const arm_op_mem& mem) { return (mem.index == ARM_REG_INVALID) && (mem.base == ARM_REG_PC);  }
 
+void ARM32Common::renderDereference(rd_location location, const RDRendererParams* rp)
+{
+    auto* doc = RDContext_GetDocument(rp->context);
+    auto flags = RDDocument_GetFlags(doc, location);
+
+    if(flags & AddressFlags_Pointer) {
+        auto loc = RDDocument_Dereference(doc, location);
+
+        if(loc.valid) {
+            RDRenderer_Text(rp->renderer, "=");
+            RDRenderer_Reference(rp->renderer, arm_address(loc.address));
+            return;
+        }
+    }
+
+    RDRenderer_Reference(rp->renderer, location);
+}
+
 void ARM32Common::renderOperand(Capstone* capstone, const cs_insn* insn, const cs_arm_op& op, const RDRendererParams* rp)
 {
     const auto& arm = insn->detail->arm;
@@ -161,13 +173,13 @@ void ARM32Common::renderOperand(Capstone* capstone, const cs_insn* insn, const c
     switch(op.type)
     {
         case ARM_OP_MEM: {
-            if(ARM32Common::isMemPC(op.mem)) RDRenderer_Reference(rp->renderer, ARM32Common::pc(capstone, insn) + op.mem.disp); // [pc]
+            if(ARM32Common::isMemPC(op.mem)) ARM32Common::renderDereference(ARM32Common::pc(capstone, insn) + op.mem.disp, rp); // [pc]
             else ARM32Common::renderMemory(capstone, arm, op, rp);
             break;
         }
 
+        case ARM_OP_IMM: ARM32Common::renderDereference(op.imm, rp); break;
         case ARM_OP_REG: RDRenderer_Register(rp->renderer, capstone->regName(op.reg)); break;
-        case ARM_OP_IMM: RDRenderer_Reference(rp->renderer, op.imm); break;
         case ARM_OP_FP: RDRenderer_Text(rp->renderer, "ARM_OP_FP"); break;
         case ARM_OP_CIMM: RDRenderer_Text(rp->renderer, "ARM_OP_CIMM"); break;
         case ARM_OP_PIMM: RDRenderer_Text(rp->renderer, "ARM_OP_PIMM"); break;

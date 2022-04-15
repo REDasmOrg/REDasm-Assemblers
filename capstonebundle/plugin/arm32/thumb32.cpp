@@ -7,7 +7,7 @@ Thumb::Thumb(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_ARM, static_ca
 
 void Thumb::emulate(RDEmulateResult* result)
 {
-    rd_address address = ARM_PC(RDEmulateResult_GetAddress(result));
+    rd_address address = arm_address(RDEmulateResult_GetAddress(result));
     auto* insn = this->decode(address, RDEmulateResult_GetView(result));
     if(!insn) return;
 
@@ -18,7 +18,7 @@ void Thumb::emulate(RDEmulateResult* result)
 
 void Thumb::render(const RDRendererParams* rp)
 {
-    auto* insn = this->decode(ARM_PC(rp->address), &rp->view);
+    auto* insn = this->decode(arm_address(rp->address), &rp->view);
     if(insn) ARM32Common::render(this, insn, rp);
 }
 
