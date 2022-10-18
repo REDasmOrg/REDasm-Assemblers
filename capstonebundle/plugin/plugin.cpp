@@ -22,6 +22,10 @@ static void initUserData()
     CS_ITEMS[hashArch(CS_ARCH_ARM64, CS_MODE_BIG_ENDIAN)] = { ARM64BE_USERDATA, [](RDContext* ctx) { return new ARM64BE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { ARM32LE_USERDATA, [](RDContext* ctx) { return new ARM32LE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { ARM32BE_USERDATA, [](RDContext* ctx) { return new ARM32BE(ctx); } };
+
+  //  CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { MOS65XXBE_USERDATA, [](RDContext* ctx) { return new MOS65XXBE(ctx); } };
+  //  CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { MOS65XXLE_USERDATA, [](RDContext* ctx) { return new MOS65XXLE(ctx); } };
+    
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMB32LE_USERDATA, [](RDContext* ctx) { return new ThumbLE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN)] = { THUMB32BE_USERDATA, [](RDContext* ctx) { return new ThumbBE(ctx); } };
 }
@@ -109,6 +113,29 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
     arm32be.lift = &lift<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
     arm32be.bits = 32;
     RDAssembler_Register(pm, &arm32be);
+
+    // Editing
+ 
+    /*
+    
+    RD_PLUGIN_ENTRY(RDEntryAssembler, arm32be, "MOS65xxx (Big Endian)");
+    arm32be.emulate = &emulate<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
+    arm32be.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
+    arm32be.lift = &lift<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
+    arm32be.bits = 8;
+    RDAssembler_Register(pm, &arm32be);
+
+
+    RD_PLUGIN_ENTRY(RDEntryAssembler, thumble, "MOS65xxx (Little Endian)");
+    thumble.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    thumble.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    thumble.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    thumble.bits = 8;
+    RDAssembler_Register(pm, &thumble);
+    
+    */
+
+    // Editing Ended
 
     RD_PLUGIN_ENTRY(RDEntryAssembler, thumble, "THUMB (Little Endian)");
     thumble.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;

@@ -10,3 +10,5 @@
 
 #include "arm/common.h"
 #include "arm/arm.h"
+
+#include "../../capstonebundle/capstone/include/capstone/mos65xx.h"
