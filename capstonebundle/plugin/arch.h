@@ -11,5 +11,5 @@
 #include "arm/common.h"
 #include "arm/arm.h"
 
-#include "mos65xx/capstone.h"
 #include "mos65xx/common.h"
+#include "mos65xx/mos65xx.h"

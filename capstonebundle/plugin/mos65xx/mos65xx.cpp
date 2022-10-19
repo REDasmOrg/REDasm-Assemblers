@@ -14,3 +14,9 @@ void MOS65XX::render(const RDRendererParams* rp)
 {
   // You can render instructions here
 }
+
+//ARMLE::ARMLE(RDContext* ctx): ARM(ctx, CS_MODE_LITTLE_ENDIAN) { }
+//ARMBE::ARMBE(RDContext* ctx): ARM(ctx, CS_MODE_BIG_ENDIAN) { }
+
+MOS65XXLE::MOS65XXLE(RDContext* ctx): MOS65XX(ctx, CS_MODE_LITTLE_ENDIAN) { }
+MOS65XXBE::MOS65XXBE(RDContext* ctx): MOS65XX(ctx, CS_MODE_BIG_ENDIAN) { }

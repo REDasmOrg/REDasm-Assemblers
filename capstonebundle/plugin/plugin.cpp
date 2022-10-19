@@ -24,8 +24,8 @@ static void initUserData()
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { ARM32BE_USERDATA, [](RDContext* ctx) { return new ARM32BE(ctx); } };
 
     // Editing
-    CS_ITEMS[hashArch(CS_ARCH_ALL, CS_MODE_LITTLE_ENDIAN)] = { MOS65XXLE_USERDATA, [](RDContext* ctx) { return new MOS65XXLE(ctx); } };
-    CS_ITEMS[hashArch(CS_ARCH_ALL, CS_MODE_BIG_ENDIAN)] = { MOS65XXBE_USERDATA, [](RDContext* ctx) { return new MOS65XXBE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_MOS65XX, CS_MODE_LITTLE_ENDIAN)] = { MOS65XXLE_USERDATA, [](RDContext* ctx) { return new MOS65XXLE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_MOS65XX, CS_MODE_BIG_ENDIAN)] = { MOS65XXBE_USERDATA, [](RDContext* ctx) { return new MOS65XXBE(ctx); } };
     // End Editing
 
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMB32LE_USERDATA, [](RDContext* ctx) { return new ThumbLE(ctx); } };
@@ -119,17 +119,17 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
     // Editing
     
     RD_PLUGIN_ENTRY(RDEntryAssembler, mos65xxbe, "MOS65xxx (Big Endian)");
-    mos65xxbe.emulate = &emulate<CS_ARCH_ALL, CS_MODE_BIG_ENDIAN>;
-    mos65xxbe.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
-    mos65xxbe.lift = &lift<CS_ARCH_ALL, CS_MODE_BIG_ENDIAN>;
+    mos65xxbe.emulate = &emulate<CS_ARCH_MOS65XX, CS_MODE_BIG_ENDIAN>;
+    mos65xxbe.renderinstruction = &render<CS_ARCH_MOS65XX, CS_MODE_BIG_ENDIAN>;
+    mos65xxbe.lift = &lift<CS_ARCH_MOS65XX, CS_MODE_BIG_ENDIAN>;
     mos65xxbe.bits = 8;
     RDAssembler_Register(pm, &mos65xxbe);
 
 
     RD_PLUGIN_ENTRY(RDEntryAssembler, mos65xxle, "MOS65xxx (Little Endian)");
-    mos65xxle.emulate = &emulate<CS_ARCH_ALL, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    mos65xxle.renderinstruction = &render<CS_ARCH_ALL, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    mos65xxle.lift = &lift<CS_ARCH_ALL, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.emulate = &emulate<CS_ARCH_MOS65XX, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.renderinstruction = &render<CS_ARCH_MOS65XX, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.lift = &lift<CS_ARCH_MOS65XX, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
     mos65xxle.bits = 8;
     RDAssembler_Register(pm, &mos65xxle);
     
