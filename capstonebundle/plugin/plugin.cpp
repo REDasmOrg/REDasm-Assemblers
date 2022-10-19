@@ -23,9 +23,11 @@ static void initUserData()
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { ARM32LE_USERDATA, [](RDContext* ctx) { return new ARM32LE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { ARM32BE_USERDATA, [](RDContext* ctx) { return new ARM32BE(ctx); } };
 
-  //  CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_BIG_ENDIAN)] = { MOS65XXBE_USERDATA, [](RDContext* ctx) { return new MOS65XXBE(ctx); } };
-  //  CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN)] = { MOS65XXLE_USERDATA, [](RDContext* ctx) { return new MOS65XXLE(ctx); } };
-    
+    // Editing
+    CS_ITEMS[hashArch(CS_ARCH_ALL, CS_MODE_LITTLE_ENDIAN)] = { MOS65XXLE_USERDATA, [](RDContext* ctx) { return new MOS65XXLE(ctx); } };
+    CS_ITEMS[hashArch(CS_ARCH_ALL, CS_MODE_BIG_ENDIAN)] = { MOS65XXBE_USERDATA, [](RDContext* ctx) { return new MOS65XXBE(ctx); } };
+    // End Editing
+
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN)] = { THUMB32LE_USERDATA, [](RDContext* ctx) { return new ThumbLE(ctx); } };
     CS_ITEMS[hashArch(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_BIG_ENDIAN)] = { THUMB32BE_USERDATA, [](RDContext* ctx) { return new ThumbBE(ctx); } };
 }
@@ -115,25 +117,22 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
     RDAssembler_Register(pm, &arm32be);
 
     // Editing
- 
-    /*
     
-    RD_PLUGIN_ENTRY(RDEntryAssembler, arm32be, "MOS65xxx (Big Endian)");
-    arm32be.emulate = &emulate<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
-    arm32be.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
-    arm32be.lift = &lift<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
-    arm32be.bits = 8;
-    RDAssembler_Register(pm, &arm32be);
+    RD_PLUGIN_ENTRY(RDEntryAssembler, mos65xxbe, "MOS65xxx (Big Endian)");
+    mos65xxbe.emulate = &emulate<CS_ARCH_ALL, CS_MODE_BIG_ENDIAN>;
+    mos65xxbe.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_BIG_ENDIAN>;
+    mos65xxbe.lift = &lift<CS_ARCH_ALL, CS_MODE_BIG_ENDIAN>;
+    mos65xxbe.bits = 8;
+    RDAssembler_Register(pm, &mos65xxbe);
 
 
-    RD_PLUGIN_ENTRY(RDEntryAssembler, thumble, "MOS65xxx (Little Endian)");
-    thumble.emulate = &emulate<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    thumble.renderinstruction = &render<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    thumble.lift = &lift<CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    thumble.bits = 8;
-    RDAssembler_Register(pm, &thumble);
+    RD_PLUGIN_ENTRY(RDEntryAssembler, mos65xxle, "MOS65xxx (Little Endian)");
+    mos65xxle.emulate = &emulate<CS_ARCH_ALL, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.renderinstruction = &render<CS_ARCH_ALL, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.lift = &lift<CS_ARCH_ALL, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.bits = 8;
+    RDAssembler_Register(pm, &mos65xxle);
     
-    */
 
     // Editing Ended
 
