@@ -127,9 +127,9 @@ void rdplugin_init(RDContext*, RDPluginModule* pm)
 
 
     RD_PLUGIN_ENTRY(RDEntryAssembler, mos65xxle, "MOS65xxx (Little Endian)");
-    mos65xxle.emulate = &emulate<CS_ARCH_MOS65XX, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    mos65xxle.renderinstruction = &render<CS_ARCH_MOS65XX, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
-    mos65xxle.lift = &lift<CS_ARCH_MOS65XX, CS_MODE_THUMB | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.emulate = &emulate<CS_ARCH_MOS65XX, CS_MODE_MOS65XX_6502 | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.renderinstruction = &render<CS_ARCH_MOS65XX, CS_MODE_MOS65XX_6502 | CS_MODE_LITTLE_ENDIAN>;
+    mos65xxle.lift = &lift<CS_ARCH_MOS65XX, CS_MODE_MOS65XX_6502 | CS_MODE_LITTLE_ENDIAN>;
     mos65xxle.bits = 8;
     RDAssembler_Register(pm, &mos65xxle);
     
