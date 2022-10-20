@@ -1,10 +1,7 @@
 // mos65xx.cpp
 #include "mos65xx.h"
 
-//MOS65XX::MOS65XX(RDContext* ctx): Capstone(ctx, CS_ARCH_MOS65XX, 0) { }
-
 MOS65XX::MOS65XX(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_MOS65XX, mode) { }
-
 
 void MOS65XX::emulate(RDEmulateResult* result)
 {
@@ -27,6 +24,9 @@ void MOS65XX::render(const RDRendererParams* rp)
   auto* insn = this->decode(rp->address, &rp->view);
 
 }
+
+void MOS65XX::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { MOS65XXLifter::lift(capstone, address, view, il); }
+
 
 //ARMLE::ARMLE(RDContext* ctx): ARM(ctx, CS_MODE_LITTLE_ENDIAN) { }
 //ARMBE::ARMBE(RDContext* ctx): ARM(ctx, CS_MODE_BIG_ENDIAN) { }

@@ -21,5 +21,16 @@ class MOS65XX: public Capstone {
 };
 
 
+class MOS65XXLifter
+{
+    public:
+        MOS65XXLifter() = delete;
+        static void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il);
+
+    private:
+        static RDILExpression* liftOperand(const Capstone* capstone, rd_address address, const cs_insn* insn, size_t idx, const RDILFunction* il);
+};
+
+
 class MOS65XXLE: public MOS65XX { public: MOS65XXLE(RDContext* ctx); };
 class MOS65XXBE: public MOS65XX { public: MOS65XXBE(RDContext* ctx); };
