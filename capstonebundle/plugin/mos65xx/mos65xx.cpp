@@ -25,9 +25,6 @@ void MOS65XX::render(const RDRendererParams* rp)
 
 }
 
-void MOS65XX::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { MOS65XXLifter::lift(capstone, address, view, il); }
-
-
 //ARMLE::ARMLE(RDContext* ctx): ARM(ctx, CS_MODE_LITTLE_ENDIAN) { }
 //ARMBE::ARMBE(RDContext* ctx): ARM(ctx, CS_MODE_BIG_ENDIAN) { }
 

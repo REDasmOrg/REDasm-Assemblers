@@ -17,18 +17,6 @@ class MOS65XX: public Capstone {
     MOS65XX(RDContext* ctx, cs_mode mode);
     void emulate(RDEmulateResult* result) override; // This implements the algorithm (jumps, calls etc)
     void render(const RDRendererParams* rp) override; // This renders instructions visually
-    void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) override;
-};
-
-
-class MOS65XXLifter
-{
-    public:
-        MOS65XXLifter() = delete;
-        static void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il);
-
-    private:
-        static RDILExpression* liftOperand(const Capstone* capstone, rd_address address, const cs_insn* insn, size_t idx, const RDILFunction* il);
 };
 
 
