@@ -6,16 +6,30 @@ MOS65XX::MOS65XX(RDContext* ctx, cs_mode mode): Capstone(ctx, CS_ARCH_MOS65XX, m
 void MOS65XX::emulate(RDEmulateResult* result)
 {
     rd_address address = RDEmulateResult_GetAddress(result);
+    const auto& mos65xx = m_insn->detail->mos65xx;
+
+
     auto* insn = this->decode(address, RDEmulateResult_GetView(result));
     if(!insn) return;
 
     // Instruction is decoded, you can use Capstone API to analyze it
     
-    RDContext_SetAddressAssembler(m_context, address, this->endianness() == Endianness_Big ? MOS65XXBE_ID : MOS65XXLE_ID);
+    // RDContext_SetAddressAssembler(m_context, address, this->endianness() == Endianness_Big ? MOS65XXBE_ID : MOS65XXLE_ID);
     if(!this->decode(address, RDEmulateResult_GetView(result))) return;
 
-    RDEmulateResult_SetSize(result, m_insn->size);
+    RDEmulateResult_SetSize(result, m_insn->size);  // Next time "emulate" is called is after insn->size bytes
 
+     switch(insn->id)
+    {
+      case MOS65XX_INS_BVS: {
+        
+        RDEmulateResult_AddBranch(result, mos65xx.operands[0].imm);
+
+        return;
+      }
+      
+      default: break;
+    }
 }
 
 void MOS65XX::render(const RDRendererParams* rp)
