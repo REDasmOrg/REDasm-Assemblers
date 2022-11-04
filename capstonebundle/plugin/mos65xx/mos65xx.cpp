@@ -36,8 +36,31 @@ void MOS65XX::render(const RDRendererParams* rp)
   // auto* insn = this->decode(rp->address, &rp->view);
 
   const auto& mos65xx = m_insn->detail->mos65xx;
+  RDRenderer_MnemonicWord(rp->renderer, m_insn->mnemonic, MOS65XX::mnemonicTheme(m_insn));
 
 
+}
+
+rd_type MOS65XX::mnemonicTheme(const cs_insn* m_insn)
+{
+  const auto& mos65xx = m_insn->detail->mos65xx;
+
+    // switch(m_insn->id)
+    // {
+    //     case ARM_INS_B: return (arm.cc == ARM_CC_AL) ? Theme_Jump : Theme_JumpCond;
+
+    //     case ARM_INS_BL:
+    //     case ARM_INS_BLX: return Theme_Call;
+
+    //     case ARM_INS_LDR: {
+    //         if(MOS65XX::isPC(insn, 0)) return Theme_Ret;
+    //         break;
+    //     }
+
+    //     default: break;
+    // }
+
+    // return Theme_Default;
 }
 
 void MOS65XX::lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) { MOS65XXLifter::lift(capstone, address, view, il); }

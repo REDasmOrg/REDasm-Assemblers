@@ -12,12 +12,14 @@
 #include "../capstone.h"
 
 class MOS65XX: public Capstone {
-  public:
-    // Capstone(RDContext* ctx); // There is also a "cs_mode" argument, I don't know if this architecture needs it
-    MOS65XX(RDContext* ctx, cs_mode mode);
-    void emulate(RDEmulateResult* result) override; // This implements the algorithm (jumps, calls etc)
-    void render(const RDRendererParams* rp) override; // This renders instructions visually
-    void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) override;
+    public:
+        // Capstone(RDContext* ctx); // There is also a "cs_mode" argument, I don't know if this architecture needs it
+        MOS65XX(RDContext* ctx, cs_mode mode);
+        void emulate(RDEmulateResult* result) override; // This implements the algorithm (jumps, calls etc)
+        void render(const RDRendererParams* rp) override; // This renders instructions visually
+        void lift(const Capstone* capstone, rd_address address, const RDBufferView* view, RDILFunction* il) override;
+    private:
+        static rd_type mnemonicTheme(const cs_insn* insn);
 };
 
 
