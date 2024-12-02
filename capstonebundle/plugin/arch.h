@@ -10,3 +10,5 @@
 
 #include "arm/common.h"
 #include "arm/arm.h"
+
+#include "mos65xx/mos65xx.h"
